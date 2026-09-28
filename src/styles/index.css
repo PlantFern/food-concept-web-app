@@ -1,0 +1,206 @@
+:root {
+
+    --font-size: 16px;
+
+    --indent-4: 0.25rem;
+    --indent-8: 0.5rem;
+    --indent-12: 0.75rem;
+    --indent-16: 1rem;
+    --indent-24: 1.5rem;
+    --indent-32: 2rem;
+    --indent-40: 2.5rem;
+    --indent-48: 3rem;
+    --indent-56: 3.5rem;
+    --indent-64: 4rem;
+
+
+    --primary-color: #f9f9f9;
+
+    --secondary-color: #1a5632;
+    --secondary-color-dark: #124325;
+    --secondary-color-darker: #092514;
+    --secondary-color-light: #2e8b57;
+
+    --accent-color: #f6c2ea;
+    --accent-color-dark: #d692c6;
+    --accent-color-light: #ffe5f8;
+
+
+    --primary-color-background: var(--primary-color);
+    --primary-color-border: #cdc5c9;
+    --primary-color-surface: #ffffff;
+
+    --primary-cta: var(--secondary-color);
+    --primary-cta-invert: var(--primary-color);
+    --primary-cta-hover: var(--secondary-color-dark);
+    --primary-cta-invert-hover: var(--primary-color);
+
+    --text-color: var(--secondary-color-darker);
+    --text-color-muted: rgba( var(--secondary-color-darker), 0.8);
+    --text-color-invert: var(--primary-color);
+    --text-color-invert-muted: rgba( var(--primary-color), 0.8);
+
+
+    --danger-color: #E74C3C ;
+    --warning-color: #F39C12 ;
+    --success-color: #2ECC71 ;
+    --info-color: #3498DB ;
+}
+
+[data-theme="dark"] {
+}
+
+body {
+    font-size: var(--font-size);
+    margin: 0;
+    min-height: 100vh;
+}
+
+.navbar .nav-link.active{
+    font-weight: 600;
+    text-decoration: underline;
+}
+
+.btn {
+    padding: 0.75rem 1rem;
+    text-decoration: none;
+    transition: background 0.15s, transform 0.05s, color 0.15s;
+}
+
+.btn-primary {
+    background: var(--primary-cta);
+    border: none;
+    color: var(--primary-cta-invert);
+    font-weight: 500;
+    padding: 0.75rem 1rem;
+    transition: background 0.15s, transform 0.05s;
+}
+
+.btn-primary:hover:not(:disabled) {
+    background: var(--primary-cta-hover);
+    color: var(--primary-cta-invert);
+}
+
+.btn-primary:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+}
+
+
+.btn-secondary {
+    background: transparent;
+    border: 1px var(--primary-cta) solid;
+    color: var(--primary-cta);
+    font-weight: 400;
+    transition: background 0.15s, transform 0.05s;
+}
+
+.btn-secondary:hover:not(:disabled) {
+    background: var(--primary-cta);
+    border-color: var(--primary-cta-hover);
+    color: var(--primary-cta-invert);
+}
+
+.btn-secondary:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+}
+
+.btn-tertiary {
+    background: transparent;
+    border: none;
+    color: var(--primary-cta);
+    font-weight: 500;
+    text-decoration: underline;
+    transition: background 0.15s, transform 0.05s;
+}
+
+.btn-tertiary-invert {
+    color: var(--primary-cta-invert) !important;
+}
+
+.btn-tertiary:hover:not(:disabled) {
+    color: var(--primary-cta-invert-hover) !important;
+}
+
+.btn-tertiary:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+}
+
+.btn-link {
+    color: var(--primary-cta);
+    text-decoration: underline;
+}
+
+.btn-link:hover {
+    color: rgba( var(--primary-cta), 0.8);
+    text-decoration: underline;
+}
+
+.btn-link {
+    color: var(--primary-cta);
+    text-decoration: underline;
+}
+
+.btn-link:hover {
+    color: rgba( var(--primary-cta), 0.8);
+    text-decoration: underline;
+}
+
+
+.bg-secondary-color {
+    background: linear-gradient(to top, var(--secondary-color), var(--secondary-color-dark)) !important;
+    color: var(--primary-cta-invert);
+}
+
+.bg-secondary-color .btn .btn-link {
+    color: var(--primary-cta-invert);
+}
+.bg-secondary-color .btn:hover .btn-link:hover {
+    color: var(--primary-cta-invert-hover);
+}
+
+.bg-primary-color {
+    background: var(--primary-color);
+    color: var(--text-color);
+}
+
+
+.form-card {
+
+    width: 100%;
+    padding: var(--indent-24);
+}
+
+.form-card-body {
+
+    width: 100%;
+    padding: var(--indent-24);
+}
+
+.label {
+    font-weight: 500;
+    color: var(--text-color);
+}
+
+.input {
+    border: 1px solid var(--primary-color-border);
+    padding: var(--indent-12);
+    background: var(--primary-color);
+    transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.input:focus {
+    border-color: var(--success-color);
+    outline: none;
+}
+
+.input.is-invalid {
+    border-color: var(--danger-color);
+}
+
+.form-alert {
+    border-radius: 12px;
+    font-size: 0.9rem;
+}
