@@ -41,13 +41,11 @@ export async function loginRequest({ email, password }: LoginPayload): Promise<v
 }
 
 export async function registerRequest({ email, password }: RegisterPayload): Promise<void> {
-    const body = new URLSearchParams()
-    body.set('email', email)
-    body.set('password', password)
-
-    await axios.post(`${API_BASE_URE}/registration`, body, {
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    })
+    await axios.post(
+        `${API_BASE_URE}/registration`,
+        { email, password, login: null },
+        { headers: { 'Content-Type': 'application/json' } },
+    )
 }
 
 export function logoutLocal(): void {

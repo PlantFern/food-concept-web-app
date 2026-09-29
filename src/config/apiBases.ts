@@ -17,21 +17,22 @@ export function getBaseUrlByEnv(env: AppEnvironment): string {
 
     const entry = API_BASES.find(entry => entry.env === env);
     if (!entry) {
-        console.warn(`[apiBases] Unknown env "${env}, fallback to development": ${env}`);
+        console.warn(`[apiBases] Unknown env "${env}", fallback to development`);
         return API_BASES[0].baseUrl;
     }
     return entry.baseUrl;
 }
 
 export function resolveApiBaseUrl(): string {
+    // Explicit backend URL (preferred)
+    const fromUrl = import.meta.env.VITE_API_BASE_URL?.trim()
+    if (fromUrl) {
+        return fromUrl.replace(/\/$/, '')
+    }
 
-    const override = import.meta.env.VITE_APP_ENV?.trim();
-
-    if (override)
-        return override.replace(/\/$/, '')
-
-    const env = (import.meta.env.VITE_APP_ENV as AppEnvironment) || 'development';
-    return getBaseUrlByEnv(env);
+    // Env name → lookup in API_BASES (not the string "development" as URL)
+    const env = (import.meta.env.VITE_APP_ENV as AppEnvironment) || 'development'
+    return getBaseUrlByEnv(env).replace(/\/$/, '')
 }
 
 export const API_BASE_URE = resolveApiBaseUrl();
