@@ -9,7 +9,7 @@ export function StartPage(){
                             justify-content-between
                             align-content-start
                             form-card
-                            bg-secondary-color
+                            bg-brand
                             rounded-md-5
                             vh-100 overflow-y-auto">
                 <div className="d-flex flex-column flex-grow-1
@@ -24,7 +24,7 @@ export function StartPage(){
                                 align-items-stretch
                                 justify-content-end
                                 gap-4 flex-grow-1
-                                bg-primary-color
+                                bg-page
                                 rounded-3
                                     text-center">
                         <div className="d-flex">

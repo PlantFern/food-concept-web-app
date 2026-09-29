@@ -32,7 +32,7 @@ export function LoginPage() {
                             justify-content-start align-items-start
                             align-content-start
                             form-card
-                            bg-secondary-color
+                            bg-brand
                             rounded-md-5
                             vh-100 overflow-y-auto">
                 <div className="d-flex w-100
@@ -47,7 +47,7 @@ export function LoginPage() {
 
                 <div className="form-card-body
                                 d-flex flex-column gap-4
-                                bg-primary-color
+                                bg-page
                                 rounded-3">
                     <div className="d-flex
                                     flex-column
