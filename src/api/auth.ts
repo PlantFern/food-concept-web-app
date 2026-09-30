@@ -1,6 +1,7 @@
 import axios from 'axios'
 import { http } from '@/api/http'
 import { API_BASE_URE } from '@/config/apiBases'
+import {clearOnboardingProfile} from "@/api/onboarding.ts";
 
 export type LoginPayload = {
     email: string
@@ -49,9 +50,11 @@ export async function registerRequest({ email, password }: RegisterPayload): Pro
 }
 
 export function logoutLocal(): void {
-    localStorage.removeItem('fd_auth_email')
-    localStorage.removeItem('fd_auth_password')
-    delete http.defaults.auth
+    localStorage.removeItem('fd_auth_email');
+    localStorage.removeItem('fd_auth_password');
+    localStorage.removeItem('fd_diary_Profile_id');
+    clearOnboardingProfile();
+    delete http.defaults.auth;
 }
 
 export function restoreAuthFromStorage(): void {

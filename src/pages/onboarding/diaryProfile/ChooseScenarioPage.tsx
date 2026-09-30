@@ -1,18 +1,34 @@
 import {NavigateBackButton} from "@/components/ui/NavigateBackButton";
+import {useNavigate} from "react-router-dom";
 
 
 export function ChooseScenarioPage() {
 
-    const handleGoalManual = () => {
+    const navigate = useNavigate();
 
+    type Scenario = 'auto' | 'manual' | 'skip';
+
+    const SCENARIO_KEY = 'fd_onboarding_scenario';
+
+    function saveScenario(scenario: Scenario) {
+        sessionStorage.setItem(SCENARIO_KEY, scenario);
+    }
+
+    function goTo(scenario: Scenario) {
+        saveScenario(scenario);
+        navigate(`/onboarding/profile-setup?scenario=${scenario}`);
+    }
+
+    const handleGoalManual = () => {
+        goTo('manual')
     }
 
     const handleGoalAuto = () => {
-
+        goTo('auto')
     }
 
     const handleSkipGoal = () => {
-
+        goTo('skip')
     }
 
 
