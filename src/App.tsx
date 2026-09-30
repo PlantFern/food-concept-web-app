@@ -4,6 +4,7 @@ import { RegisterPage } from '@/pages/auth/RegisterPage';
 import { LoginPage } from '@/pages/auth/LoginPage';
 import { StartPage } from "@/pages/auth/StartPage.tsx";
 import { ChooseRolePage } from '@/pages/onboarding/ChooseRolePage';
+import {ChooseScenarioPage} from "@/pages/onboarding/diaryProfile/ChooseScenarioPage.tsx";
 
 
 function App() {
@@ -17,6 +18,7 @@ function App() {
                     <Route path = "/register" element={<RegisterPage />}/>
 
                     <Route path="/onboarding/role" element={<ChooseRolePage />} />
+                    <Route path="/onboarding/scenario" element={<ChooseScenarioPage />} />
                     <Route path = "*" element={<ErrorPage code={404} />}/>
                 </Routes>
             </BrowserRouter>
