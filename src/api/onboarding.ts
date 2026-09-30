@@ -4,7 +4,7 @@ import { http } from '@/api/http'
 export type ProfileDataPayload = {
     height: number
     birthDate: string // YYYY-MM-DD
-    genderCode: number
+    genderId: number
 };
 
 export type ActivityLevel =
