@@ -24,13 +24,12 @@ export function getBaseUrlByEnv(env: AppEnvironment): string {
 }
 
 export function resolveApiBaseUrl(): string {
-    // Explicit backend URL (preferred)
+
     const fromUrl = import.meta.env.VITE_API_BASE_URL?.trim()
     if (fromUrl) {
         return fromUrl.replace(/\/$/, '')
     }
 
-    // Env name → lookup in API_BASES (not the string "development" as URL)
     const env = (import.meta.env.VITE_APP_ENV as AppEnvironment) || 'development'
     return getBaseUrlByEnv(env).replace(/\/$/, '')
 }
