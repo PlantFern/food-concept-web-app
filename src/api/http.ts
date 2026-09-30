@@ -1,4 +1,4 @@
-import {restoreAuthFromStorage} from "@/api/auth.ts";
+import {logoutLocal, restoreAuthFromStorage} from "@/api/auth.ts";
 import axios from "axios";
 import {API_BASE_URE} from "@/config/apiBases.ts";
 
@@ -24,6 +24,15 @@ http.interceptors.response.use(
 http.interceptors.response.use(
     (response) => response,
     (error) => {
+        if(error.response?.status === 401) {
+            logoutLocal();
+
+            const path = window.location.pathname;
+            if(path!=='/login' && path !== '/register' && path !== 'get-start'){
+                window.location.href = '/login';
+            }
+        }
+
         return Promise.reject(error);
     }
 )
