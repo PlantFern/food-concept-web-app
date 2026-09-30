@@ -6,6 +6,8 @@ import { StartPage } from "@/pages/auth/StartPage.tsx";
 import { ChooseRolePage } from '@/pages/onboarding/ChooseRolePage';
 import { DiaryProfileSetupPage } from '@/pages/onboarding/diaryProfile/DiaryProfileSetupPage';
 import { GoalManualPage } from '@/pages/onboarding/diaryProfile/GoalManualPage';
+import { GoalAutoPage } from '@/pages/onboarding/diaryProfile/GoalAutoPage';
+import { DiaryHomePage } from '@/pages/diary/DiaryHomePage';
 import {ChooseScenarioPage} from "@/pages/onboarding/diaryProfile/ChooseScenarioPage.tsx";
 import {LogoutPage} from "@/pages/auth/LogoutPage.tsx";
 
@@ -25,6 +27,7 @@ function App() {
                     <Route path="/onboarding/scenario" element={<ChooseScenarioPage />} />
                     <Route path="/onboarding/profile-setup" element={<DiaryProfileSetupPage />} />
                     <Route path="/onboarding/diary/goal-manual" element={<GoalManualPage />} />
+                    <Route path="/onboarding/diary/goal-auto" element={<GoalAutoPage />} />
 
                     <Route path="/diary" element={<DiaryHomePage />} />
                     <Route path="/diary/relations" element={<DiaryHomePage />} />
