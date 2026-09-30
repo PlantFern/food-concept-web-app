@@ -92,7 +92,7 @@ body {
     color: var(--text);
 }
 
-.navbar .nav-link.active {
+.navbar .nav-link.active{
     font-weight: 600;
     text-decoration: underline;
 }
@@ -200,6 +200,7 @@ body {
     color: var(--text);
 }
 
+
 .form-card {
     width: 100%;
     padding: var(--indent-24);
@@ -258,4 +259,29 @@ body {
     background: var(--info-bg);
     border-color: var(--info-border);
     color: var(--info-fg);
+}
+
+
+.choice-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-default);
+    color: var(--text);
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
+}
+
+.choice-card:hover {
+    border-color: var(--brand);
+    background: var(--accent-soft);
+}
+
+.choice-card.is-selected {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+    box-shadow: 0 0 0 1px var(--brand);
+}
+
+.choice-card:focus-visible {
+    outline: 2px solid var(--border-focus);
+    outline-offset: 2px;
 }
