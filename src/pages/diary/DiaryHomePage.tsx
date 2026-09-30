@@ -10,7 +10,7 @@ import {
     BottomNav,
     DateNav,
     KcalGauge,
-    MacroRing,
+    MacroBar,
     MealSection,
     SleepCard,
     WeightCard,
@@ -29,6 +29,14 @@ function nutrientColor(code: string): string {
     if (c.includes('FAT') || c === 'FAT') return '#f39c12'
     if (c.includes('CARB') || c === 'CARBS' || c === 'CARBOHYDRATE') return '#2ecc71'
     return '#95a5a6'
+}
+
+function nutrientLabel(code: string): string {
+    const c = code.toUpperCase()
+    if (c.includes('PROTEIN')) return 'protein'
+    if (c.includes('FAT')) return 'fat'
+    if (c.includes('CARB')) return 'carbs'
+    return code.toLowerCase()
 }
 
 function pickTemplatesForSection(
@@ -135,13 +143,9 @@ export function DiaryHomePage() {
             t.nutrientCode?.toUpperCase() !== day?.primaryNutrientCode?.toUpperCase(),
     )
 
-    const macroSlices = secondary.slice(0, 3).map((t) => ({
-        key: t.nutrientCode.toLowerCase().includes('prot')
-            ? ('protein' as const)
-            : t.nutrientCode.toLowerCase().includes('fat')
-              ? ('fat' as const)
-              : ('carbs' as const),
-        label: t.nutrientCode.toLowerCase(),
+    const macroItems = secondary.slice(0, 3).map((t) => ({
+        key: t.nutrientCode,
+        label: nutrientLabel(t.nutrientCode),
         value: Math.max(t.factAmount ?? 0, 0),
         color: nutrientColor(t.nutrientCode),
     }))
@@ -162,12 +166,10 @@ export function DiaryHomePage() {
                         current={primary?.factAmount ?? 0}
                         goal={primary?.targetAmount ?? 0}
                     />
-                    {macroSlices.length > 0 ? (
-                        <MacroRing slices={macroSlices} />
+                    {macroItems.length > 0 ? (
+                        <MacroBar items={macroItems} />
                     ) : (
-                        <div className="macro-ring-block text-on-brand-muted">
-                            <span className="small opacity-75">Нет целей БЖУ</span>
-                        </div>
+                        <p className="macro-bar-empty">Нет данных БЖУ</p>
                     )}
                 </div>
 

@@ -1,4 +1,6 @@
 export { KcalGauge } from './KcalGauge'
+export { MacroBar } from './MacroBar'
+export type { MacroBarItem } from './MacroBar'
 export { MacroRing } from './MacroRing'
 export type { MacroSlice } from './MacroRing'
 export { DateNav } from './DateNav'

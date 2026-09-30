@@ -21,8 +21,8 @@ export function KcalGauge({ current, goal }: KcalGaugeProps) {
                 borderWidth: 0,
                 circumference: 180,
                 rotation: 270,
-                cutout: '78%',
-                borderRadius: 10,
+                cutout: '74%',
+                borderRadius: 12,
             },
         ],
     }
