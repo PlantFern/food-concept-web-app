@@ -23,6 +23,15 @@ export function ChooseScenarioPage() {
                             align-content-start
                             rounded-md-5
                             vh-100 overflow-y-auto">
+                <div className="d-flex w-100
+                                    flex-column gap-2
+                                    align-items-start justify-content-center
+                                    align-content-stretch
+                                    flex-grow-0">
+                    <div className="text-start">
+                        <NavigateBackButton label="Назад" className="btn-tertiary"/>
+                    </div>
+                </div>
                 <div className="form-card-body
                                 d-flex flex-column gap-4
                                 bg-primary-color
