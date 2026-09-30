@@ -1,44 +1,28 @@
 import { NavLink } from 'react-router-dom'
-import { HiHome, HiChartBar, HiUser } from 'react-icons/hi2'
-import { IoAdd } from 'react-icons/io5'
+import { HiOutlineUserGroup, HiOutlineChartBar, HiOutlineUser, HiOutlineCog6Tooth } from 'react-icons/hi2'
+
+const items = [
+    { to: '/diary/relations', label: 'Relations', icon: HiOutlineUserGroup },
+    { to: '/diary/stats', label: 'Statistic', icon: HiOutlineChartBar },
+    { to: '/diary/profile', label: 'Account', icon: HiOutlineUser },
+    { to: '/diary/settings', label: 'Settings', icon: HiOutlineCog6Tooth },
+] as const
 
 export function BottomNav() {
     return (
         <nav className="bottom-nav" aria-label="Основное меню">
-            <NavLink
-                to="/diary"
-                end
-                className={({ isActive }) =>
-                    `bottom-nav-item ${isActive ? 'is-active' : ''}`
-                }
-            >
-                <HiHome />
-                <span>Home</span>
-            </NavLink>
-
-            <NavLink
-                to="/diary/stats"
-                className={({ isActive }) =>
-                    `bottom-nav-item ${isActive ? 'is-active' : ''}`
-                }
-            >
-                <HiChartBar />
-                <span>Stats</span>
-            </NavLink>
-
-            <button type="button" className="bottom-nav-fab" aria-label="Добавить приём">
-                <IoAdd size={26} />
-            </button>
-
-            <NavLink
-                to="/diary/profile"
-                className={({ isActive }) =>
-                    `bottom-nav-item ${isActive ? 'is-active' : ''}`
-                }
-            >
-                <HiUser />
-                <span>Profile</span>
-            </NavLink>
+            {items.map(({ to, label, icon: Icon }) => (
+                <NavLink
+                    key={to}
+                    to={to}
+                    className={({ isActive }) =>
+                        `bottom-nav-item ${isActive ? 'is-active' : ''}`
+                    }
+                >
+                    <Icon />
+                    <span>{label}</span>
+                </NavLink>
+            ))}
         </nav>
     )
 }

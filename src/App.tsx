@@ -22,8 +22,10 @@ function App() {
                     <Route path="/onboarding/scenario" element={<ChooseScenarioPage />} />
 
                     <Route path="/diary" element={<DiaryHomePage />} />
+                    <Route path="/diary/relations" element={<DiaryHomePage />} />
                     <Route path="/diary/stats" element={<DiaryHomePage />} />
                     <Route path="/diary/profile" element={<DiaryHomePage />} />
+                    <Route path="/diary/settings" element={<DiaryHomePage />} />
 
                     <Route path = "*" element={<ErrorPage code={404} />}/>
                 </Routes>

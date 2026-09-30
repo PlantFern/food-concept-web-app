@@ -17,19 +17,12 @@ export function KcalGauge({ current, goal }: KcalGaugeProps) {
         datasets: [
             {
                 data: [filled, rest],
-                backgroundColor: [
-                    getComputedStyle(document.documentElement)
-                        .getPropertyValue('--nutrient-kcal-fill')
-                        .trim() || '#f6c2ea',
-                    getComputedStyle(document.documentElement)
-                        .getPropertyValue('--nutrient-kcal-track')
-                        .trim() || 'rgba(255,255,255,0.28)',
-                ],
+                backgroundColor: ['#f6c2ea', 'rgba(255,255,255,0.28)'],
                 borderWidth: 0,
                 circumference: 180,
                 rotation: 270,
                 cutout: '78%',
-                borderRadius: 12,
+                borderRadius: 10,
             },
         ],
     }
@@ -48,7 +41,7 @@ export function KcalGauge({ current, goal }: KcalGaugeProps) {
             <Doughnut data={data} options={options} />
             <div className="kcal-gauge-center">
                 <div className="kcal-gauge-value">{Math.round(current)}</div>
-                <div className="kcal-gauge-label">of {Math.round(goal)} kcal</div>
+                <div className="kcal-gauge-label">/ {Math.round(goal)} kcal</div>
             </div>
         </div>
     )

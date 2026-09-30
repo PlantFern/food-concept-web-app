@@ -1,104 +1,115 @@
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import {
     BottomNav,
-    DayStrip,
+    DateNav,
     KcalGauge,
-    MealCard,
-    NutrientBars,
-    type DayItem,
+    MacroRing,
+    MealSection,
+    SleepCard,
+    TemplateBlock,
+    WeightCard,
 } from '@/components/diary'
 
-function buildWeekDays(anchor = new Date()): DayItem[] {
-    const labels = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su']
-    const start = new Date(anchor)
-    const day = (start.getDay() + 6) % 7
-    start.setDate(start.getDate() - day)
-
-    return labels.map((label, i) => {
-        const d = new Date(start)
-        d.setDate(start.getDate() + i)
-        const id = d.toISOString().slice(0, 10)
-        const dateLabel = d.toLocaleDateString('en-GB', {
-            day: 'numeric',
-            month: 'short',
-        })
-        return { id, label, dateLabel }
-    })
+const MOCK = {
+    kcal: { current: 0, goal: 2000 },
+    macros: [
+        { key: 'protein' as const, label: 'protein', value: 45, color: '#3498db' },
+        { key: 'carbs' as const, label: 'carbs', value: 120, color: '#2ecc71' },
+        { key: 'fat' as const, label: 'fat', value: 35, color: '#f39c12' },
+    ],
+    breakfast: [
+        { id: 'b1', name: 'Какое-то название продукта', amount: '100гр.', kcal: 84 },
+        { id: 'b2', name: 'Ну я не знаю', amount: '2 x 50гр.', kcal: 84 },
+        { id: 'b3', name: 'Тилапия', amount: '1 x 2 x 100гр.', kcal: 84 },
+        { id: 'b4', name: 'Да', amount: '1 x 2 x 100гр.', kcal: 84 },
+    ],
+    lunch: [
+        { id: 'l1', name: 'Ну вот что-то поела да', amount: '1 x 2 x 100гр.', kcal: 84 },
+        { id: 'l2', name: 'Какое-то название продукта', amount: '1 x 2 x 100гр.', kcal: 84 },
+        { id: 'l3', name: 'Какое-то название продукта', amount: '1 x 2 x 100гр.', kcal: 84 },
+    ],
+    lunchNote: 'Допустим я что-то тут да и пишу мммм… Допустим да, а как это выглядит то',
+    snack: [
+        { id: 's1', name: 'Какое-то название продукта', amount: '1 x 2 x 100гр.', kcal: 84 },
+        { id: 's2', name: 'Какое-то название продукта', amount: '1 x 2 x 100гр.', kcal: 84 },
+        { id: 's3', name: 'Какое-то название продукта', amount: '1 x 2 x 100гр.', kcal: 84 },
+        { id: 's4', name: 'Да', amount: '1 x 2 x 100гр.', kcal: 84 },
+    ],
+    template: {
+        title: 'Допустим тут написано, что это за шаблон',
+        totalKcal: 354.05,
+        items: [
+            { id: 't1', name: 'Да', amount: '100гр.', kcal: 84 },
+            { id: 't2', name: 'Нет', amount: '2 x 100гр.', kcal: 120 },
+            { id: 't3', name: 'Не знаю', amount: '100гр.', kcal: 150.05 },
+        ],
+    },
+    dinner: [
+        { id: 'd1', name: 'Какое-то название продукта', amount: '1 x 2 x 100гр.', kcal: 84 },
+        { id: 'd2', name: 'Какое-то название продукта', amount: '1 x 2 x 100гр.', kcal: 84 },
+        { id: 'd3', name: 'Какое-то название продукта', amount: '1 x 2 x 100гр.', kcal: 84 },
+        { id: 'd4', name: 'Да', amount: '1 x 2 x 100гр.', kcal: 84 },
+    ],
+    weight: { kg: 64, updatedAt: '20.09.2026' },
+    sleep: [
+        { id: 'sl1', start: '22:00', end: '08:30' },
+        { id: 'sl2', start: '18:30', end: '—' },
+        { id: 'sl3', start: '23:00', end: '—' },
+    ],
 }
 
-const MOCK_MEALS = [
-    {
-        title: 'Breakfast',
-        totalKcal: 420,
-        items: [
-            { name: 'Oatmeal with berries', kcal: 280 },
-            { name: 'Green tea', kcal: 0 },
-            { name: 'Yogurt', kcal: 140 },
-        ],
-    },
-    {
-        title: 'Lunch',
-        totalKcal: 560,
-        items: [
-            { name: 'Grilled chicken salad', kcal: 380 },
-            { name: 'Buckwheat', kcal: 180 },
-        ],
-    },
-    {
-        title: 'Snack',
-        totalKcal: 270,
-        items: [{ name: 'Apple & peanut butter', kcal: 270 }],
-    },
-]
-
 export function DiaryHomePage() {
-    const days = useMemo(() => buildWeekDays(), [])
-    const todayId = new Date().toISOString().slice(0, 10)
-    const initial =
-        days.find((d) => d.id === todayId)?.id ?? days[Math.min(days.length - 1, 3)]?.id ?? ''
-    const [activeDay, setActiveDay] = useState(initial)
+    const [date, setDate] = useState(() => new Date(2026, 8, 2))
+    const [statsPage, setStatsPage] = useState(0)
 
-    const kcalCurrent = 1250
-    const kcalGoal = 1600
+    function shiftDay(delta: number) {
+        setDate((prev) => {
+            const next = new Date(prev)
+            next.setDate(prev.getDate() + delta)
+            return next
+        })
+    }
 
     return (
         <div className="diary-shell">
-            <header className="diary-header">
-                <h1 className="diary-header-title">Your stats</h1>
-                <p className="diary-header-sub">Nutrients for the selected day</p>
-            </header>
+            <header className="stats-header">
+                <DateNav date={date} onPrev={() => shiftDay(-1)} onNext={() => shiftDay(1)} />
 
-            <section className="stats-card" aria-label="Дневная статистика">
-                <DayStrip days={days} activeId={activeDay} onSelect={setActiveDay} />
-
-                <KcalGauge current={kcalCurrent} goal={kcalGoal} />
-
-                <NutrientBars
-                    items={[
-                        { key: 'protein', label: 'Protein', current: 72, goal: 110 },
-                        { key: 'fat', label: 'Fat', current: 48, goal: 55 },
-                        { key: 'carbs', label: 'Carbs', current: 140, goal: 180 },
-                    ]}
-                />
-            </section>
-
-            <section className="section-block" aria-label="Приёмы пищи">
-                <div className="section-head">
-                    <h2 className="section-title">Meals</h2>
-                    <a className="section-link" href="#">
-                        See all
-                    </a>
+                <div className="stats-body">
+                    <KcalGauge current={MOCK.kcal.current} goal={MOCK.kcal.goal} />
+                    <MacroRing slices={MOCK.macros} />
                 </div>
 
-                {MOCK_MEALS.map((meal) => (
-                    <MealCard
-                        key={meal.title}
-                        title={meal.title}
-                        totalKcal={meal.totalKcal}
-                        items={meal.items}
-                    />
-                ))}
-            </section>
+                <div className="stats-dots" role="tablist" aria-label="Страницы статистики">
+                    {[0, 1, 2, 3].map((i) => (
+                        <button
+                            key={i}
+                            type="button"
+                            role="tab"
+                            aria-selected={statsPage === i}
+                            className={`stats-dot ${statsPage === i ? 'is-active' : ''}`}
+                            onClick={() => setStatsPage(i)}
+                        />
+                    ))}
+                </div>
+            </header>
+
+            <div className="diary-content">
+                <MealSection title="Завтрак" items={MOCK.breakfast} />
+                <MealSection title="Обед" items={MOCK.lunch} note={MOCK.lunchNote} />
+                <MealSection title="Полдник" items={MOCK.snack} />
+
+                <TemplateBlock
+                    title={MOCK.template.title}
+                    totalKcal={MOCK.template.totalKcal}
+                    items={MOCK.template.items}
+                />
+
+                <MealSection title="Ужин" items={MOCK.dinner} />
+
+                <WeightCard weightKg={MOCK.weight.kg} updatedAt={MOCK.weight.updatedAt} />
+                <SleepCard entries={MOCK.sleep} />
+            </div>
 
             <BottomNav />
         </div>
