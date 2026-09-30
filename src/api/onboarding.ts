@@ -2,9 +2,9 @@ import { http } from '@/api/http'
 
 
 export type ProfileDataPayload = {
-    height: number
-    birthDate: string // YYYY-MM-DD
-    genderId: number
+    height: number|null
+    birthDate: string|null // YYYY-MM-DD
+    genderId: number|null
 };
 
 export type ActivityLevel =
@@ -55,9 +55,9 @@ export const NUTRIENT_IDS = {
 } as const
 
 export type StoredOnboardingProfile = {
-    height: number
-    birthDate: string
-    genderId: number
+    height: number|null
+    birthDate: string|null
+    genderId: number|null
 }
 
 

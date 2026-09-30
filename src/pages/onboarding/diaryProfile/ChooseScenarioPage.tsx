@@ -21,21 +21,23 @@ export function ChooseScenarioPage() {
             <div className="d-flex flex-column gap-4
                             justify-content-start align-items-start
                             align-content-start
+                            form-card
+                            bg-brand
                             rounded-md-5
                             vh-100 overflow-y-auto">
-                <div className="form-card-body
-                                d-flex flex-column gap-4
-                                bg-primary-color
-                                rounded-3">
-                    <div className="d-flex w-100
+                <div className="d-flex w-100
                                     flex-column gap-2
                                     align-items-start justify-content-center
                                     align-content-stretch
                                     flex-grow-0">
-                        <div className="text-start">
-                            <NavigateBackButton label="Назад" className="btn-tertiary"/>
-                        </div>
+                    <div className="text-start">
+                        <NavigateBackButton label="Назад" className="btn-tertiary"/>
                     </div>
+                </div>
+                <div className="form-card-body
+                                d-flex flex-column gap-4
+                                bg-surface
+                                rounded-3">
 
                     <div className="d-flex
                                     flex-column
@@ -64,8 +66,6 @@ export function ChooseScenarioPage() {
                             Пропустить создание цели
                         </button>
                     </div>
-
-
                 </div>
             </div>
         </div>
