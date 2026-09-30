@@ -1,20 +1,19 @@
 import { http } from '@/api/http'
 
-
 export type ProfileDataPayload = {
-    height: number|null
-    birthDate: string|null // YYYY-MM-DD
-    genderId: number|null
-};
+    height: number | null
+    birthDate: string | null
+    genderId: number | null
+}
 
 export type ActivityLevel =
     | 'SEDENTARY'
     | 'LIGHT'
     | 'MODERATE'
     | 'HIGH'
-    | 'VERY_HIGH';
+    | 'VERY_HIGH'
 
-export type GoalType = 'LOSE_WEIGHT' | 'MAINTAIN' | 'GAIN_WEIGHT';
+export type GoalType = 'LOSE_WEIGHT' | 'MAINTAIN' | 'GAIN_WEIGHT'
 
 export type ExtendedProfilePayload = {
     height: number
@@ -55,11 +54,10 @@ export const NUTRIENT_IDS = {
 } as const
 
 export type StoredOnboardingProfile = {
-    height: number|null
-    birthDate: string|null
-    genderId: number|null
+    height: number | null
+    birthDate: string | null
+    genderId: number | null
 }
-
 
 export function saveOnboardingProfile(p: StoredOnboardingProfile) {
     sessionStorage.setItem(ONBOARDING_PROFILE_KEY, JSON.stringify(p))
@@ -79,6 +77,7 @@ export function clearOnboardingProfile() {
 }
 
 export function saveDiaryProfileId(id: number) {
+    if (!Number.isFinite(id) || id <= 0) return
     localStorage.setItem(DIARY_PROFILE_ID_KEY, String(id))
 }
 
@@ -86,25 +85,30 @@ export function getDiaryProfileId(): number | null {
     const raw = localStorage.getItem(DIARY_PROFILE_ID_KEY)
     if (!raw) return null
     const n = Number(raw)
-    return Number.isFinite(n) ? n : null
+    if (!Number.isFinite(n) || n <= 0) return null
+    return n
 }
 
 function persistProfileId(dto?: DiaryProfileDto | null) {
-    if (dto?.id != null) saveDiaryProfileId(dto.id)
+    if (dto?.id != null && dto.id > 0) saveDiaryProfileId(dto.id)
 }
 
-
-export async function createDiaryOnly(payload: ProfileDataPayload): Promise<void> {
-    await http.post('/api/diary-profile/onboarding', payload)
+export async function createDiaryOnly(payload: ProfileDataPayload): Promise<DiaryProfileDto> {
+    const { data } = await http.post<DiaryProfileDto>(
+        '/api/diary-profile/onboarding',
+        payload,
+    )
+    persistProfileId(data)
     clearOnboardingProfile()
+    return data
 }
 
 export async function createDiaryWithCalculatedGoal(
-    payload: ExtendedProfilePayload
+    payload: ExtendedProfilePayload,
 ): Promise<DiaryProfileDto> {
     const { data } = await http.post<DiaryProfileDto>(
         '/api/diary-profile/onboarding/create-and-calculate-goal',
-        payload
+        payload,
     )
     persistProfileId(data)
     clearOnboardingProfile()
@@ -112,11 +116,11 @@ export async function createDiaryWithCalculatedGoal(
 }
 
 export async function createDiaryWithGoal(
-    payload: ProfileWithGoalPayload
+    payload: ProfileWithGoalPayload,
 ): Promise<DiaryProfileDto> {
     const { data } = await http.post<DiaryProfileDto>(
         '/api/diary-profile/onboarding/create-with-goal',
-        payload
+        payload,
     )
     persistProfileId(data)
     clearOnboardingProfile()
