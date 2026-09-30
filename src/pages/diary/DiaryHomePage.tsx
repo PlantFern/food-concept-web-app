@@ -1,66 +1,115 @@
-import { useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import {
+    applyMealTemplate,
+    fetchDayMeals,
+    type DayMealsDto,
+    type MealTemplateListItemDto,
+} from '@/api/diary'
+import { getDiaryProfileId } from '@/api/onboarding'
 import {
     BottomNav,
     DateNav,
     KcalGauge,
-    MacroRing,
+    MacroBar,
     MealSection,
     SleepCard,
-    TemplateBlock,
     WeightCard,
 } from '@/components/diary'
 
-const MOCK = {
-    kcal: { current: 0, goal: 2000 },
-    macros: [
-        { key: 'protein' as const, label: 'protein', value: 45, color: '#3498db' },
-        { key: 'carbs' as const, label: 'carbs', value: 120, color: '#2ecc71' },
-        { key: 'fat' as const, label: 'fat', value: 35, color: '#f39c12' },
-    ],
-    breakfast: [
-        { id: 'b1', name: 'Какое-то название продукта', amount: '100гр.', kcal: 84 },
-        { id: 'b2', name: 'Ну я не знаю', amount: '2 x 50гр.', kcal: 84 },
-        { id: 'b3', name: 'Тилапия', amount: '1 x 2 x 100гр.', kcal: 84 },
-        { id: 'b4', name: 'Да', amount: '1 x 2 x 100гр.', kcal: 84 },
-    ],
-    lunch: [
-        { id: 'l1', name: 'Ну вот что-то поела да', amount: '1 x 2 x 100гр.', kcal: 84 },
-        { id: 'l2', name: 'Какое-то название продукта', amount: '1 x 2 x 100гр.', kcal: 84 },
-        { id: 'l3', name: 'Какое-то название продукта', amount: '1 x 2 x 100гр.', kcal: 84 },
-    ],
-    lunchNote: 'Допустим я что-то тут да и пишу мммм… Допустим да, а как это выглядит то',
-    snack: [
-        { id: 's1', name: 'Какое-то название продукта', amount: '1 x 2 x 100гр.', kcal: 84 },
-        { id: 's2', name: 'Какое-то название продукта', amount: '1 x 2 x 100гр.', kcal: 84 },
-        { id: 's3', name: 'Какое-то название продукта', amount: '1 x 2 x 100гр.', kcal: 84 },
-        { id: 's4', name: 'Да', amount: '1 x 2 x 100гр.', kcal: 84 },
-    ],
-    template: {
-        title: 'Допустим тут написано, что это за шаблон',
-        totalKcal: 354.05,
-        items: [
-            { id: 't1', name: 'Да', amount: '100гр.', kcal: 84 },
-            { id: 't2', name: 'Нет', amount: '2 x 100гр.', kcal: 120 },
-            { id: 't3', name: 'Не знаю', amount: '100гр.', kcal: 150.05 },
-        ],
-    },
-    dinner: [
-        { id: 'd1', name: 'Какое-то название продукта', amount: '1 x 2 x 100гр.', kcal: 84 },
-        { id: 'd2', name: 'Какое-то название продукта', amount: '1 x 2 x 100гр.', kcal: 84 },
-        { id: 'd3', name: 'Какое-то название продукта', amount: '1 x 2 x 100гр.', kcal: 84 },
-        { id: 'd4', name: 'Да', amount: '1 x 2 x 100гр.', kcal: 84 },
-    ],
-    weight: { kg: 64, updatedAt: '20.09.2026' },
-    sleep: [
-        { id: 'sl1', start: '22:00', end: '08:30' },
-        { id: 'sl2', start: '18:30', end: '—' },
-        { id: 'sl3', start: '23:00', end: '—' },
-    ],
+function toIsoDate(d: Date): string {
+    const y = d.getFullYear()
+    const m = String(d.getMonth() + 1).padStart(2, '0')
+    const day = String(d.getDate()).padStart(2, '0')
+    return `${y}-${m}-${day}`
+}
+
+function nutrientColor(code: string): string {
+    const c = code.toUpperCase()
+    if (c.includes('PROTEIN') || c === 'PROTEIN') return '#3498db'
+    if (c.includes('FAT') || c === 'FAT') return '#f39c12'
+    if (c.includes('CARB') || c === 'CARBS' || c === 'CARBOHYDRATE') return '#2ecc71'
+    return '#95a5a6'
+}
+
+function nutrientLabel(code: string): string {
+    const c = code.toUpperCase()
+    if (c.includes('PROTEIN')) return 'protein'
+    if (c.includes('FAT')) return 'fat'
+    if (c.includes('CARB')) return 'carbs'
+    return code.toLowerCase()
+}
+
+function pickTemplatesForSection(
+    templates: MealTemplateListItemDto[],
+    mealTypeCode: string,
+    sectionIndex: number,
+    sectionsCount: number,
+): MealTemplateListItemDto[] {
+    if (!templates.length) return []
+
+    const code = mealTypeCode.toUpperCase()
+    const hourHints: Record<string, [number, number]> = {
+        BREAKFAST: [5, 11],
+        LUNCH: [11, 16],
+        SNACK: [15, 18],
+        DINNER: [17, 23],
+    }
+
+    const range = hourHints[code]
+    if (range) {
+        const matched = templates.filter((t) => {
+            if (!t.scheduledTime) return false
+            const h = Number(String(t.scheduledTime).slice(0, 2))
+            return Number.isFinite(h) && h >= range[0] && h < range[1]
+        })
+        if (matched.length) return matched
+    }
+
+    if (sectionIndex === sectionsCount - 1) {
+        return templates.filter((t) => !t.scheduledTime)
+    }
+    return []
 }
 
 export function DiaryHomePage() {
-    const [date, setDate] = useState(() => new Date(2026, 8, 2))
+    const [date, setDate] = useState(() => new Date())
+    const [day, setDay] = useState<DayMealsDto | null>(null)
+    const [loading, setLoading] = useState(true)
+    const [error, setError] = useState<string | null>(null)
+    const [applyingTemplateId, setApplyingTemplateId] = useState<number | null>(null)
     const [statsPage, setStatsPage] = useState(0)
+
+    const iso = useMemo(() => toIsoDate(date), [date])
+    const profileId = getDiaryProfileId()
+
+    const load = useCallback(async () => {
+        if (profileId == null) {
+            setError('Нет профиля дневника. Пройдите онбординг.')
+            setDay(null)
+            setLoading(false)
+            return
+        }
+        setLoading(true)
+        setError(null)
+        try {
+            const data = await fetchDayMeals(iso, profileId)
+            setDay(data)
+        } catch (err: unknown) {
+            const msg =
+                err && typeof err === 'object' && 'response' in err
+                    ? (err as { response?: { data?: { message?: string } } }).response?.data
+                          ?.message
+                    : null
+            setError(typeof msg === 'string' && msg ? msg : 'Не удалось загрузить день')
+            setDay(null)
+        } finally {
+            setLoading(false)
+        }
+    }, [iso, profileId])
+
+    useEffect(() => {
+        void load()
+    }, [load])
 
     function shiftDay(delta: number) {
         setDate((prev) => {
@@ -70,14 +119,58 @@ export function DiaryHomePage() {
         })
     }
 
+    async function onApplyTemplate(templateId: number, mealTypeId: number) {
+        setApplyingTemplateId(templateId)
+        try {
+            await applyMealTemplate(templateId, mealTypeId, iso)
+            await load()
+        } catch {
+            setError('Не удалось отметить шаблон')
+        } finally {
+            setApplyingTemplateId(null)
+        }
+    }
+
+    const primary = day?.targets.find(
+        (t) =>
+            t.nutrientId === day.primaryNutrient ||
+            t.nutrientCode?.toUpperCase() === day.primaryNutrientCode?.toUpperCase(),
+    )
+
+    const secondary = (day?.targets ?? []).filter(
+        (t) =>
+            t.nutrientId !== day?.primaryNutrient &&
+            t.nutrientCode?.toUpperCase() !== day?.primaryNutrientCode?.toUpperCase(),
+    )
+
+    const macroItems = secondary.slice(0, 3).map((t) => ({
+        key: t.nutrientCode,
+        label: nutrientLabel(t.nutrientCode),
+        value: Math.max(t.factAmount ?? 0, 0),
+        color: nutrientColor(t.nutrientCode),
+    }))
+
+    const primaryUnit =
+        day?.primaryNutrientCode?.toLowerCase().includes('kcal') ||
+        day?.primaryNutrientCode?.toLowerCase().includes('energy')
+            ? 'kcal'
+            : (day?.primaryNutrientCode ?? 'kcal')
+
     return (
         <div className="diary-shell">
             <header className="stats-header">
                 <DateNav date={date} onPrev={() => shiftDay(-1)} onNext={() => shiftDay(1)} />
 
                 <div className="stats-body">
-                    <KcalGauge current={MOCK.kcal.current} goal={MOCK.kcal.goal} />
-                    <MacroRing slices={MOCK.macros} />
+                    <KcalGauge
+                        current={primary?.factAmount ?? 0}
+                        goal={primary?.targetAmount ?? 0}
+                    />
+                    {macroItems.length > 0 ? (
+                        <MacroBar items={macroItems} />
+                    ) : (
+                        <p className="macro-bar-empty">Нет данных БЖУ</p>
+                    )}
                 </div>
 
                 <div className="stats-dots" role="tablist" aria-label="Страницы статистики">
@@ -95,20 +188,51 @@ export function DiaryHomePage() {
             </header>
 
             <div className="diary-content">
-                <MealSection title="Завтрак" items={MOCK.breakfast} />
-                <MealSection title="Обед" items={MOCK.lunch} note={MOCK.lunchNote} />
-                <MealSection title="Полдник" items={MOCK.snack} />
+                {loading && <p className="meal-empty">Загрузка…</p>}
+                {error && (
+                    <div className="alert alert-danger" role="alert">
+                        {error}
+                    </div>
+                )}
 
-                <TemplateBlock
-                    title={MOCK.template.title}
-                    totalKcal={MOCK.template.totalKcal}
-                    items={MOCK.template.items}
-                />
+                {!loading &&
+                    day &&
+                    day.sections.map((section, index) => (
+                        <MealSection
+                            key={section.mealId}
+                            mealTypeCode={section.mealTypeCode}
+                            mealTypeId={section.mealTypeId}
+                            records={section.records ?? []}
+                            totalPrimaryNutrient={section.totalPrimaryNutrient}
+                            primaryUnit={primaryUnit}
+                            templates={pickTemplatesForSection(
+                                day.pendingTemplates ?? [],
+                                section.mealTypeCode,
+                                index,
+                                day.sections.length,
+                            )}
+                            applyingTemplateId={applyingTemplateId}
+                            onApplyTemplate={onApplyTemplate}
+                        />
+                    ))}
 
-                <MealSection title="Ужин" items={MOCK.dinner} />
+                {!loading && day && day.sections.length === 0 && (
+                    <p className="meal-empty">За этот день приёмов пока нет</p>
+                )}
 
-                <WeightCard weightKg={MOCK.weight.kg} updatedAt={MOCK.weight.updatedAt} />
-                <SleepCard entries={MOCK.sleep} />
+                {!loading && day?.weightEnabled && (
+                    <WeightCard weightKg={day.latestWeight?.weight ?? null} />
+                )}
+
+                {!loading && day?.sleepEnabled && (
+                    <SleepCard
+                        entries={(day.sleepForDay ?? []).map((s) => ({
+                            id: s.id,
+                            start: s.beganAt,
+                            end: s.endedAt ?? '',
+                        }))}
+                    />
+                )}
             </div>
 
             <BottomNav />

@@ -1,59 +1,80 @@
 import { IoAdd, IoEllipsisVertical } from 'react-icons/io5'
-
-export type FoodRow = {
-    id: string
-    name: string
-    amount: string
-    kcal: number
-    imageUrl?: string | null
-}
+import type { MealFoodRecordItemDto, MealTemplateListItemDto } from '@/api/diary'
+import { formatFoodAmount, mealTypeLabel } from '@/api/diary'
+import { TemplateBlock } from '@/components/diary/TemplateBlock'
 
 type MealSectionProps = {
-    title: string
-    items: FoodRow[]
-    note?: string | null
+    mealTypeCode: string
+    mealTypeId: number
+    records: MealFoodRecordItemDto[]
+    totalPrimaryNutrient?: number | null
+    primaryUnit?: string
+    templates?: MealTemplateListItemDto[]
+    applyingTemplateId?: number | null
     onAdd?: () => void
+    onApplyTemplate?: (templateId: number, mealTypeId: number) => void
 }
 
-export function MealSection({ title, items, note, onAdd }: MealSectionProps) {
+export function MealSection({
+    mealTypeCode,
+    mealTypeId,
+    records,
+    totalPrimaryNutrient,
+    primaryUnit = 'kcal',
+    templates = [],
+    applyingTemplateId = null,
+    onAdd,
+    onApplyTemplate,
+}: MealSectionProps) {
     return (
         <section className="meal-section">
             <div className="meal-section-head">
                 <button type="button" className="meal-section-title" onClick={onAdd}>
                     <IoAdd size={20} />
-                    <span>{title}</span>
+                    <span>{mealTypeLabel(mealTypeCode)}</span>
                 </button>
-                <button type="button" className="meal-section-menu" aria-label="Меню">
-                    <IoEllipsisVertical size={18} />
-                </button>
+                <div className="d-flex align-items-center gap-2">
+                    {totalPrimaryNutrient != null && (
+                        <span className="meal-section-total">
+                            {Math.round(totalPrimaryNutrient)} {primaryUnit}
+                        </span>
+                    )}
+                    <button type="button" className="meal-section-menu" aria-label="Меню">
+                        <IoEllipsisVertical size={18} />
+                    </button>
+                </div>
             </div>
 
-            <ul className="food-list">
-                {items.map((item) => (
-                    <li key={item.id} className="food-row">
-                        <div className="food-thumb">
-                            {item.imageUrl ? (
-                                <img src={item.imageUrl} alt="" />
-                            ) : null}
-                        </div>
-                        <div className="food-meta">
-                            <div className="food-name">{item.name}</div>
-                            <div className="food-amount">{item.amount}</div>
-                        </div>
-                        <div className="food-kcal">
-                            <span>{item.kcal}</span>
-                            <span>kcal</span>
-                        </div>
-                    </li>
-                ))}
-            </ul>
+            {records.length === 0 ? (
+                <p className="meal-empty">Пока пусто</p>
+            ) : (
+                <ul className="food-list">
+                    {records.map((item) => (
+                        <li key={item.recordId} className="food-row">
+                            <div className="food-thumb" />
+                            <div className="food-meta">
+                                <div className="food-name">{item.productDescription}</div>
+                                <div className="food-amount">{formatFoodAmount(item)}</div>
+                            </div>
+                            <div className="food-kcal">
+                                <span>{item.nutrient != null ? Math.round(item.nutrient) : '—'}</span>
+                                <span>{primaryUnit}</span>
+                            </div>
+                        </li>
+                    ))}
+                </ul>
+            )}
 
-            {note ? (
-                <div className="meal-note">
-                    <div className="meal-note-label">Note</div>
-                    <p>{note}</p>
-                </div>
-            ) : null}
+            {templates.map((t) => (
+                <TemplateBlock
+                    key={t.id}
+                    title={t.name}
+                    totalKcal={t.totalKcal}
+                    itemCount={t.itemCount}
+                    loading={applyingTemplateId === t.id}
+                    onApply={() => onApplyTemplate?.(t.id, mealTypeId)}
+                />
+            ))}
         </section>
     )
 }

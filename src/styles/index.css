@@ -54,7 +54,7 @@
     --brand-hover: var(--green-700);
     --brand-muted: var(--green-500);
     --brand-deep: var(--green-800);
-    --brand-gradient: linear-gradient(165deg, var(--green-500) 0%, var(--green-600) 48%, var(--green-700) 100%);
+    --brand-gradient: linear-gradient(180deg, var(--green-800) 0%, var(--green-700) 45%, var(--green-600) 100%);
 
     --accent: var(--pink-300);
     --accent-hover: var(--pink-400);
@@ -346,16 +346,17 @@ body {
 }
 
 .stats-body {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: var(--indent-8);
+    display: flex;
+    flex-direction: column;
     align-items: center;
-    padding: var(--indent-8) var(--indent-4) var(--indent-4);
+    gap: var(--indent-16);
+    padding: var(--indent-8) var(--indent-8) var(--indent-4);
+    width: 100%;
 }
 
 .kcal-gauge-wrap {
     position: relative;
-    max-width: 140px;
+    width: min(220px, 70vw);
     margin: 0 auto;
 }
 
@@ -369,52 +370,81 @@ body {
 }
 
 .kcal-gauge-value {
-    font-size: 1.15rem;
+    font-size: 1.75rem;
     font-weight: 700;
     line-height: 1.1;
     color: var(--text-on-brand);
 }
 
 .kcal-gauge-label {
-    font-size: 0.7rem;
+    font-size: 0.8rem;
     color: var(--text-on-brand-muted);
 }
 
-.macro-ring-block {
-    display: flex;
-    align-items: center;
-    gap: var(--indent-8);
-    justify-content: center;
+.macro-bar {
+    width: 100%;
+    max-width: 22rem;
 }
 
-.macro-ring-chart {
-    width: 110px;
-    height: 110px;
-    flex-shrink: 0;
-}
-
-.macro-legend {
-    list-style: none;
-    margin: 0;
-    padding: 0;
+.macro-bar-legend {
     display: flex;
     flex-direction: column;
     gap: 0.35rem;
+    margin-bottom: var(--indent-8);
 }
 
-.macro-legend li {
+.macro-bar-legend-row {
     display: flex;
     align-items: center;
-    gap: 0.4rem;
-    font-size: 0.75rem;
+    justify-content: space-between;
+    gap: var(--indent-8);
+    font-size: 0.8rem;
     color: var(--text-on-brand);
 }
 
-.macro-dot {
-    width: 6px;
-    height: 6px;
+.macro-bar-amount {
+    font-weight: 600;
+    text-align: left;
+    min-width: 2.5rem;
+}
+
+.macro-bar-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-left: auto;
+}
+
+.macro-bar-dot {
+    width: 7px;
+    height: 7px;
     border-radius: 50%;
     flex-shrink: 0;
+}
+
+.macro-bar-track {
+    display: flex;
+    width: 100%;
+    height: 0.65rem;
+    border-radius: 999px;
+    overflow: hidden;
+    background: rgba(var(--neutral-0-rgb), 0.2);
+}
+
+.macro-bar-seg {
+    height: 100%;
+    min-width: 2px;
+}
+
+.macro-bar-seg-empty {
+    background: rgba(var(--neutral-0-rgb), 0.25);
+}
+
+.macro-bar-empty {
+    margin: 0;
+    font-size: 0.8rem;
+    color: var(--text-on-brand-muted);
+    text-align: center;
 }
 
 .stats-dots {
@@ -478,6 +508,19 @@ body {
     background: transparent;
     color: var(--text-muted);
     padding: var(--indent-4);
+}
+
+.meal-section-total {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+.meal-empty {
+    margin: 0;
+    padding: var(--indent-8) 0;
+    font-size: 0.9rem;
+    color: var(--text-muted);
 }
 
 .food-list,
@@ -567,6 +610,7 @@ body {
     border: 1px solid var(--success-border);
     border-radius: var(--radius-md);
     padding: var(--indent-12);
+    margin-top: var(--indent-12);
 }
 
 .template-head {
