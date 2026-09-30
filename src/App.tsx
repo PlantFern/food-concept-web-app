@@ -5,7 +5,7 @@ import { LoginPage } from '@/pages/auth/LoginPage';
 import { StartPage } from "@/pages/auth/StartPage.tsx";
 import { ChooseRolePage } from '@/pages/onboarding/ChooseRolePage';
 import {ChooseScenarioPage} from "@/pages/onboarding/diaryProfile/ChooseScenarioPage.tsx";
-import { DiaryHomePage } from '@/pages/diary/DiaryHomePage';
+import {LogoutPage} from "@/pages/auth/LogoutPage.tsx";
 
 
 function App() {
