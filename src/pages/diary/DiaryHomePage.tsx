@@ -10,7 +10,7 @@ import {
     BottomNav,
     DateNav,
     PrimaryNutrientGauge,
-    MacroBar,
+    NutrientBar,
     MealSection,
     SleepCard,
     WeightCard,
@@ -167,7 +167,7 @@ export function DiaryHomePage() {
                         goal={primary?.targetAmount ?? 0}
                     />
                     {macroItems.length > 0 ? (
-                        <MacroBar items={macroItems} />
+                        <NutrientBar items={macroItems} />
                     ) : (
                         <p className="macro-bar-empty">Нет данных БЖУ</p>
                     )}

@@ -1,6 +1,6 @@
 export { PrimaryNutrientGauge } from './PrimaryNutrientGauge'
-export { MacroBar } from './NutrientBar'
-export type { NutrientBarItem as MacroBarItem } from './NutrientBar'
+export { NutrientBar } from './NutrientBar'
+export type { NutrientBarItem } from './NutrientBar'
 export { MacroRing } from './MacroRing'
 export type { MacroSlice } from './MacroRing'
 export { DateNav } from './DateNav'
