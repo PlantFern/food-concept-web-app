@@ -9,15 +9,22 @@ const GENDER_OPTIONS = [
     { id: 2, label: 'Женский' },
 ] as const
 
+type GenderId = 0|1|2;
+
 export function DiaryProfileSetupPage() {
     const navigate = useNavigate()
     const [searchParams] = useSearchParams()
 
     const [height, setHeight] = useState('')
     const [birthDate, setBirthDate] = useState('')
-    const [genderId, setGenderId] = useState(0)
+    const [genderId, setGenderId] = useState<GenderId>(0)
     const [error, setError] = useState<string | null>(null)
     const [loading, setLoading] = useState(false)
+
+    function isGenderId(value: number): value is GenderId {
+
+        return value === 0 || value === 1 || value === 2
+    }
 
     async function onSubmit(e: SyntheticEvent) {
         e.preventDefault()
@@ -33,9 +40,11 @@ export function DiaryProfileSetupPage() {
                 return
             }
         }
+        const gender: 1|2|null = genderId == 0
+            ? null
+            : genderId;
 
         const birth = birthDate || null
-        const gender = genderId > 0 ? genderId : null
 
         if (scenario === 'auto') {
             if (heightN == null) {
@@ -56,6 +65,7 @@ export function DiaryProfileSetupPage() {
                 birthDate: birth,
                 genderId: gender,
             })
+
             navigate('/onboarding/diary/goal-auto')
             return
         }
@@ -174,7 +184,11 @@ export function DiaryProfileSetupPage() {
                                 id="ob-gender"
                                 className="form-select input"
                                 value={genderId}
-                                onChange={(e) => setGenderId(Number(e.target.value))}
+                                onChange={(e) => {
+                                    const value = Number(e.target.value);
+                                    if (isGenderId(value))
+                                        setGenderId(value);
+                                }}
                             >
                                 {GENDER_OPTIONS.map((g) => (
                                     <option key={g.id} value={g.id}>
