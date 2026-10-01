@@ -9,7 +9,7 @@ import { getDiaryProfileId } from '@/api/onboarding'
 import {
     BottomNav,
     DateNav,
-    KcalGauge,
+    PrimaryNutrientGauge,
     MacroBar,
     MealSection,
     SleepCard,
@@ -162,7 +162,7 @@ export function DiaryHomePage() {
                 <DateNav date={date} onPrev={() => shiftDay(-1)} onNext={() => shiftDay(1)} />
 
                 <div className="stats-body">
-                    <KcalGauge
+                    <PrimaryNutrientGauge
                         current={primary?.factAmount ?? 0}
                         goal={primary?.targetAmount ?? 0}
                     />

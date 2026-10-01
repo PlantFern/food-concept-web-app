@@ -3,12 +3,12 @@ import { Chart as ChartJS, ArcElement, Tooltip } from 'chart.js'
 
 ChartJS.register(ArcElement, Tooltip)
 
-type KcalGaugeProps = {
+type PrimaryNutrientGaugeProps = {
     current: number
     goal: number
 }
 
-export function KcalGauge({ current, goal }: KcalGaugeProps) {
+export function PrimaryNutrientGauge({ current, goal }: PrimaryNutrientGaugeProps) {
     const safeGoal = goal > 0 ? goal : 1
     const filled = Math.min(Math.max(current, 0), safeGoal)
     const rest = Math.max(safeGoal - filled, 0)

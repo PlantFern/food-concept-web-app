@@ -1,4 +1,4 @@
-export { KcalGauge } from './KcalGauge'
+export { PrimaryNutrientGauge } from './PrimaryNutrientGauge'
 export { MacroBar } from './MacroBar'
 export type { MacroBarItem } from './MacroBar'
 export { MacroRing } from './MacroRing'
