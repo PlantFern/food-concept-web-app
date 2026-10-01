@@ -3,18 +3,18 @@ import { Chart as ChartJS, ArcElement, Tooltip } from 'chart.js'
 
 ChartJS.register(ArcElement, Tooltip)
 
-export type MacroSlice = {
+export type NutrientSlice = {
     key: 'protein' | 'carbs' | 'fat'
     label: string
     value: number
     color: string
 }
 
-type MacroRingProps = {
-    slices: MacroSlice[]
+export type NutrientRingProps = {
+    slices: NutrientSlice[]
 }
 
-export function MacroRing({ slices }: MacroRingProps) {
+export function NutrientRing({ slices }: NutrientRingProps) {
     const total = slices.reduce((s, x) => s + Math.max(x.value, 0), 0) || 1
 
     const data = {
