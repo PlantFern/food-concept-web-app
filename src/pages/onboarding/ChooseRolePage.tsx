@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import {type SyntheticEvent, useState} from 'react'
 import { useNavigate } from 'react-router-dom'
 import { createSpecialist } from '@/api/onboarding'
 import {FaPeopleGroup} from "react-icons/fa6";
@@ -29,9 +29,11 @@ export function ChooseRolePage() {
         setSelectedId(id)
     }
 
-    async function chooseRole() {
-        setError(null)
-        setLoading(true)
+    async function onChooseRole(e: SyntheticEvent) {
+
+        e.preventDefault();
+        setError(null);
+        setLoading(true);
         try {
             if(selectedId == 1)
                 navigate('/onboarding/scenario')
@@ -74,7 +76,7 @@ export function ChooseRolePage() {
                                     text-center">
                         <h3>Какую роль выберете?</h3>
                     </div>
-                    <form onSubmit={chooseRole}
+                    <form onSubmit={onChooseRole}
                             className="d-flex gap-3 w-100 flex-column
                                         justify-content-between align-items-stretch
                                         align-content-stretch
