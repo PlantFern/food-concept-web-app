@@ -15,12 +15,12 @@ export type RegisterPayload = {
 
 export async function loginRequest({ email, password }: LoginPayload): Promise<void> {
 
-    const res = await axios.get(`${API_BASE_URE}/api/users/my-profile`, {
+    await axios.get(`${API_BASE_URE}/api/users/my-profile`, {
         auth: { username: email, password },
     })
 
-    localStorage.setItem('fd_auth_email', res.data.email);
-    localStorage.setItem('fd_auth_password', res.data.password);
+    localStorage.setItem('fd_auth_email', email);
+    localStorage.setItem('fd_auth_password', password);
 
     http.defaults.auth = { username: email, password }
 }
