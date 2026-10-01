@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import {type SyntheticEvent, useState} from 'react'
 import { useNavigate } from 'react-router-dom'
 import { createSpecialist } from '@/api/onboarding'
 import {FaPeopleGroup} from "react-icons/fa6";
@@ -29,9 +29,11 @@ export function ChooseRolePage() {
         setSelectedId(id)
     }
 
-    async function chooseRole() {
-        setError(null)
-        setLoading(true)
+    async function chooseRole(e: SyntheticEvent) {
+
+        e.preventDefault();
+        setError(null);
+        setLoading(true);
         try {
             if(selectedId == 1)
                 navigate('/onboarding/scenario')
