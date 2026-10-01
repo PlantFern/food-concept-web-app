@@ -14,32 +14,13 @@ export type RegisterPayload = {
 }
 
 export async function loginRequest({ email, password }: LoginPayload): Promise<void> {
-    try {
-        const res = await axios.get(`${API_BASE_URE}/api/users/0`, {
-            auth: { username: email, password },
-            validateStatus: (s) => s === 200 || s === 404 || s === 403,
-        })
-        if (res.status === 401) {
-            throw new Error('Неверный email или пароль')
-        }
-    } catch (err: unknown) {
-        const status =
-            err && typeof err === 'object' && 'response' in err
-                ? (err as { response?: { status?: number } }).response?.status
-                : undefined
-        if (status === 401) {
-            throw new Error('Неверный email или пароль')
-        }
-        if (!status) {
-            throw new Error('Нет связи с сервером')
-        }
-        if (status === 401) {
-            throw new Error('Неверный email или пароль')
-        }
-    }
 
-    localStorage.setItem('fd_auth_email', email)
-    localStorage.setItem('fd_auth_password', password)
+    const res = await axios.get(`${API_BASE_URE}/api/users/my-profile`, {
+        auth: { username: email, password },
+    })
+
+    localStorage.setItem('fd_auth_email', res.data.email);
+    localStorage.setItem('fd_auth_password', res.data.password);
 
     http.defaults.auth = { username: email, password }
 }
