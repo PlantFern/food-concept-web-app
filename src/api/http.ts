@@ -28,7 +28,7 @@ http.interceptors.response.use(
             logoutLocal();
 
             const path = window.location.pathname;
-            if(path!=='/login' && path !== '/register' && path !== 'get-start'){
+            if(path!=='/login' && path !== '/register' && path !== '/get-start'){
                 window.location.href = '/login';
             }
         }

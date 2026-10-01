@@ -1,6 +1,7 @@
 import { type SyntheticEvent, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { loginRequest } from '@/api/auth'
+import { getMyProfile } from '@/api/profiles'
+
 
 import {NavigateBackButton} from "@/components/ui/NavigateBackButton";
 
@@ -17,10 +18,17 @@ export function LoginPage() {
         setError(null)
         setLoading(true)
         try {
-            await loginRequest({ email: email.trim(), password })
-            navigate('/diary', { replace: true })
-        } catch (err) {
-            setError(err instanceof Error ? err.message : 'Ошибка входа')
+            await getMyProfile();
+            navigate('/diary', {replace: true});
+        } catch (err: unknown) {
+            const status = err && typeof err === 'object' && 'response' in err
+                ? (err as { response?: {status?: number}}).response?.status
+                : null;
+            if (status === 404 || status === 403){
+                navigate('/onboarding/role', {replace: true});
+                return;
+            }
+            setError(err instanceof Error ? err.message : 'Ошибка входа');
         } finally {
             setLoading(false)
         }
