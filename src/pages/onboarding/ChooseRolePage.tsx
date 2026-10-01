@@ -29,7 +29,7 @@ export function ChooseRolePage() {
         setSelectedId(id)
     }
 
-    async function chooseRole(e: SyntheticEvent) {
+    async function onChooseRole(e: SyntheticEvent) {
 
         e.preventDefault();
         setError(null);
@@ -76,7 +76,7 @@ export function ChooseRolePage() {
                                     text-center">
                         <h3>Какую роль выберете?</h3>
                     </div>
-                    <form onSubmit={chooseRole}
+                    <form onSubmit={onChooseRole}
                             className="d-flex gap-3 w-100 flex-column
                                         justify-content-between align-items-stretch
                                         align-content-stretch
