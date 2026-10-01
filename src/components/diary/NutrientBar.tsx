@@ -1,15 +1,15 @@
-export type MacroBarItem = {
+export type NutrientBarItem = {
     key: string
     label: string
     value: number
     color: string
 }
 
-type MacroBarProps = {
-    items: MacroBarItem[]
+export type NutrientBarProps = {
+    items: NutrientBarItem[]
 }
 
-export function MacroBar({ items }: MacroBarProps) {
+export function MacroBar({ items }: NutrientBarProps) {
     const total = items.reduce((s, i) => s + Math.max(i.value, 0), 0)
     const hasData = total > 0
 
