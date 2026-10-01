@@ -65,7 +65,7 @@ export type DayMealsDto = {
     latestWeight: WeightLogDto | null
 }
 
-function requireProfileId(): number {
+export function requireProfileId(): number {
     const id = getDiaryProfileId()
     if (id == null) {
         throw new Error('Нет diaryProfileId — завершите онбординг')
