@@ -1,8 +1,9 @@
-import {type SyntheticEvent, useState} from 'react'
+import { type SyntheticEvent, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { createSpecialist } from '@/api/onboarding'
-import {FaPeopleGroup} from "react-icons/fa6";
-import {GiNotebook} from "react-icons/gi";
+import { getErrorMessage, getErrorStatus } from '@/lib/errors'
+import { FaPeopleGroup } from 'react-icons/fa6'
+import { GiNotebook } from 'react-icons/gi'
 
 export function ChooseRolePage() {
     const navigate = useNavigate()
@@ -10,48 +11,44 @@ export function ChooseRolePage() {
     const options = [
         {
             id: 1,
-            title: "Дневник питания",
-            description: "Вы будете иметь возможность вести запись приемов пищи, сна и веса",
-            icon: GiNotebook
+            title: 'Дневник питания',
+            description: 'Вы будете иметь возможность вести запись приемов пищи, сна и веса',
+            icon: GiNotebook,
         },
         {
             id: 2,
-            title: "Специалист",
-            description: "Вы можете следить за питанием других пользователей",
-            icon: FaPeopleGroup
-        }
+            title: 'Специалист',
+            description: 'Вы можете следить за питанием других пользователей',
+            icon: FaPeopleGroup,
+        },
     ]
     const [selectedId, setSelectedId] = useState<number | null>(null)
     const [error, setError] = useState<string | null>(null)
     const [loading, setLoading] = useState(false)
 
-    const handleCardClick = (id: number) => {
-        setSelectedId(id)
-    }
-
     async function onChooseRole(e: SyntheticEvent) {
+        e.preventDefault()
+        setError(null)
 
-        e.preventDefault();
-        setError(null);
-        setLoading(true);
+        if (selectedId == null) {
+            setError('Выберите роль')
+            return
+        }
+
+        setLoading(true)
         try {
-            if(selectedId == 1)
+            if (selectedId === 1) {
                 navigate('/onboarding/scenario')
-            else {
+            } else {
                 await createSpecialist()
-                navigate('/specialist', {replace: true})
+                navigate('/specialist', { replace: true })
             }
         } catch (err: unknown) {
-            const status =
-                err && typeof err === 'object' && 'response' in err
-                    ? (err as any).response?.status
-                    : null
+            const status = getErrorStatus(err)
             if (status === 403) {
-                setError(
-                    'У вас уже есть профиль специалиста.'
-                )
+                setError('У вас уже есть профиль специалиста.')
             } else {
-                setError(err instanceof Error ? err.message : 'Ошибка создания специалиста')
+                setError(getErrorMessage(err, 'Ошибка создания специалиста'))
             }
         } finally {
             setLoading(false)
@@ -60,71 +57,53 @@ export function ChooseRolePage() {
 
     return (
         <div className="col-lg-4 col-md-8 col-sm-10 col-12 m-auto">
-            <div className="d-flex flex-column gap-4
-                            justify-content-start align-items-start
-                            align-content-start
-                            rounded-md-5
-                            vh-100 overflow-y-auto">
-                <div className="form-card-body
-                                d-flex flex-column gap-4
-                                bg-primary-color
-                                rounded-3">
-                    <div className="d-flex
-                                    flex-column
-                                    align-items-center
-                                    justify-content-center
-                                    text-center">
+            <div className="d-flex flex-column gap-4 justify-content-start align-items-start rounded-md-5 vh-100 overflow-y-auto">
+                <div className="form-card-body d-flex flex-column gap-4 bg-primary-color rounded-3">
+                    <div className="d-flex flex-column align-items-center text-center">
                         <h3>Какую роль выберете?</h3>
                     </div>
-                    <form onSubmit={onChooseRole}
-                            className="d-flex gap-3 w-100 flex-column
-                                        justify-content-between align-items-stretch
-                                        align-content-stretch
-                                        ">
+                    <form
+                        onSubmit={onChooseRole}
+                        className="d-flex gap-3 w-100 flex-column align-items-stretch"
+                    >
                         {error && (
-                            <div className="alert alert-danger auth-alert" role="alert">
+                            <p className="text-danger small mb-0" role="alert">
                                 {error}
-                            </div>
+                            </p>
                         )}
 
-                        <div className="d-flex gap-2 flex-column
-                                        justify-content-center align-items-stretch">
+                        <div className="d-flex gap-2 flex-column">
                             {options.map((option) => {
-
                                 const IconComponent = option.icon
-                            return (
-                                <div key={option.id}
-                                     className={`d-flex
-                                                rounded-4 
-                                                choice-card ${selectedId === option.id ? 'is-selected' : ''}`}
-                                     onClick={() => handleCardClick(option.id)}>
-                                    <div className="d-flex
-                                                    justify-content-center align-items-center
-                                                    p-2"
+                                return (
+                                    <button
+                                        key={option.id}
+                                        type="button"
+                                        className={`d-flex rounded-4 choice-card text-start border-0 ${selectedId === option.id ? 'is-selected' : ''}`}
+                                        onClick={() => setSelectedId(option.id)}
                                     >
-                                        <IconComponent size={60}/>
-                                    </div>
-                                    <div className="p-3">
-                                        <h4 className="pb-1">
-                                            {option.title}
-                                        </h4>
-                                        <div>
-                                            {option.description}
+                                        <div className="d-flex justify-content-center align-items-center p-2">
+                                            <IconComponent size={60} />
                                         </div>
-                                    </div>
-                                </div>
-                            )
+                                        <div className="p-3">
+                                            <h4 className="pb-1">{option.title}</h4>
+                                            <div>{option.description}</div>
+                                        </div>
+                                    </button>
+                                )
                             })}
                         </div>
 
-                        <button className="btn btn-primary w-100 shadow-sm mt-4"
-                        type="submit"
-                        disabled={loading}>
+                        <button
+                            className="btn btn-primary w-100 shadow-sm mt-4"
+                            type="submit"
+                            disabled={loading || selectedId == null}
+                        >
                             {loading ? 'Загрузка...' : 'Выбрать'}
                         </button>
                     </form>
+                </div>
             </div>
-        </div>
         </div>
     )
 }
