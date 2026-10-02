@@ -184,9 +184,10 @@ export function DiaryHomePage() {
                 </div>
             </header>
 
-            <div className="diary-content">
+            <div className="diary-content mt-2">
                 {loading && <p className="meal-empty">Загрузка…</p>}
 
+                <div className='d-flex flex-column'>
                 {!loading &&
                     sections.map((section, index) => (
                         <MealSection
@@ -210,18 +211,22 @@ export function DiaryHomePage() {
                             onApplyTemplate={onApplyTemplate}
                         />
                     ))}
+                </div>
 
-                {!loading && <WeightCard weightKg={day?.latestWeight?.weight ?? null} />}
+                <div className='border-top pt-2'>
+                    <h3 className='mb-3'>Логи</h3>
+                    {!loading && <WeightCard weightKg={day?.latestWeight?.weight ?? null} />}
 
-                {!loading && (
-                    <SleepCard
-                        entries={(day?.sleepForDay ?? []).map((s) => ({
-                            id: s.id,
-                            start: s.beganAt,
-                            end: s.endedAt ?? '',
-                        }))}
-                    />
-                )}
+                    {!loading && (
+                        <SleepCard
+                            entries={(day?.sleepForDay ?? []).map((s) => ({
+                                id: s.id,
+                                start: s.beganAt,
+                                end: s.endedAt ?? '',
+                            }))}
+                        />
+                    )}
+                </div>
             </div>
 
             <BottomNav />
