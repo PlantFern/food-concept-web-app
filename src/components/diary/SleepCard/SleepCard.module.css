@@ -1,0 +1,36 @@
+.infoCard {
+    background: var(--bg-surface, #fff);
+    border-radius: 1rem;
+    padding: 1rem;
+    margin-bottom: 0.75rem;
+}
+
+.infoCardTitle {
+    margin: 0 0 0.5rem;
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.mealEmpty {
+    margin: 0.25rem 0 0.5rem;
+    font-size: 0.85rem;
+    color: var(--text-muted, #6c757d);
+}
+
+.sleepList {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.sleepRow {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.25rem 0;
+    font-size: 0.9rem;
+}
+
+.sleepDash {
+    color: var(--text-muted, #6c757d);
+}

@@ -1,0 +1,24 @@
+.infoCard {
+    background: var(--bg-surface, #fff);
+    border-radius: 1rem;
+    padding: 1rem;
+    margin-bottom: 0.75rem;
+}
+
+.infoCardRow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+}
+
+.infoCardTitle {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.infoCardValue {
+    font-size: 1.1rem;
+    font-weight: 600;
+}

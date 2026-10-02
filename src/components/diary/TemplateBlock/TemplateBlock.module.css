@@ -1,0 +1,33 @@
+.templateBlock {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-top: 0.5rem;
+    padding: 0.6rem 0.75rem;
+    border-radius: 0.75rem;
+    background: rgba(0, 0, 0, 0.03);
+}
+
+.templateHead {
+    min-width: 0;
+}
+
+.templateTitle {
+    margin: 0;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.templateKcal {
+    display: flex;
+    gap: 0.25rem;
+    font-size: 0.75rem;
+    color: var(--text-muted, #6c757d);
+}
+
+.templateApply {
+    flex-shrink: 0;
+    padding: 0.25rem 0.75rem;
+    font-size: 0.8rem;
+}

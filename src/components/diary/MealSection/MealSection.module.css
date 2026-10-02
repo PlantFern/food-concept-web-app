@@ -1,0 +1,92 @@
+.mealSection {
+    background: var(--bg-surface, #fff);
+    border-radius: 1rem;
+    padding: 0.75rem 1rem;
+    margin-bottom: 0.75rem;
+}
+
+.mealSectionHead {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.mealSectionTitle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    border: none;
+    background: transparent;
+    font-weight: 600;
+    padding: 0;
+    cursor: pointer;
+}
+
+.mealSectionTotal {
+    font-size: 0.85rem;
+    color: var(--text-muted, #6c757d);
+}
+
+.mealSectionMenu {
+    border: none;
+    background: transparent;
+    padding: 0.15rem;
+    cursor: pointer;
+    color: var(--text-muted, #6c757d);
+}
+
+.mealEmpty {
+    margin: 0.25rem 0 0.5rem;
+    font-size: 0.85rem;
+    color: var(--text-muted, #6c757d);
+}
+
+.foodList {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.foodRow {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.4rem 0;
+    border-top: 1px solid rgba(0, 0, 0, 0.04);
+}
+
+.foodThumb {
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: 0.5rem;
+    background: rgba(0, 0, 0, 0.06);
+    flex-shrink: 0;
+}
+
+.foodMeta {
+    flex: 1;
+    min-width: 0;
+}
+
+.foodName {
+    font-size: 0.9rem;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.foodAmount {
+    font-size: 0.75rem;
+    color: var(--text-muted, #6c757d);
+}
+
+.foodKcal {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    font-size: 0.8rem;
+    color: var(--text-muted, #6c757d);
+}
