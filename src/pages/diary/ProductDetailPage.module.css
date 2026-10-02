@@ -1,0 +1,73 @@
+.page {
+    padding: 1rem 1rem 5rem;
+}
+
+.back {
+    display: inline-block;
+    margin-bottom: 0.75rem;
+    font-size: 0.9rem;
+    text-decoration: none;
+    color: var(--brand, #1b4332);
+}
+
+.hero {
+    display: flex;
+    gap: 0.85rem;
+    align-items: flex-start;
+    margin-bottom: 1.25rem;
+}
+
+.heroImage {
+    width: 4.5rem !important;
+    height: 4.5rem !important;
+    border-radius: 0.85rem !important;
+    flex-shrink: 0;
+}
+
+.title {
+    font-size: 1.15rem;
+    font-weight: 700;
+    margin: 0 0 0.25rem;
+}
+
+.meta {
+    font-size: 0.85rem;
+    color: #6c757d;
+}
+
+.form {
+    background: #fff;
+    border-radius: 1rem;
+    padding: 1rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.formTitle {
+    font-size: 1rem;
+    font-weight: 600;
+    margin: 0 0 0.85rem;
+}
+
+.label {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    font-size: 0.85rem;
+    margin-bottom: 0.85rem;
+}
+
+.row2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+}
+
+.error {
+    color: #c92a2a;
+    font-size: 0.9rem;
+    margin: 0 0 0.75rem;
+}
+
+.submit {
+    margin-top: 0.35rem;
+}
