@@ -1,0 +1,104 @@
+.page {
+    padding: 1rem 1rem 5rem;
+    background: #f5f6f8;
+    min-height: 100%;
+}
+
+.title {
+    text-align: center;
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 0.25rem 0 1rem;
+}
+
+.card {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    background: #fff;
+    border-radius: 1rem;
+    padding: 0.9rem 1rem;
+    margin-bottom: 1.25rem;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.avatar {
+    width: 3.25rem;
+    height: 3.25rem;
+    border-radius: 50%;
+    background: #e9ecef;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    color: #495057;
+    flex-shrink: 0;
+}
+
+.name {
+    font-weight: 600;
+    font-size: 1rem;
+}
+
+.email {
+    font-size: 0.85rem;
+    color: #6c757d;
+}
+
+.section {
+    margin-bottom: 1.1rem;
+}
+
+.sectionTitle {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #8a93a0;
+    margin: 0 0.35rem 0.4rem;
+}
+
+.group {
+    background: #fff;
+    border-radius: 1rem;
+    overflow: hidden;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    width: 100%;
+    padding: 0.85rem 1rem;
+    border: none;
+    background: transparent;
+    text-align: left;
+    text-decoration: none;
+    color: inherit;
+    border-bottom: 1px solid #f1f3f5;
+}
+
+.row:last-child {
+    border-bottom: none;
+}
+
+.rowIcon {
+    display: flex;
+    color: #495057;
+    font-size: 1.15rem;
+}
+
+.rowLabel {
+    flex: 1;
+    font-size: 0.95rem;
+}
+
+.rowValue {
+    font-size: 0.85rem;
+    color: #8a93a0;
+}
+
+.rowChevron {
+    color: #c0c4cc;
+    font-size: 0.9rem;
+}

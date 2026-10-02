@@ -14,6 +14,7 @@ import { DiaryHomePage } from '@/pages/diary/DiaryHomePage'
 import { ProductsPage } from '@/pages/diary/ProductsPage'
 import { SettingsPage } from '@/pages/diary/SettingsPage'
 import { StatsPage } from '@/pages/diary/StatsPage'
+import { DiarySettingsStubPage } from '@/pages/diary/DiarySettingsStubPage'
 import { RequireAuth } from '@/routes/RequireAuth'
 import { RequireDiary } from '@/routes/RequireDiary'
 
@@ -42,6 +43,24 @@ function App() {
                             <Route path="/diary/stats" element={<StatsPage />} />
                             <Route path="/diary/products" element={<ProductsPage />} />
                             <Route path="/diary/settings" element={<SettingsPage />} />
+                            <Route
+                                path="/diary/settings/diary"
+                                element={
+                                    <DiarySettingsStubPage
+                                        title="Настройки дневника"
+                                        description="Здесь будут опции сна, веса и скрытых нутриентов."
+                                    />
+                                }
+                            />
+                            <Route
+                                path="/diary/settings/goals"
+                                element={
+                                    <DiarySettingsStubPage
+                                        title="Цели"
+                                        description="Здесь можно будет менять цели по нутриентам."
+                                    />
+                                }
+                            />
                         </Route>
 
                         <Route path="*" element={<ErrorPage code={404} />} />
