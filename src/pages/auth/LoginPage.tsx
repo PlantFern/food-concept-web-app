@@ -1,10 +1,9 @@
 import { type SyntheticEvent, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { loginRequest } from '@/api/auth'
 import { getMyProfile } from '@/api/profiles'
-
-
-import {NavigateBackButton} from "@/components/ui/NavigateBackButton";
-
+import { getErrorMessage, getErrorStatus } from '@/lib/errors'
+import { NavigateBackButton } from '@/components/ui/NavigateBackButton'
 
 export function LoginPage() {
     const navigate = useNavigate()
@@ -18,17 +17,26 @@ export function LoginPage() {
         setError(null)
         setLoading(true)
         try {
-            await getMyProfile();
-            navigate('/diary', {replace: true});
-        } catch (err: unknown) {
-            const status = err && typeof err === 'object' && 'response' in err
-                ? (err as { response?: {status?: number}}).response?.status
-                : null;
-            if (status === 404 || status === 403){
-                navigate('/onboarding/role', {replace: true});
-                return;
+            await loginRequest({ email: email.trim(), password })
+
+            try {
+                await getMyProfile()
+                navigate('/diary', { replace: true })
+            } catch (profileErr: unknown) {
+                const status = getErrorStatus(profileErr)
+                if (status === 404 || status === 403) {
+                    navigate('/onboarding/role', { replace: true })
+                    return
+                }
+                throw profileErr
             }
-            setError(err instanceof Error ? err.message : 'Ошибка входа');
+        } catch (err: unknown) {
+            const status = getErrorStatus(err)
+            if (status === 401) {
+                setError('Неверный email или пароль')
+            } else {
+                setError(getErrorMessage(err, 'Ошибка входа'))
+            }
         } finally {
             setLoading(false)
         }
@@ -36,46 +44,28 @@ export function LoginPage() {
 
     return (
         <div className="col-lg-4 col-md-8 col-sm-10 col-12 m-auto">
-            <div className="d-flex flex-column gap-4
-                            justify-content-start align-items-start
-                            align-content-start
-                            form-card
-                            bg-brand
-                            rounded-md-5
-                            vh-100 overflow-y-auto">
-                <div className="d-flex w-100
-                                    flex-column column-gap-2
-                                    align-items-start justify-content-center
-                                    align-content-stretch
-                                    flex-grow-0">
-                    <div className="text-start">
-                        <NavigateBackButton label="Назад" className="btn-tertiary-invert"/>
-                    </div>
+            <div className="d-flex flex-column gap-4 justify-content-start align-items-start form-card bg-brand rounded-md-5 vh-100 overflow-y-auto">
+                <div className="d-flex w-100 flex-column align-items-start flex-grow-0">
+                    <NavigateBackButton label="Назад" className="btn-tertiary-invert" />
                 </div>
 
-                <div className="form-card-body
-                                d-flex flex-column gap-4
-                                bg-page
-                                rounded-3">
-                    <div className="d-flex
-                                    flex-column
-                                    align-items-center
-                                    justify-content-center
-                                    text-center">
-                        <p className="fs-3 fw-medium">С возвращением!</p>
+                <div className="form-card-body d-flex flex-column gap-4 bg-page rounded-3">
+                    <div className="d-flex flex-column align-items-center text-center">
+                        <p className="fs-3 fw-medium mb-0">С возвращением!</p>
                     </div>
-                    {error && (
-                        <div className="alert alert-danger auth-alert" role="alert">
-                            {error}
-                        </div>
-                    )}
 
-                    <form onSubmit={onSubmit} noValidate
-                          className="d-flex gap-3 w-100 flex-column
-                                        justify-content-between align-items-stretch
-                                        align-content-stretch
-                                        ">
-                        <div className="">
+                    <form
+                        onSubmit={onSubmit}
+                        noValidate
+                        className="d-flex gap-3 w-100 flex-column align-items-stretch"
+                    >
+                        {error && (
+                            <p className="text-danger small mb-0" role="alert">
+                                {error}
+                            </p>
+                        )}
+
+                        <div>
                             <label className="form-label label" htmlFor="login-email">
                                 Email
                             </label>
@@ -91,7 +81,7 @@ export function LoginPage() {
                             />
                         </div>
 
-                        <div className="">
+                        <div>
                             <label className="form-label label" htmlFor="login-password">
                                 Пароль
                             </label>
@@ -117,7 +107,7 @@ export function LoginPage() {
 
                     <div className="text-center">
                         Нет аккаунта?{' '}
-                        <Link className="btn-link btn-tertiary w-100" to="/register">
+                        <Link className="btn-link btn-tertiary" to="/register">
                             Зарегистрироваться
                         </Link>
                     </div>

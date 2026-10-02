@@ -3,9 +3,11 @@ import { useNavigate } from 'react-router-dom'
 import {
     createDiaryWithCalculatedGoal,
     readOnboardingProfile,
-    type ActivityLevel, type GoalType
+    type ActivityLevel,
+    type GoalType,
 } from '@/api/onboarding'
-import {NavigateBackButton} from "@/components/ui/NavigateBackButton";
+import { getErrorMessage } from '@/lib/errors'
+import { NavigateBackButton } from '@/components/ui/NavigateBackButton'
 
 const ACTIVITY_OPTIONS: { value: ActivityLevel; label: string }[] = [
     { value: 'SEDENTARY', label: 'Сидячий' },
@@ -38,11 +40,11 @@ export function GoalAutoPage() {
 
         if (!profile) {
             setError('Нет данных профиля')
-            navigate('/onboarding/diary/profile', { replace: true })
+            navigate('/onboarding/profile-setup', { replace: true })
             return
         }
 
-        const w: number = Number(weight)
+        const w = Number(weight)
         const pw = Number(plannedWeight)
         if (!Number.isFinite(w) || w <= 0) {
             setError('Укажите текущий вес')
@@ -52,42 +54,33 @@ export function GoalAutoPage() {
             setError('Укажите целевой вес')
             return
         }
+        if (profile.height == null) {
+            setError('Вы не указали рост')
+            return
+        }
+        if (profile.birthDate == null) {
+            setError('Вы не указали дату рождения')
+            return
+        }
+        if (profile.genderId == null) {
+            setError('Вы не указали пол')
+            return
+        }
 
         setLoading(true)
         try {
-            let storedOnboardingProfile =  readOnboardingProfile();
-
-            if(!storedOnboardingProfile){
-                setError('Данные профиля не найдены');
-                return;
-            }
-
-            if(storedOnboardingProfile.height === null) {
-                setError('Вы не указали рост');
-                return
-            }
-            if(storedOnboardingProfile.birthDate === null) {
-                setError('Вы не указали дату рождения');
-                return;
-            }
-            if(storedOnboardingProfile.genderId === null) {
-                setError('Вы не указали пол');
-                return;
-            }
-
-
             await createDiaryWithCalculatedGoal({
-                height: storedOnboardingProfile.height,
-                birthDate: storedOnboardingProfile.birthDate,
-                genderId: storedOnboardingProfile.genderId,
+                height: profile.height,
+                birthDate: profile.birthDate,
+                genderId: profile.genderId,
                 weight: w,
                 plannedWeight: pw,
                 activityLevel,
                 goalType,
             })
             navigate('/diary', { replace: true })
-        } catch {
-            setError('Не удалось создать профиль с расчётной целью')
+        } catch (err: unknown) {
+            setError(getErrorMessage(err, 'Не удалось создать профиль с расчётной целью'))
         } finally {
             setLoading(false)
         }
@@ -95,44 +88,24 @@ export function GoalAutoPage() {
 
     return (
         <div className="col-lg-4 col-md-8 col-sm-10 col-12 m-auto">
-            <div className="d-flex flex-column gap-4
-                            justify-content-start align-items-start
-                            align-content-start
-                            rounded-md-5
-                            bg-brand
-                            form-card
-                            vh-100 overflow-y-auto">
-                <div className="d-flex w-100
-                                    flex-column gap-2
-                                    align-items-start justify-content-center
-                                    align-content-stretch
-                                    flex-grow-0">
-                    <div className="text-start">
-                        <NavigateBackButton label="Назад" className="btn-tertiary"/>
-                    </div>
+            <div className="d-flex flex-column gap-4 justify-content-start align-items-start form-card bg-brand rounded-md-5 vh-100 overflow-y-auto">
+                <div className="d-flex w-100 flex-column align-items-start flex-grow-0">
+                    <NavigateBackButton label="Назад" className="btn-tertiary" />
                 </div>
-                <div className="form-card-body
-                                    d-flex flex-column gap-4
-                                    bg-surface
-                                    rounded-3">
-                    <div className="d-flex
-                                        flex-column
-                                        align-items-center
-                                        justify-content-center
-                                        text-center">
-                        <h1>Введите данные</h1>
+                <div className="form-card-body d-flex flex-column gap-4 bg-surface rounded-3">
+                    <div className="d-flex flex-column align-items-center text-center">
+                        <h1 className="h3 mb-0">Введите данные</h1>
                     </div>
-                    {error && (
-                        <div className="alert alert-danger auth-alert" role="alert">
-                            {error}
-                        </div>
-                    )}
-                    <form onSubmit={onSubmit}
-                          className="d-flex gap-3 w-100 flex-column
-                                        justify-content-between align-items-stretch
-                                        align-content-stretch
-                                        ">
-                        <div className="">
+                    <form
+                        onSubmit={onSubmit}
+                        className="d-flex gap-3 w-100 flex-column align-items-stretch"
+                    >
+                        {error && (
+                            <p className="text-danger small mb-0" role="alert">
+                                {error}
+                            </p>
+                        )}
+                        <div>
                             <label className="form-label label" htmlFor="auto-weight">
                                 Текущий вес (кг)
                             </label>
@@ -148,7 +121,7 @@ export function GoalAutoPage() {
                                 required
                             />
                         </div>
-                        <div className="">
+                        <div>
                             <label className="form-label label" htmlFor="auto-planned">
                                 Целевой вес (кг)
                             </label>
@@ -164,7 +137,7 @@ export function GoalAutoPage() {
                                 required
                             />
                         </div>
-                        <div className="">
+                        <div>
                             <label className="form-label label" htmlFor="auto-activity">
                                 Активность
                             </label>
@@ -172,9 +145,7 @@ export function GoalAutoPage() {
                                 id="auto-activity"
                                 className="form-select input"
                                 value={activityLevel}
-                                onChange={(e) =>
-                                    setActivityLevel(e.target.value as ActivityLevel)
-                                }
+                                onChange={(e) => setActivityLevel(e.target.value as ActivityLevel)}
                             >
                                 {ACTIVITY_OPTIONS.map((o) => (
                                     <option key={o.value} value={o.value}>
@@ -183,7 +154,7 @@ export function GoalAutoPage() {
                                 ))}
                             </select>
                         </div>
-                        <div className="">
+                        <div>
                             <label className="form-label label" htmlFor="auto-goal-type">
                                 Задача
                             </label>

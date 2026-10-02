@@ -1,16 +1,12 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-
-// @ts-ignore
 import 'bootstrap/dist/css/bootstrap.min.css'
 import 'bootstrap/dist/js/bootstrap.bundle.min.js'
-
-// @ts-ignore
 import '@/styles/index.css'
-import App from './App.tsx'
+import App from './App'
 
 createRoot(document.getElementById('root')!).render(
     <StrictMode>
         <App />
-    </StrictMode>
+    </StrictMode>,
 )
