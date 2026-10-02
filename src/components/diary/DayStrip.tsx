@@ -4,7 +4,7 @@ export type DayItem = {
     dateLabel: string
 }
 
-type DayStripProps = {
+export type DayStripProps = {
     days: DayItem[]
     activeId: string
     onSelect: (id: string) => void

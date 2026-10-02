@@ -1,14 +1,16 @@
 import { Doughnut } from 'react-chartjs-2'
 import { Chart as ChartJS, ArcElement, Tooltip } from 'chart.js'
+// @ts-ignore
+import styles from './PrimaryNutrientGauge.module.css'
 
 ChartJS.register(ArcElement, Tooltip)
 
-type KcalGaugeProps = {
+export type PrimaryNutrientGaugeProps = {
     current: number
     goal: number
 }
 
-export function KcalGauge({ current, goal }: KcalGaugeProps) {
+export function PrimaryNutrientGauge({ current, goal }: PrimaryNutrientGaugeProps) {
     const safeGoal = goal > 0 ? goal : 1
     const filled = Math.min(Math.max(current, 0), safeGoal)
     const rest = Math.max(safeGoal - filled, 0)
@@ -37,11 +39,11 @@ export function KcalGauge({ current, goal }: KcalGaugeProps) {
     }
 
     return (
-        <div className="kcal-gauge-wrap">
+        <div className={`${styles.kcalGaugeWrap}`}>
             <Doughnut data={data} options={options} />
-            <div className="kcal-gauge-center">
-                <div className="kcal-gauge-value">{Math.round(current)}</div>
-                <div className="kcal-gauge-label">/ {Math.round(goal)} kcal</div>
+            <div className={`${styles.kcalGaugeCenter}`}>
+                <div className={`${styles.kcalGaugeValue}`}>{Math.round(current)}</div>
+                <div className={`${styles.kcalGaugeLabel}`}>/ {Math.round(goal)} kcal</div>
             </div>
         </div>
     )

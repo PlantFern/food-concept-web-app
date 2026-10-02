@@ -1,3 +1,6 @@
+// @ts-ignore
+import styles from './NutrientBar.module.css'
+
 export type NutrientBarItem = {
     key: 'protein' | 'fat' | 'carbs'
     label: string
@@ -6,7 +9,7 @@ export type NutrientBarItem = {
     unit?: string
 }
 
-type NutrientBarsProps = {
+export type NutrientBarsProps = {
     items: NutrientBarItem[]
 }
 

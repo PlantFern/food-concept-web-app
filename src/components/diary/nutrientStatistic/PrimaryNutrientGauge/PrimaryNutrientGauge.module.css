@@ -1,0 +1,26 @@
+.kcal-gauge-wrap {
+    position: relative;
+    width: min(220px, 70vw);
+    margin: 0 auto;
+}
+
+.kcal-gauge-center {
+    position: absolute;
+    left: 50%;
+    top: 62%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    pointer-events: none;
+}
+
+.kcal-gauge-value {
+    font-size: 1.75rem;
+    font-weight: 700;
+    line-height: 1.1;
+    color: var(--text-on-brand);
+}
+
+.kcal-gauge-label {
+    font-size: 0.8rem;
+    color: var(--text-on-brand-muted);
+}
