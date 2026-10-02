@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import {
     HiOutlineUserCircle,
@@ -24,7 +24,7 @@ import {
 import styles from './SettingsPage.module.css'
 
 type RowProps = {
-    icon: React.ReactNode
+    icon: ReactNode
     label: string
     value?: string
     to?: string
