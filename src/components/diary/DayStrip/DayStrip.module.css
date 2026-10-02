@@ -1,0 +1,28 @@
+.dayStrip {
+    display: flex;
+    gap: 0.35rem;
+    overflow-x: auto;
+    padding: 0.25rem 0;
+}
+
+.dayChip {
+    flex-shrink: 0;
+    border: none;
+    border-radius: 999px;
+    padding: 0.35rem 0.75rem;
+    background: rgba(255, 255, 255, 0.15);
+    color: inherit;
+    cursor: pointer;
+    font-size: 0.8rem;
+}
+
+.isActive {
+    background: rgba(255, 255, 255, 0.35);
+    font-weight: 600;
+}
+
+.statsDate {
+    margin-top: 0.35rem;
+    font-size: 0.85rem;
+    opacity: 0.9;
+}
