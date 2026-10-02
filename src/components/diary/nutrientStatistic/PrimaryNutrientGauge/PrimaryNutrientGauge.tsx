@@ -1,5 +1,6 @@
 import { Doughnut } from 'react-chartjs-2'
 import { Chart as ChartJS, ArcElement, Tooltip } from 'chart.js'
+// @ts-ignore
 import styles from './PrimaryNutrientGauge.module.css'
 
 ChartJS.register(ArcElement, Tooltip)
