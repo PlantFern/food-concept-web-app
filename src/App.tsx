@@ -11,6 +11,9 @@ import { DiaryProfileSetupPage } from '@/pages/onboarding/diaryProfile/DiaryProf
 import { GoalManualPage } from '@/pages/onboarding/diaryProfile/GoalManualPage'
 import { GoalAutoPage } from '@/pages/onboarding/diaryProfile/GoalAutoPage'
 import { DiaryHomePage } from '@/pages/diary/DiaryHomePage'
+import { ProductsPage } from '@/pages/diary/ProductsPage'
+import { SettingsPage } from '@/pages/diary/SettingsPage'
+import { StatsPage } from '@/pages/diary/StatsPage'
 import { RequireAuth } from '@/routes/RequireAuth'
 import { RequireDiary } from '@/routes/RequireDiary'
 
@@ -36,10 +39,9 @@ function App() {
 
                         <Route element={<RequireDiary />}>
                             <Route path="/diary" element={<DiaryHomePage />} />
-                            <Route path="/diary/relations" element={<DiaryHomePage />} />
-                            <Route path="/diary/stats" element={<DiaryHomePage />} />
-                            <Route path="/diary/profile" element={<DiaryHomePage />} />
-                            <Route path="/diary/settings" element={<DiaryHomePage />} />
+                            <Route path="/diary/stats" element={<StatsPage />} />
+                            <Route path="/diary/products" element={<ProductsPage />} />
+                            <Route path="/diary/settings" element={<SettingsPage />} />
                         </Route>
 
                         <Route path="*" element={<ErrorPage code={404} />} />
