@@ -12,11 +12,15 @@ import { GoalManualPage } from '@/pages/onboarding/diaryProfile/GoalManualPage'
 import { GoalAutoPage } from '@/pages/onboarding/diaryProfile/GoalAutoPage'
 import { DiaryHomePage } from '@/pages/diary/DiaryHomePage'
 import { ProductsPage } from '@/pages/diary/ProductsPage'
+import { ProductDetailPage } from '@/pages/diary/ProductDetailPage'
 import { SettingsPage } from '@/pages/diary/SettingsPage'
 import { StatsPage } from '@/pages/diary/StatsPage'
 import { DiarySettingsStubPage } from '@/pages/diary/DiarySettingsStubPage'
+import { ClientsPage } from '@/pages/specialist/ClientsPage'
+import { SpecialistSettingsPage } from '@/pages/specialist/SpecialistSettingsPage'
 import { RequireAuth } from '@/routes/RequireAuth'
 import { RequireDiary } from '@/routes/RequireDiary'
+import { RequireSpecialist } from '@/routes/RequireSpecialist'
 
 function App() {
     return (
@@ -42,6 +46,7 @@ function App() {
                             <Route path="/diary" element={<DiaryHomePage />} />
                             <Route path="/diary/stats" element={<StatsPage />} />
                             <Route path="/diary/products" element={<ProductsPage />} />
+                            <Route path="/diary/products/:productId" element={<ProductDetailPage />} />
                             <Route path="/diary/settings" element={<SettingsPage />} />
                             <Route
                                 path="/diary/settings/diary"
@@ -61,6 +66,12 @@ function App() {
                                     />
                                 }
                             />
+                        </Route>
+
+                        <Route element={<RequireSpecialist />}>
+                            <Route path="/specialist" element={<Navigate to="/specialist/clients" replace />} />
+                            <Route path="/specialist/clients" element={<ClientsPage />} />
+                            <Route path="/specialist/settings" element={<SpecialistSettingsPage />} />
                         </Route>
 
                         <Route path="*" element={<ErrorPage code={404} />} />
