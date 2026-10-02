@@ -14,14 +14,12 @@ export type RegisterPayload = {
 }
 
 export async function loginRequest({ email, password }: LoginPayload): Promise<void> {
-
     await axios.get(`${API_BASE_URE}/api/users/my-profile`, {
         auth: { username: email, password },
     })
 
-    localStorage.setItem('fd_auth_email', email);
-    localStorage.setItem('fd_auth_password', password);
-
+    localStorage.setItem('fd_auth_email', email)
+    localStorage.setItem('fd_auth_password', password)
     http.defaults.auth = { username: email, password }
 }
 
@@ -47,4 +45,10 @@ export function restoreAuthFromStorage(): void {
     if (email && password) {
         http.defaults.auth = { username: email, password }
     }
+}
+
+export function hasStoredAuth(): boolean {
+    const email = localStorage.getItem('fd_auth_email')
+    const password = localStorage.getItem('fd_auth_password')
+    return Boolean(email && password)
 }

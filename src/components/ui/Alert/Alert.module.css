@@ -1,47 +1,45 @@
 .alert {
-    display:flex;
-    align-items:center;
-    gap: var(--indent-12);
+    display: flex;
+    align-items: center;
+    gap: var(--indent-12, 0.75rem);
     min-width: 280px;
     max-width: 400px;
-
-    padding: var(--indent-16) var(--indent-24);
-    border-radius: 2rem;
-
-    color: var(--text-color);
-
-    animation: slideIn 0.3s easy-out;
+    padding: var(--indent-16, 1rem) var(--indent-24, 1.5rem);
+    border-radius: 1rem;
+    border: 1px solid transparent;
+    color: var(--text-color, #1a1a1a);
+    animation: slideIn 0.3s ease-out;
 }
 
 .leave {
-    animation: slideId 0.3s ease-in forwards;
+    animation: slideOut 0.3s ease-in forwards;
 }
 
 .danger {
-    background: var(--danger-bg);
-    border-color: var(--danger-border);
-    color: var(--danger-fg);
+    background: #fde8e8;
+    border-color: #f5c2c2;
+    color: #9b1c1c;
 }
 
 .warning {
-    background: var(--warning-bg);
-    border-color: var(--warning-border);
-    color: var(--warning-fg);
+    background: #fef3cd;
+    border-color: #ffe69c;
+    color: #664d03;
 }
 
 .success {
-    background: var(--success-bg);
-    border-color: var(--success-border);
-    color: var(--success-fg);
+    background: #d1e7dd;
+    border-color: #a3cfbb;
+    color: #0f5132;
 }
 
 .info {
-    background: var(--info-bg);
-    border-color: var(--info-border);
-    color: var(--info-fg);
+    background: #cff4fc;
+    border-color: #9eeaf9;
+    color: #055160;
 }
 
-.icon{
+.icon {
     display: flex;
     align-items: center;
     flex-shrink: 0;
@@ -49,18 +47,22 @@
 
 .message {
     flex: 1;
+    font-size: 0.9rem;
 }
 
 .close {
     display: flex;
-    align-self: start;
-    justify-content: end;
+    align-self: flex-start;
     background: transparent;
     border: none;
-    color: var(--danger-border);
     cursor: pointer;
-    opacity: 0.8;
+    opacity: 0.7;
     padding: 0;
+    color: inherit;
+}
+
+.close:hover {
+    opacity: 1;
 }
 
 @keyframes slideIn {
@@ -75,23 +77,27 @@
 }
 
 @keyframes slideOut {
-    from{
+    from {
         transform: translateX(0);
         opacity: 1;
     }
-    to{
+    to {
         transform: translateX(120%);
         opacity: 0;
     }
 }
 
-
 .container {
     position: fixed;
-    top: var(--indent-24);
-    right: var(--indent-24);
+    top: 1.5rem;
+    right: 1.5rem;
     display: flex;
     flex-direction: column;
-    gap: var(--indent-12);
+    gap: 0.75rem;
     z-index: 9999;
+    pointer-events: none;
+}
+
+.container > * {
+    pointer-events: auto;
 }
