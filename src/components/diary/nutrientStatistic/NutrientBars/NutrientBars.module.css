@@ -1,0 +1,48 @@
+.nutrientBars {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    width: 100%;
+}
+
+.nutrientRow {
+    display: grid;
+    grid-template-columns: 4.5rem 1fr auto;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.8rem;
+}
+
+.nutrientName {
+    color: var(--text-on-brand, #fff);
+}
+
+.nutrientTrack {
+    height: 0.4rem;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.2);
+    overflow: hidden;
+}
+
+.nutrientFill {
+    height: 100%;
+    border-radius: 999px;
+}
+
+.protein {
+    background: #3498db;
+}
+
+.fat {
+    background: #f39c12;
+}
+
+.carbs {
+    background: #2ecc71;
+}
+
+.nutrientValue {
+    color: var(--text-on-brand, #fff);
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+}

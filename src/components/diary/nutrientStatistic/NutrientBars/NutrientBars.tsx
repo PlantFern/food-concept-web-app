@@ -1,7 +1,6 @@
-// @ts-ignore
-import styles from './NutrientBar.module.css'
+import styles from './NutrientBars.module.css'
 
-export type NutrientBarItem = {
+export type NutrientBarsItem = {
     key: 'protein' | 'fat' | 'carbs'
     label: string
     current: number
@@ -10,27 +9,27 @@ export type NutrientBarItem = {
 }
 
 export type NutrientBarsProps = {
-    items: NutrientBarItem[]
+    items: NutrientBarsItem[]
 }
 
 export function NutrientBars({ items }: NutrientBarsProps) {
     return (
-        <div className="nutrient-bars">
+        <div className={styles.nutrientBars}>
             {items.map((item) => {
                 const pct =
                     item.goal > 0
                         ? Math.min(100, Math.round((item.current / item.goal) * 100))
                         : 0
                 return (
-                    <div key={item.key} className="nutrient-row">
-                        <span className="nutrient-name">{item.label}</span>
-                        <div className="nutrient-track" aria-hidden>
+                    <div key={item.key} className={styles.nutrientRow}>
+                        <span className={styles.nutrientName}>{item.label}</span>
+                        <div className={styles.nutrientTrack} aria-hidden>
                             <div
-                                className={`nutrient-fill ${item.key}`}
+                                className={`${styles.nutrientFill} ${styles[item.key]}`}
                                 style={{ width: `${pct}%` }}
                             />
                         </div>
-                        <span className="nutrient-value">
+                        <span className={styles.nutrientValue}>
                             {Math.round(item.current)}
                             {item.unit ?? 'g'} / {Math.round(item.goal)}
                             {item.unit ?? 'g'}

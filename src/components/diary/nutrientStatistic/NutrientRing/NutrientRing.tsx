@@ -1,7 +1,6 @@
 import { Doughnut } from 'react-chartjs-2'
 import { Chart as ChartJS, ArcElement, Tooltip } from 'chart.js'
-// @ts-ignore
-import styles from './NutrientBar.module.css'
+import styles from './NutrientRing.module.css'
 
 ChartJS.register(ArcElement, Tooltip)
 
@@ -49,14 +48,14 @@ export function NutrientRing({ slices }: NutrientRingProps) {
     }
 
     return (
-        <div className={`${styles.nutrientRingBlock}`}>
-            <div className={`${styles.nutrientRingChart}`}>
+        <div className={styles.nutrientRingBlock}>
+            <div className={styles.nutrientRingChart}>
                 <Doughnut data={data} options={options} />
             </div>
-            <ul className={`${styles.nutrientLegend}`}>
+            <ul className={styles.nutrientLegend}>
                 {slices.map((s) => (
                     <li key={s.key}>
-                        <span className={`${styles.nutrientDot}`} style={{ background: s.color }} />
+                        <span className={styles.nutrientDot} style={{ background: s.color }} />
                         <span>{s.label}</span>
                     </li>
                 ))}

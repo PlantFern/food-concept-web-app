@@ -1,4 +1,3 @@
-// @ts-ignore
 import styles from './NutrientBar.module.css'
 
 export type NutrientBarItem = {
@@ -17,16 +16,16 @@ export function NutrientBar({ items }: NutrientBarProps) {
     const hasData = total > 0
 
     return (
-        <div className={`${styles.nutrientBar}`}>
-            <div className={`${styles.nutrientBarLegend}`}>
+        <div className={styles.nutrientBar}>
+            <div className={styles.nutrientBarLegend}>
                 {items.map((item) => (
-                    <div key={item.key} className={`${styles.nutrientBarLegendRow}`}>
-                        <span className={`${styles.nutrientBarAmount}`}>
+                    <div key={item.key} className={styles.nutrientBarLegendRow}>
+                        <span className={styles.nutrientBarAmount}>
                             {Math.round(item.value)}g
                         </span>
-                        <span className={`${styles.nutrientBarLabel}`}>
+                        <span className={styles.nutrientBarLabel}>
                             <span
-                                className={`${styles.nutrientBarDot}`}
+                                className={styles.nutrientBarDot}
                                 style={{ background: item.color }}
                             />
                             {item.label}
@@ -35,26 +34,33 @@ export function NutrientBar({ items }: NutrientBarProps) {
                 ))}
             </div>
 
-            <div className={`${styles.nutrientBarTrack}`} role="img" aria-label="Соотношение нутриентов">
-                {hasData
-                    ? items.map((item) => {
-                          const pct = (Math.max(item.value, 0) / total) * 100
-                          if (pct <= 0) return null
-                          return (
-                              <div
-                                  key={item.key}
-                                  className={`${styles.nutrientBarSeg}`}
-                                  style={{
-                                      width: `${pct}%`,
-                                      background: item.color,
-                                  }}
-                                  title={`${item.label}: ${Math.round(item.value)}g`}
-                              />
-                          )
-                      })
-                    : (
-                          <div className={`${styles.nutrientBarSeg, styles.nutrientBarSegEmpty}`} style={{ width: '100%' }} />
-                      )}
+            <div
+                className={styles.nutrientBarTrack}
+                role="img"
+                aria-label="Соотношение нутриентов"
+            >
+                {hasData ? (
+                    items.map((item) => {
+                        const pct = (Math.max(item.value, 0) / total) * 100
+                        if (pct <= 0) return null
+                        return (
+                            <div
+                                key={item.key}
+                                className={styles.nutrientBarSeg}
+                                style={{
+                                    width: `${pct}%`,
+                                    background: item.color,
+                                }}
+                                title={`${item.label}: ${Math.round(item.value)}g`}
+                            />
+                        )
+                    })
+                ) : (
+                    <div
+                        className={`${styles.nutrientBarSeg} ${styles.nutrientBarSegEmpty}`}
+                        style={{ width: '100%' }}
+                    />
+                )}
             </div>
         </div>
     )
