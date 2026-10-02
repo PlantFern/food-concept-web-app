@@ -2,6 +2,8 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
     applyMealTemplate,
     fetchDayMeals,
+    nutrientDisplayName,
+    nutrientDisplayUnit,
     type DayMealsDto,
     type MealTemplateListItemDto,
 } from '@/api/diary'
@@ -25,33 +27,13 @@ const DEFAULT_SECTIONS = [
     { mealId: -4, mealTypeCode: 'DINNER', mealTypeId: 4, records: [] as never[] },
 ]
 
-const DEFAULT_MACROS = [
-    { key: 'protein', label: 'protein', value: 0, color: '#3498db' },
-    { key: 'fat', label: 'fat', value: 0, color: '#f39c12' },
-    { key: 'carbs', label: 'carbs', value: 0, color: '#2ecc71' },
-]
+const PALETTE = ['#3498db', '#f39c12', '#2ecc71', '#9b59b6', '#e74c3c', '#1abc9c']
 
 function toIsoDate(d: Date): string {
     const y = d.getFullYear()
     const m = String(d.getMonth() + 1).padStart(2, '0')
     const day = String(d.getDate()).padStart(2, '0')
     return `${y}-${m}-${day}`
-}
-
-function nutrientColor(code: string): string {
-    const c = code.toUpperCase()
-    if (c.includes('PROTEIN')) return '#3498db'
-    if (c.includes('FAT')) return '#f39c12'
-    if (c.includes('CARB')) return '#2ecc71'
-    return '#95a5a6'
-}
-
-function nutrientLabel(code: string): string {
-    const c = code.toUpperCase()
-    if (c.includes('PROTEIN')) return 'protein'
-    if (c.includes('FAT')) return 'fat'
-    if (c.includes('CARB')) return 'carbs'
-    return code.toLowerCase()
 }
 
 function pickTemplatesForSection(
@@ -146,27 +128,29 @@ export function DiaryHomePage() {
             t.nutrientCode?.toUpperCase() === day.primaryNutrientCode?.toUpperCase(),
     )
 
+    const primaryName =
+        day?.primaryNutrientName?.trim() ||
+        (primary ? nutrientDisplayName(primary) : day?.primaryNutrientCode) ||
+        ''
+
+    const primaryUnit =
+        day?.primaryNutrientUnit?.trim() ||
+        (primary ? nutrientDisplayUnit(primary) : '') ||
+        ''
+
     const secondary = (day?.targets ?? []).filter(
         (t) =>
             t.nutrientId !== day?.primaryNutrient &&
             t.nutrientCode?.toUpperCase() !== day?.primaryNutrientCode?.toUpperCase(),
     )
 
-    const macroItems =
-        secondary.length > 0
-            ? secondary.slice(0, 3).map((t) => ({
-                  key: t.nutrientCode,
-                  label: nutrientLabel(t.nutrientCode),
-                  value: Math.max(t.factAmount ?? 0, 0),
-                  color: nutrientColor(t.nutrientCode),
-              }))
-            : DEFAULT_MACROS
-
-    const primaryUnit =
-        day?.primaryNutrientCode?.toLowerCase().includes('kcal') ||
-        day?.primaryNutrientCode?.toLowerCase().includes('energy')
-            ? 'kcal'
-            : (day?.primaryNutrientCode ?? 'kcal')
+    const secondaryItems = secondary.map((t, index) => ({
+        key: String(t.nutrientId ?? t.nutrientCode ?? index),
+        label: nutrientDisplayName(t),
+        value: Math.max(t.factAmount ?? 0, 0),
+        unit: nutrientDisplayUnit(t),
+        color: PALETTE[index % PALETTE.length],
+    }))
 
     const sections =
         day?.sections && day.sections.length > 0 ? day.sections : DEFAULT_SECTIONS
@@ -180,8 +164,10 @@ export function DiaryHomePage() {
                     <PrimaryNutrientGauge
                         current={primary?.factAmount ?? 0}
                         goal={primary?.targetAmount ?? 0}
+                        name={primaryName}
+                        unit={primaryUnit}
                     />
-                    <NutrientBar items={macroItems} />
+                    {secondaryItems.length > 0 && <NutrientBar items={secondaryItems} />}
                 </div>
 
                 <div className="stats-dots" role="tablist" aria-label="Страницы статистики">

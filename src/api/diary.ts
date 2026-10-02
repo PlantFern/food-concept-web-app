@@ -4,6 +4,9 @@ import { getDiaryProfileId } from '@/api/onboarding'
 export type DayNutrientStatDto = {
     nutrientId: number
     nutrientCode: string
+    nutrientName?: string | null
+    unit?: string | null
+    unitCode?: string | null
     targetAmount: number | null
     factAmount: number | null
     remainingAmount: number | null
@@ -56,6 +59,8 @@ export type DayMealsDto = {
     date: string
     primaryNutrient: number
     primaryNutrientCode: string
+    primaryNutrientName?: string | null
+    primaryNutrientUnit?: string | null
     targets: DayNutrientStatDto[]
     sections: MealSectionDto[]
     pendingTemplates: MealTemplateListItemDto[]
@@ -126,4 +131,22 @@ export function mealTypeLabel(code: string | null | undefined): string {
         BRUNCH: 'Бранч',
     }
     return map[code.toUpperCase()] ?? code
+}
+
+export function nutrientDisplayName(stat: {
+    nutrientName?: string | null
+    nutrientCode?: string | null
+}): string {
+    if (stat.nutrientName && stat.nutrientName.trim()) return stat.nutrientName.trim()
+    if (stat.nutrientCode && stat.nutrientCode.trim()) return stat.nutrientCode.trim()
+    return 'Нутриент'
+}
+
+export function nutrientDisplayUnit(stat: {
+    unit?: string | null
+    unitCode?: string | null
+}): string {
+    if (stat.unit && stat.unit.trim()) return stat.unit.trim()
+    if (stat.unitCode && stat.unitCode.trim()) return stat.unitCode.trim()
+    return ''
 }

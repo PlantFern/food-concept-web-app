@@ -1,26 +1,35 @@
-.kcal-gauge-wrap {
+.kcalGaugeWrap {
     position: relative;
-    width: min(220px, 70vw);
-    margin: 0 auto;
+    width: 10rem;
+    max-width: 42vw;
 }
 
-.kcal-gauge-center {
+.kcalGaugeCenter {
     position: absolute;
     left: 50%;
-    top: 62%;
-    transform: translate(-50%, -50%);
+    bottom: 0.35rem;
+    transform: translateX(-50%);
     text-align: center;
-    pointer-events: none;
+    color: var(--text-on-brand, #fff);
+    line-height: 1.15;
 }
 
-.kcal-gauge-value {
-    font-size: 1.75rem;
+.kcalGaugeName {
+    font-size: 0.7rem;
+    opacity: 0.9;
+    margin-bottom: 0.15rem;
+    max-width: 8rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.kcalGaugeValue {
+    font-size: 1.5rem;
     font-weight: 700;
-    line-height: 1.1;
-    color: var(--text-on-brand);
 }
 
-.kcal-gauge-label {
+.kcalGaugeLabel {
     font-size: 0.8rem;
-    color: var(--text-on-brand-muted);
+    opacity: 0.85;
 }

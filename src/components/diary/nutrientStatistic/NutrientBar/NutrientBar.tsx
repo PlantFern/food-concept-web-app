@@ -4,6 +4,7 @@ export type NutrientBarItem = {
     key: string
     label: string
     value: number
+    unit?: string
     color: string
 }
 
@@ -18,20 +19,22 @@ export function NutrientBar({ items }: NutrientBarProps) {
     return (
         <div className={styles.nutrientBar}>
             <div className={styles.nutrientBarLegend}>
-                {items.map((item) => (
-                    <div key={item.key} className={styles.nutrientBarLegendRow}>
-                        <span className={styles.nutrientBarAmount}>
-                            {Math.round(item.value)}g
-                        </span>
-                        <span className={styles.nutrientBarLabel}>
-                            <span
-                                className={styles.nutrientBarDot}
-                                style={{ background: item.color }}
-                            />
-                            {item.label}
-                        </span>
-                    </div>
-                ))}
+                {items.map((item) => {
+                    const unit = item.unit?.trim() ?? ''
+                    const amount = `${Math.round(item.value)}${unit ? ` ${unit}` : ''}`
+                    return (
+                        <div key={item.key} className={styles.nutrientBarLegendRow}>
+                            <span className={styles.nutrientBarAmount}>{amount}</span>
+                            <span className={styles.nutrientBarLabel}>
+                                <span
+                                    className={styles.nutrientBarDot}
+                                    style={{ background: item.color }}
+                                />
+                                {item.label}
+                            </span>
+                        </div>
+                    )
+                })}
             </div>
 
             <div
@@ -43,6 +46,7 @@ export function NutrientBar({ items }: NutrientBarProps) {
                     items.map((item) => {
                         const pct = (Math.max(item.value, 0) / total) * 100
                         if (pct <= 0) return null
+                        const unit = item.unit?.trim() ?? ''
                         return (
                             <div
                                 key={item.key}
@@ -51,7 +55,7 @@ export function NutrientBar({ items }: NutrientBarProps) {
                                     width: `${pct}%`,
                                     background: item.color,
                                 }}
-                                title={`${item.label}: ${Math.round(item.value)}g`}
+                                title={`${item.label}: ${Math.round(item.value)}${unit ? ` ${unit}` : ''}`}
                             />
                         )
                     })

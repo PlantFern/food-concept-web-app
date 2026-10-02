@@ -7,9 +7,16 @@ ChartJS.register(ArcElement, Tooltip)
 export type PrimaryNutrientGaugeProps = {
     current: number
     goal: number
+    name?: string
+    unit?: string
 }
 
-export function PrimaryNutrientGauge({ current, goal }: PrimaryNutrientGaugeProps) {
+export function PrimaryNutrientGauge({
+    current,
+    goal,
+    name,
+    unit = '',
+}: PrimaryNutrientGaugeProps) {
     const safeGoal = goal > 0 ? goal : 1
     const filled = Math.min(Math.max(current, 0), safeGoal)
     const rest = Math.max(safeGoal - filled, 0)
@@ -37,12 +44,17 @@ export function PrimaryNutrientGauge({ current, goal }: PrimaryNutrientGaugeProp
         },
     }
 
+    const unitSuffix = unit ? ` ${unit}` : ''
+
     return (
         <div className={styles.kcalGaugeWrap}>
             <Doughnut data={data} options={options} />
             <div className={styles.kcalGaugeCenter}>
+                {name ? <div className={styles.kcalGaugeName}>{name}</div> : null}
                 <div className={styles.kcalGaugeValue}>{Math.round(current)}</div>
-                <div className={styles.kcalGaugeLabel}>/ {Math.round(goal)} kcal</div>
+                <div className={styles.kcalGaugeLabel}>
+                    / {Math.round(goal)}{unitSuffix}
+                </div>
             </div>
         </div>
     )
