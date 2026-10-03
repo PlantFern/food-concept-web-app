@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { BottomNav } from '@/components/diary'
 import { DeferredImage } from '@/components/ui/DeferredImage'
 import {
@@ -75,7 +76,7 @@ export function ProductsPage() {
     return (
         <div className="diary-shell">
             <div className="diary-content p-3 pb-5">
-                <h1 className="h5 mb-3">Продукты</h1>
+                <h1 className="page-title">Products</h1>
 
                 <ul className="nav nav-tabs mb-3" role="tablist">
                     {(
@@ -122,17 +123,19 @@ export function ProductsPage() {
                             <li className="list-group-item text-muted">{emptyHint}</li>
                         )}
                         {products.map((p) => (
-                            <li
-                                key={p.id}
-                                className="list-group-item d-flex align-items-center gap-2"
-                            >
-                                <DeferredImage src={p.imageUrl} alt={p.name} />
-                                <div>
-                                    <div className="fw-semibold">{p.name}</div>
-                                    {p.brand && (
-                                        <div className="small text-muted">{p.brand}</div>
-                                    )}
-                                </div>
+                            <li key={p.id} className="list-group-item p-0">
+                                <Link
+                                    to={`/diary/products/${p.id}`}
+                                    className="d-flex align-items-center gap-2 text-decoration-none text-reset p-3"
+                                >
+                                    <DeferredImage src={p.imageUrl} alt={p.name} />
+                                    <div>
+                                        <div className="fw-semibold">{p.name}</div>
+                                        {p.categoryCode && (
+                                            <div className="small text-muted">{p.categoryCode}</div>
+                                        )}
+                                    </div>
+                                </Link>
                             </li>
                         ))}
                     </ul>
@@ -149,7 +152,12 @@ export function ProductsPage() {
                                 className="list-group-item d-flex align-items-center gap-2"
                             >
                                 <DeferredImage src={r.imageUrl} alt={r.name} />
-                                <div className="fw-semibold">{r.name}</div>
+                                <div>
+                                    <div className="fw-semibold">{r.name}</div>
+                                    {r.description && (
+                                        <div className="small text-muted">{r.description}</div>
+                                    )}
+                                </div>
                             </li>
                         ))}
                     </ul>
