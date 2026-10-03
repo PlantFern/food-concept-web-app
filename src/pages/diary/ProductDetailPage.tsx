@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useMemo, useState } from 'react'
+import { type SyntheticEvent, useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { BottomNav } from '@/components/diary'
 import { DeferredImage } from '@/components/ui/DeferredImage'
@@ -88,7 +88,7 @@ export function ProductDetailPage() {
         [product?.photoPath],
     )
 
-    async function onSubmit(e: FormEvent) {
+    async function onSubmit(e: SyntheticEvent) {
         e.preventDefault()
         setFormError('')
 
@@ -120,9 +120,11 @@ export function ProductDetailPage() {
     return (
         <div className="diary-shell">
             <div className={`diary-content ${styles.page}`}>
-                <Link to="/diary/products" className={styles.back}>
-                    ← Продукты
-                </Link>
+                <div className='bg-brand text-invert p-2 rounded-bottom-4'>
+                    <Link to="/diary/products" className={styles.back}>
+                        ← Продукты
+                        </Link>
+                </div>
 
                 {loading && <p className="text-muted mt-3">Загрузка…</p>}
 

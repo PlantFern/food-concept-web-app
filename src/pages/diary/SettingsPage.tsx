@@ -87,7 +87,9 @@ export function SettingsPage() {
     return (
         <div className="diary-shell">
             <div className={`diary-content ${styles.page}`}>
-                <h1 className={styles.title}>Profile</h1>
+                <div className='bg-brand text-invert p-2 rounded-bottom-4'>
+                    <h2 className={styles.title}>Profile</h2>
+                </div>
 
                 <section className={styles.card}>
                     <div className={styles.avatar}>

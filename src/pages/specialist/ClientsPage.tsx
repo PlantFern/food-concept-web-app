@@ -13,8 +13,9 @@ export function ClientsPage() {
     const [error, setError] = useState('')
 
     useEffect(() => {
-        let cancelled = false
-        ;(async () => {
+
+        let cancelled = false;
+        (async () => {
             setLoading(true)
             setError('')
             const me = await getMySpecialist()
@@ -30,6 +31,7 @@ export function ClientsPage() {
             setClients(list.filter(isActiveRelation))
             setLoading(false)
         })()
+
         return () => {
             cancelled = true
         }
@@ -38,7 +40,9 @@ export function ClientsPage() {
     return (
         <div className="diary-shell">
             <div className="diary-content p-3 pb-5">
-                <h1 className="page-title">Клиенты</h1>
+                <div className='bg-brand text-invert p-2 rounded-bottom-4'>
+                    <h2 className="page-title text-center p-2 bg-text-on-brand">Клиенты</h2>
+                </div>
 
                 {loading && <p className="text-muted">Загрузка…</p>}
                 {error && <p className="text-danger">{error}</p>}
