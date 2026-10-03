@@ -4,6 +4,10 @@ import { hasStoredAuth, restoreAuthFromStorage } from '@/api/auth'
 import { getMySpecialist } from '@/api/specialist'
 
 export function RequireSpecialist() {
+
+    if(import.meta.env.VITE_DEMO_UI === true) 
+    return <Outlet />
+    
     const [ok, setOk] = useState<boolean | null>(null)
 
     useEffect(() => {
@@ -12,8 +16,8 @@ export function RequireSpecialist() {
             setOk(false)
             return
         }
-        let cancelled = false
-        ;(async () => {
+        let cancelled = false;
+        (async () => {
             const me = await getMySpecialist()
             if (!cancelled) setOk(me != null)
         })()

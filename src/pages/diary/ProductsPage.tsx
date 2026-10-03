@@ -76,49 +76,51 @@ export function ProductsPage() {
     return (
         <div className="diary-shell">
             <div className="diary-content p-3 pb-5">
-                <h1 className="page-title">Products</h1>
+                <div className='bg-brand text-invert p-2 rounded-bottom-4'>
+                    <h2 className="page-title text-center p-2 bg-text-on-brand">Продукты</h2>
 
-                <ul className="nav nav-tabs mb-3" role="tablist">
-                    {(
-                        [
-                            ['products', 'Продукты'],
-                            ['recipes', 'Рецепты'],
-                            ['templates', 'Шаблоны'],
-                            ['recent', '7 дней'],
-                        ] as const
-                    ).map(([key, label]) => (
-                        <li className="nav-item" key={key}>
-                            <button
-                                type="button"
-                                role="tab"
-                                className={`nav-link ${tab === key ? 'active' : ''}`}
-                                aria-selected={tab === key}
-                                onClick={() => setTab(key)}
-                            >
-                                {label}
-                            </button>
-                        </li>
-                    ))}
-                </ul>
+                    <ul className="nav nav-pills mb-3" role="tablist">
+                        {(
+                            [
+                                ['products', 'Продукты'],
+                                ['recipes', 'Рецепты'],
+                                ['templates', 'Шаблоны'],
+                                ['recent', '7 дней'],
+                            ] as const
+                        ).map(([key, label]) => (
+                            <li className="nav-item me-2" key={key}>
+                                <button
+                                    type="button"
+                                    role="tab"
+                                    className={`nav-link ${tab === key ? 'active' : ''}`}
+                                    aria-selected={tab === key}
+                                    onClick={() => setTab(key)}
+                                >
+                                    {label}
+                                </button>
+                            </li>
+                        ))}
+                    </ul>
 
-                {showSearch && (
-                    <div className="mb-3">
-                        <input
-                            type="search"
-                            className="form-control"
-                            placeholder={
-                                tab === 'products'
-                                    ? 'Поиск продуктов…'
-                                    : 'Поиск рецептов…'
-                            }
-                            value={query}
-                            onChange={(e) => setQuery(e.target.value)}
-                        />
-                    </div>
-                )}
+                    {showSearch && (
+                        <div className="mb-3">
+                            <input
+                                type="search"
+                                className="form-control"
+                                placeholder={
+                                    tab === 'products'
+                                        ? 'Поиск продуктов…'
+                                        : 'Поиск рецептов…'
+                                }
+                                value={query}
+                                onChange={(e) => setQuery(e.target.value)}
+                            />
+                        </div>
+                    )}
+                </div>
 
                 {tab === 'products' && (
-                    <ul className="list-group list-group-flush">
+                    <ul className="list-group list-group-flush rounded-4">
                         {products.length === 0 && (
                             <li className="list-group-item text-muted">{emptyHint}</li>
                         )}
