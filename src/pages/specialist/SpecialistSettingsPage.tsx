@@ -57,8 +57,8 @@ export function SpecialistSettingsPage() {
     const [loading, setLoading] = useState(true)
 
     useEffect(() => {
-        let cancelled = false
-        ;(async () => {
+        let cancelled = false;
+        (async () => {
             const [u, diary, specialist] = await Promise.all([
                 getMyUserProfile(),
                 checkDiaryProfileExists(),
@@ -83,7 +83,9 @@ export function SpecialistSettingsPage() {
     return (
         <div className="diary-shell">
             <div className={`diary-content ${styles.page}`}>
-                <h1 className={styles.title}>Profile</h1>
+                <div className='bg-brand text-invert p-2 rounded-bottom-4'>
+                    <h2 className="page-title text-center p-2 bg-text-on-brand">Профиль</h2>
+                </div>
 
                 <section className={styles.card}>
                     <div className={styles.avatar}>

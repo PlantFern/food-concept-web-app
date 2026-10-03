@@ -45,6 +45,11 @@
     --cta-fg: var(--neutral-50);
     --cta-fg-muted: rgba(var(--neutral-50-rgb), 0.8);
 
+    --cta-bg-invert: var(--neutral-50);
+    --cta-bg-hover-invert: var(--neutral-200);
+    --cta-fg-invert: var(--green-800);
+    --cta-fg-muted-invert: rgba(var(--green-800-rgb), 0.8);
+
     --text: var(--green-800);
     --text-muted: rgba(var(--green-800-rgb), 0.7);
     --text-on-brand: var(--neutral-0);
@@ -54,7 +59,7 @@
     --brand-hover: var(--green-700);
     --brand-muted: var(--green-500);
     --brand-deep: var(--green-800);
-    --brand-gradient: linear-gradient(180deg, var(--green-800) 0%, var(--green-700) 45%, var(--green-600) 100%);
+    --brand-gradient: linear-gradient(180deg, var(--green-700) 0%, var(--green-600) 100%);
 
     --accent: var(--pink-300);
     --accent-hover: var(--pink-400);
@@ -115,7 +120,7 @@ body {
 
 .page-title {
     color: var(--brand);
-    font-weight: 700;
+    font-weight: 500;
     font-size: 1.25rem;
     margin: 0 0 1rem;
 }
@@ -123,6 +128,19 @@ body {
 .navbar .nav-link.active{
     font-weight: 600;
     text-decoration: underline;
+}
+
+.nav-pills .nav-link{
+    background-color: transparent !important;
+    color: var(--cta-fg) !important;
+}
+.nav-pills .nav-link:hover{
+    background: var(--neutral-300) !important;
+    color: var(--cta-fg-invert) !important;
+}
+.nav-pills .nav-link.active{
+        background-color: var(--cta-bg-hover-invert) !important;
+    color: var(--cta-fg-muted-invert) !important;
 }
 
 .btn {
@@ -203,6 +221,10 @@ body {
 .btn-link:hover {
     color: rgba(var(--green-600-rgb), 0.8);
     text-decoration: underline;
+}
+
+.bg-text-on-brand {
+    color: var(--text-on-brand);
 }
 
 .bg-brand {

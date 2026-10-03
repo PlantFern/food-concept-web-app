@@ -16,8 +16,10 @@ restoreAuthFromStorage()
 http.interceptors.response.use(
     (response) => response,
     (error) => {
-        if (error.response?.status === 401) {
-            logoutLocal()
+        const status = error.response?.status;
+        const isNetwork = !error.response;
+        if (status === 401 && !isNetwork) {
+            logoutLocal();
             const path = window.location.pathname
             if (path !== '/login' && path !== '/register' && path !== '/get-start') {
                 window.location.href = '/login'
