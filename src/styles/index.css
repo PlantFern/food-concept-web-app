@@ -54,7 +54,7 @@
     --brand-hover: var(--green-700);
     --brand-muted: var(--green-500);
     --brand-deep: var(--green-800);
-    --brand-gradient: linear-gradient(180deg, var(--green-800) 0%, var(--green-700) 45%, var(--green-600) 100%);
+    --brand-gradient: linear-gradient(180deg, var(--green-700) 0%, var(--green-600) 100%);
 
     --accent: var(--pink-300);
     --accent-hover: var(--pink-400);
