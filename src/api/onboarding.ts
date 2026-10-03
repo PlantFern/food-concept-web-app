@@ -141,5 +141,5 @@ export async function createDiaryWithGoal(
 }
 
 export async function createSpecialist(): Promise<void> {
-    await http.put('/api/specialist/specialists/');
+    await http.post('/api/specialists/')
 }

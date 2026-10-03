@@ -41,15 +41,20 @@ export function ChooseRolePage() {
                 navigate('/onboarding/scenario')
             } else {
                 await createSpecialist()
-                navigate('/specialist', { replace: true })
+                navigate('/specialist/clients', { replace: true })
             }
         } catch (err: unknown) {
             const status = getErrorStatus(err)
-            if (status === 403) {
+            if (status === 409) {
                 setError('У вас уже есть профиль специалиста.')
-            } else {
-                setError(getErrorMessage(err, 'Ошибка создания специалиста'))
+                navigate('/specialist/clients', { replace: true })
+                return
             }
+            if (status === 403) {
+                setError('Нет доступа. Войдите снова и повторите.')
+                return
+            }
+            setError(getErrorMessage(err, 'Ошибка создания специалиста'))
         } finally {
             setLoading(false)
         }
