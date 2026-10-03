@@ -38,7 +38,7 @@ export function ClientsPage() {
     return (
         <div className="diary-shell">
             <div className="diary-content p-3 pb-5">
-                <h1 className="h5 mb-3">Клиенты</h1>
+                <h1 className="page-title">Клиенты</h1>
 
                 {loading && <p className="text-muted">Загрузка…</p>}
                 {error && <p className="text-danger">{error}</p>}

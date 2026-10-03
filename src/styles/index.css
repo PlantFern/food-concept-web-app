@@ -99,7 +99,10 @@
     --nav-height: 4.25rem;
 }
 
-[data-theme="dark"] {
+html,
+body,
+#root {
+    min-height: 100vh;
 }
 
 body {
@@ -108,6 +111,13 @@ body {
     min-height: 100vh;
     background: var(--bg-page);
     color: var(--text);
+}
+
+.page-title {
+    color: var(--brand);
+    font-weight: 700;
+    font-size: 1.25rem;
+    margin: 0 0 1rem;
 }
 
 .navbar .nav-link.active{
@@ -379,6 +389,7 @@ body {
     flex-direction: column;
     gap: var(--indent-12);
     padding: var(--indent-12);
+    min-height: calc(100vh - var(--nav-height) - 2rem);
 }
 
 .meal-section,

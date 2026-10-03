@@ -76,7 +76,7 @@ export function ProductsPage() {
     return (
         <div className="diary-shell">
             <div className="diary-content p-3 pb-5">
-                <h1 className="h5 mb-3">Продукты</h1>
+                <h1 className="page-title">Products</h1>
 
                 <ul className="nav nav-tabs mb-3" role="tablist">
                     {(

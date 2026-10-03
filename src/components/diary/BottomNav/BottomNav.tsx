@@ -2,15 +2,15 @@ import { NavLink } from 'react-router-dom'
 import {
     HiOutlineChartBar,
     HiOutlineBookOpen,
-    HiOutlineShoppingBag,
     HiOutlineCog6Tooth,
 } from 'react-icons/hi2'
+import { GiAppleCore } from 'react-icons/gi'
 import styles from './BottomNav.module.css'
 
 const items = [
     { to: '/diary/stats', label: 'Статистика', icon: HiOutlineChartBar, end: false },
     { to: '/diary', label: 'Дневник', icon: HiOutlineBookOpen, end: true },
-    { to: '/diary/products', label: 'Продукты', icon: HiOutlineShoppingBag, end: false },
+    { to: '/diary/products', label: 'Продукты', icon: GiAppleCore, end: false },
     { to: '/diary/settings', label: 'Настройки', icon: HiOutlineCog6Tooth, end: false },
 ] as const
 

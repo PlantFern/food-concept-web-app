@@ -1,17 +1,13 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import {
-    HiOutlineUserCircle,
-    HiOutlineLockClosed,
-    HiOutlineBell,
-    HiOutlineLanguage,
     HiOutlineInformationCircle,
     HiOutlineSun,
-    HiOutlineQuestionMarkCircle,
     HiOutlinePlus,
     HiOutlineClipboardDocumentList,
     HiOutlineFlag,
     HiOutlineArrowRightOnRectangle,
+    HiOutlineUserGroup,
 } from 'react-icons/hi2'
 import { BottomNav } from '@/components/diary'
 import { logoutLocal } from '@/api/auth'
@@ -105,37 +101,26 @@ export function SettingsPage() {
                     </div>
                 </section>
 
-                <section className={styles.section}>
-                    <div className={styles.sectionTitle}>Роли</div>
-                    <div className={styles.group}>
-                        {hasDiary ? (
-                            <SettingsRow
-                                icon={<HiOutlineClipboardDocumentList />}
-                                label="Дневник питания"
-                                to="/diary"
-                            />
-                        ) : (
-                            <SettingsRow
-                                icon={<HiOutlinePlus />}
-                                label="+ Дневник питания"
-                                to="/onboarding/role"
-                            />
-                        )}
-                        {hasSpecialist ? (
-                            <SettingsRow
-                                icon={<HiOutlineUserCircle />}
-                                label="Аккаунт специалиста"
-                                to="/diary/settings"
-                            />
-                        ) : (
-                            <SettingsRow
-                                icon={<HiOutlinePlus />}
-                                label="+ Специалист"
-                                to="/onboarding/role"
-                            />
-                        )}
-                    </div>
-                </section>
+                <div className={styles.rolePills}>
+                    {hasDiary ? (
+                        <Link to="/diary" className={`${styles.pill} ${styles.pillActive}`}>
+                            Дневник питания
+                        </Link>
+                    ) : (
+                        <Link to="/onboarding/role" className={`${styles.pill} ${styles.pillMuted}`}>
+                            <HiOutlinePlus /> Дневник питания
+                        </Link>
+                    )}
+                    {hasSpecialist ? (
+                        <Link to="/specialist/clients" className={styles.pill}>
+                            <HiOutlineUserGroup /> Специалист
+                        </Link>
+                    ) : (
+                        <Link to="/onboarding/role" className={`${styles.pill} ${styles.pillMuted}`}>
+                            <HiOutlinePlus /> Специалист
+                        </Link>
+                    )}
+                </div>
 
                 {hasDiary && (
                     <section className={styles.section}>
@@ -156,27 +141,6 @@ export function SettingsPage() {
                 )}
 
                 <section className={styles.section}>
-                    <div className={styles.sectionTitle}>Account</div>
-                    <div className={styles.group}>
-                        <SettingsRow
-                            icon={<HiOutlineUserCircle />}
-                            label="Manage Profile"
-                            to="/diary/settings"
-                        />
-                        <SettingsRow
-                            icon={<HiOutlineLockClosed />}
-                            label="Password & Security"
-                        />
-                        <SettingsRow icon={<HiOutlineBell />} label="Notifications" />
-                        <SettingsRow
-                            icon={<HiOutlineLanguage />}
-                            label="Language"
-                            value="Русский"
-                        />
-                    </div>
-                </section>
-
-                <section className={styles.section}>
                     <div className={styles.sectionTitle}>Preferences</div>
                     <div className={styles.group}>
                         <SettingsRow
@@ -192,12 +156,7 @@ export function SettingsPage() {
                 </section>
 
                 <section className={styles.section}>
-                    <div className={styles.sectionTitle}>Support</div>
                     <div className={styles.group}>
-                        <SettingsRow
-                            icon={<HiOutlineQuestionMarkCircle />}
-                            label="Help Center"
-                        />
                         <SettingsRow
                             icon={<HiOutlineArrowRightOnRectangle />}
                             label="Выйти"
