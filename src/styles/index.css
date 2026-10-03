@@ -205,6 +205,10 @@ body {
     text-decoration: underline;
 }
 
+.bg-text-on-brand {
+    color: var(--text-on-brand);
+}
+
 .bg-brand {
     background: var(--brand-gradient) !important;
     color: var(--text-on-brand);
