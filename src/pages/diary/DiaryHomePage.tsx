@@ -74,7 +74,7 @@ export function DiaryHomePage() {
     const [day, setDay] = useState<DayMealsDto | null>(null)
     const [loading, setLoading] = useState(true)
     const [applyingTemplateId, setApplyingTemplateId] = useState<number | null>(null)
-    const [statsPage, setStatsPage] = useState(0)
+    // const [statsPage, setStatsPage] = useState(0)
 
     const iso = useMemo(() => toIsoDate(date), [date])
     const profileId = getDiaryProfileId()
@@ -168,19 +168,6 @@ export function DiaryHomePage() {
                         unit={primaryUnit}
                     />
                     {secondaryItems.length > 0 && <NutrientBar items={secondaryItems} />}
-                </div>
-
-                <div className="stats-dots" role="tablist" aria-label="Страницы статистики">
-                    {[0, 1, 2, 3].map((i) => (
-                        <button
-                            key={i}
-                            type="button"
-                            role="tab"
-                            aria-selected={statsPage === i}
-                            className={`stats-dot ${statsPage === i ? 'is-active' : ''}`}
-                            onClick={() => setStatsPage(i)}
-                        />
-                    ))}
                 </div>
             </header>
 
