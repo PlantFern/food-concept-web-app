@@ -6,7 +6,7 @@ import {
     fetchLatestSettings,
     saveSettings,
     type ProfileFeatureSettingsDto,
-} from '@/api/settings'
+} from '@/api/diaryProfile/settings'
 import { NUTRIENT_GROUPS, NUTRIENTS, nutrientsByGroup } from '@/data/nutrients'
 import { getErrorMessage } from '@/lib/errors'
 
