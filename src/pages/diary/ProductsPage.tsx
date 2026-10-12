@@ -3,15 +3,17 @@ import { Link } from 'react-router-dom'
 import { BottomNav } from '@/components/diary'
 import { DeferredImage } from '@/components/ui/DeferredImage'
 import {
-    fetchRecentWeekFoods,
-    fetchTemplates,
     searchProductsPage,
     searchRecipes,
     type ProductListItem,
     type RecipeListItem,
+} from '@/api/food'
+import {
+    fetchRecentWeekFoods,
+    fetchTemplates,
     type RecentDayGroup,
     type TemplateListItem,
-} from '@/api/products'
+} from '@/api/meals'
 
 type TabKey = 'products' | 'recipes' | 'templates' | 'recent'
 
