@@ -1,0 +1,6 @@
+export * from '@/api/diaryProfile/diary'
+export * from '@/api/diaryProfile/comments'
+export * from '@/api/diaryProfile/goals'
+export * from '@/api/diaryProfile/settings'
+export * from '@/api/diaryProfile/sleepLogs'
+export * from '@/api/diaryProfile/weightLogs'
