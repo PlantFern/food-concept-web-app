@@ -1,6 +1,5 @@
-import {http} from '@/api/http';
-import type {SleepLogDto} from '@/api/diaryProfile/diary';
-
+import { http } from '@/api/http'
+import type { SleepLogDto } from '@/api/diaryProfile/diary'
 
 export type SleepPeriodPayload = {
     startPeriod: string
@@ -9,59 +8,57 @@ export type SleepPeriodPayload = {
 
 export async function createSleepLog(
     diaryProfileId: number,
-    payload: SleepPeriodPayload
+    payload: SleepPeriodPayload,
 ): Promise<SleepLogDto> {
-
-    const {data} = await http.post<SleepLogDto>(
+    const { data } = await http.post<SleepLogDto>(
         `/api/diary-profile/sleep-log/${diaryProfileId}`,
         null,
-        {params: payload}
-    );
-
-    return data;
+        { params: payload },
+    )
+    return data
 }
 
 export async function updateSleepLog(
     sleepLogId: number,
-    payload: SleepPeriodPayload
+    payload: SleepPeriodPayload,
 ): Promise<SleepLogDto> {
-
-    const {data} = await http.put<SleepLogDto>(
-        `/api/diary-profile/sleep-log/${sleepLogId}`,
+    const { data } = await http.put<SleepLogDto>(
+        `/api/diary-profile/sleep-log/sleep-logs/${sleepLogId}`,
         null,
-        {params: payload}
-    );
-
-    return data;
+        { params: payload },
+    )
+    return data
 }
 
 export async function deleteSleepLog(sleepLogId: number): Promise<void> {
+    await http.delete(`/api/diary-profile/sleep-log/sleep-logs/${sleepLogId}`)
+}
 
-    await http.delete(`/api/diary-profile/sleep-log/${sleepLogId}`);
+export async function getSleepLogById(sleepLogId: number): Promise<SleepLogDto> {
+    const { data } = await http.get<SleepLogDto>(
+        `/api/diary-profile/sleep-log/sleep-logs/${sleepLogId}`,
+    )
+    return data
 }
 
 export async function fetchSleepByDay(
     diaryProfileId: number,
-    date: string
+    date: string,
 ): Promise<SleepLogDto[]> {
-
-    const {data} = await http.get<SleepLogDto[]>(
+    const { data } = await http.get<SleepLogDto[]>(
         `/api/diary-profile/sleep-log/diary-profile/${diaryProfileId}/${date}`,
-    );
-
-    return data;
+    )
+    return data
 }
 
 export async function fetchSleepByPeriod(
     diaryProfileId: number,
     startPeriod: string,
-    endPeriod: string
+    endPeriod: string,
 ): Promise<SleepLogDto[]> {
-
-    const {data} = await http.get<SleepLogDto[]>(
+    const { data } = await http.get<SleepLogDto[]>(
         `/api/diary-profile/sleep-log/diary-profile/${diaryProfileId}/for-a-period`,
-        {params: {startPeriod, endPeriod}}
-    );
-
-    return data;
+        { params: { startPeriod, endPeriod } },
+    )
+    return data
 }
