@@ -9,7 +9,7 @@ import {
     fetchProductDetail,
     type FoodServingDto,
     type ProductDetail,
-} from '@/api/products'
+} from '@/api/food'
 import { photoPathToUrl } from '@/lib/photo'
 import styles from './ProductDetailPage.module.css'
 
