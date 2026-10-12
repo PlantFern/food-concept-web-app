@@ -1,6 +1,6 @@
 import { IoAdd, IoEllipsisVertical } from 'react-icons/io5'
-import type { MealFoodRecordItemDto, MealTemplateListItemDto } from '@/api/diary'
-import { formatFoodAmount, mealTypeLabel } from '@/api/diary'
+import type { MealFoodRecordItemDto, MealTemplateListItemDto } from '@/api/diaryProfile/diary.ts'
+import { formatFoodAmount, mealTypeLabel } from '@/api/diaryProfile/diary.ts'
 import { TemplateBlock } from '@/components/diary/TemplateBlock'
 import styles from './MealSection.module.css'
 

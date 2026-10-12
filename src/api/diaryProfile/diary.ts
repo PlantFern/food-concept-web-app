@@ -1,5 +1,5 @@
-import { http } from '@/api/http'
-import { getDiaryProfileId } from '@/api/onboarding'
+import { http } from '@/api/http.ts'
+import { getDiaryProfileId } from '@/api/onboarding.ts'
 
 export type DayNutrientStatDto = {
     nutrientId: number
