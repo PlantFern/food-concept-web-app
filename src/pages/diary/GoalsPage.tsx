@@ -15,7 +15,7 @@ import {
     fetchActiveGoal,
     updateGoal,
     type GoalDto,
-} from '@/api/goals'
+} from '@/api/diaryProfile/goals'
 import { NUTRIENT_BY_ID, unitLabel } from '@/data/nutrients'
 import { getErrorMessage } from '@/lib/errors'
 
