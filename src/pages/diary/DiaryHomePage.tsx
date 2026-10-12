@@ -6,7 +6,7 @@ import {
     nutrientDisplayUnit,
     type DayMealsDto,
     type MealTemplateListItemDto,
-} from '@/api/diary'
+} from '@/api/diaryProfile/diary.ts'
 import { getDiaryProfileId } from '@/api/onboarding'
 import { getErrorMessage } from '@/lib/errors'
 import { useAlert } from '@/components/ui/Alert'
