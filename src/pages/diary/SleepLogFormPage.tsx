@@ -48,6 +48,8 @@ export function SleepLogFormPage() {
         register,
         handleSubmit,
         reset,
+        getValues,
+        trigger,
         formState: {errors, isSubmitting}
     } = useForm<SleepLogFormValues>(
         {
@@ -152,7 +154,11 @@ export function SleepLogFormPage() {
                                     ...register(
                                         'beganAt',
                                         {
-                                            required: 'Укажите время начала сна'
+                                            required: 'Укажите время начала сна',
+                                            onChange: () => {
+                                                if(getValues('endedAt'))
+                                                    trigger('endedAt')
+                                            }
                                         }
                                     )
                                     }
