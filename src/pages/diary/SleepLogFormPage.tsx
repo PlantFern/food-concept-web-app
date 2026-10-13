@@ -167,7 +167,7 @@ export function SleepLogFormPage() {
                                 <label htmlFor="endedAt" className="label text-wrap align-self-center">Окончание сна</label>
                                 <input
                                     className="input rounded-3"
-                                    id="beganAt"
+                                    id="endedAt"
                                     type="datetime-local"
                                     {
                                         ...register(
@@ -190,7 +190,7 @@ export function SleepLogFormPage() {
                                         )
                                     }
                                 />
-                                {errors.beganAt && <span className="error">{errors.beganAt.message}</span>}
+                                {errors.endedAt && <span className="error">{errors.endedAt.message}</span>}
                             </div>
 
                             <button type="submit"
