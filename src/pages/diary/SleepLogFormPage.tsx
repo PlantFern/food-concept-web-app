@@ -62,6 +62,7 @@ export function SleepLogFormPage() {
     useEffect(() => {
 
         setLoading(true);
+        let cancelled = false;
 
         if (!isEdit) {
             const profileId = getDiaryProfileId();
@@ -75,25 +76,24 @@ export function SleepLogFormPage() {
             setDiaryProfileId(profileId);
             setLoading(false);
         }
-
-        let cancelled = false;
-
-        (async () => {
-            setLoading(true)
-            const data = await getSleepLogById(Number(sleepLogId));
-            if(!data){
-                showAlert("Не удалось найти запись о сне");
-                navigate(-1);
-                return;
-            }
+        else {
+            (async () => {
+                setLoading(true)
+                const data = await getSleepLogById(Number(sleepLogId));
+                if (!data) {
+                    showAlert("Не удалось найти запись о сне");
+                    navigate(-1);
+                    return;
+                }
 
 
-            if (cancelled) return;
-            else {
-                reset(toFormValues(data));
-                setLoading(false);
-            }
-        })()
+                if (cancelled) return;
+                else {
+                    reset(toFormValues(data));
+                    setLoading(false);
+                }
+            })()
+        }
 
         return () => {
             cancelled = true;
