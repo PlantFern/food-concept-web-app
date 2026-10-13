@@ -141,62 +141,66 @@ export function SleepLogFormPage() {
                                 className="form-card col-xl-4 col-lg-6 col-md-8 col-sm-10 col-12
                                             d-flex flex-column gap-3
                                             ">
-                            <div className="d-flex gap-3
-                                            justify-content-between
-                                            align-items-center align-items-stretch
-                                            w-100">
-                                <label htmlFor="beganAt" className="label text-wrap align-self-center">Начало сна</label>
-                                <input
-                                    className="input rounded-3"
-                                    id="beganAt"
-                                    type="datetime-local"
-                                    {
-                                    ...register(
-                                        'beganAt',
+                            <div className="d-flex flex-column gap-1">
+                                <div className="d-flex gap-3
+                                                justify-content-between
+                                                align-items-center align-items-stretch
+                                                w-100">
+                                    <label htmlFor="beganAt" className="label text-wrap align-self-center">Начало сна</label>
+                                    <input
+                                        className="input rounded-3"
+                                        id="beganAt"
+                                        type="datetime-local"
                                         {
-                                            required: 'Укажите время начала сна',
-                                            onChange: () => {
-                                                if(getValues('endedAt'))
-                                                    trigger('endedAt')
-                                            }
-                                        }
-                                    )
-                                    }
-                                />
-                                {errors.beganAt && <span className="error">{errors.beganAt.message}</span>}
-                            </div>
-
-                            <div className="d-flex gap-3
-                                            justify-content-between
-                                            align-items-center align-items-stretch
-                                            w-100">
-                                <label htmlFor="endedAt" className="label text-wrap align-self-center">Окончание сна</label>
-                                <input
-                                    className="input rounded-3"
-                                    id="endedAt"
-                                    type="datetime-local"
-                                    {
                                         ...register(
-                                            'endedAt',
+                                            'beganAt',
                                             {
-                                                deps: ['beganAt'],
-                                                required: 'Укажите время окончания сна',
-                                                validate: (value, formValues) => {
-
-                                                    if(!value || !formValues.beganAt) return true;
-
-                                                    const beganAt = new Date(formValues.beganAt).getTime();
-                                                    const endedAt = new Date(value).getTime();
-
-                                                    if(isNaN(beganAt) || isNaN(endedAt)) return true;
-
-                                                    return endedAt > beganAt || "Время окончания должно быть больше даты начала";
+                                                required: 'Укажите время начала сна',
+                                                onChange: () => {
+                                                    if(getValues('endedAt'))
+                                                        trigger('endedAt')
                                                 }
                                             }
                                         )
-                                    }
-                                />
-                                {errors.endedAt && <span className="error">{errors.endedAt.message}</span>}
+                                        }
+                                    />
+                                </div>
+                                {errors.beganAt && <span className="input-error-text">{errors.beganAt.message}</span>}
+                            </div>
+
+                            <div className="d-flex flex-column gap-1">
+                                <div className="d-flex gap-2
+                                                justify-content-between
+                                                align-items-center align-items-stretch
+                                                w-100">
+                                    <label htmlFor="endedAt" className="label text-wrap align-self-center">Окончание сна</label>
+                                    <input
+                                        className="input rounded-3"
+                                        id="endedAt"
+                                        type="datetime-local"
+                                        {
+                                            ...register(
+                                                'endedAt',
+                                                {
+                                                    deps: ['beganAt'],
+                                                    required: 'Укажите время окончания сна',
+                                                    validate: (value, formValues) => {
+
+                                                        if(!value || !formValues.beganAt) return true;
+
+                                                        const beganAt = new Date(formValues.beganAt).getTime();
+                                                        const endedAt = new Date(value).getTime();
+
+                                                        if(isNaN(beganAt) || isNaN(endedAt)) return true;
+
+                                                        return endedAt > beganAt || "Время окончания должно быть больше даты начала";
+                                                    }
+                                                }
+                                            )
+                                        }
+                                    />
+                                </div>
+                                {errors.endedAt && <span className="input-error-text">{errors.endedAt.message}</span>}
                             </div>
 
                             <button type="submit"

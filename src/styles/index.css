@@ -292,6 +292,12 @@ body {
     border-color: var(--danger);
 }
 
+.input-error-text {
+    font-size: calc(var(--font-size) * 0.75);
+    color: var(--danger);
+    font-weight: 600;
+}
+
 .form-alert {
     border-radius: 12px;
     font-size: 0.9rem;
