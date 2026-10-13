@@ -119,32 +119,34 @@ export function ProductsPage() {
 
     return (
         <div className="diary-shell">
-            <div className="diary-content p-3 pb-5">
+            <div>
                 <div className='bg-brand text-invert p-2 rounded-bottom-4'>
                     <h2 className="page-title text-center p-2 bg-text-on-brand">Продукты</h2>
 
-                    <ul className="nav nav-pills mb-3" role="tablist">
-                        {(
-                            [
-                                ['products', 'Продукты'],
-                                ['recipes', 'Рецепты'],
-                                ['templates', 'Шаблоны'],
-                                ['recent', '7 дней'],
-                            ] as const
-                        ).map(([key, label]) => (
-                            <li className="nav-item me-2" key={key}>
-                                <button
-                                    type="button"
-                                    role="tab"
-                                    className={`nav-link ${tab === key ? 'active' : ''}`}
-                                    aria-selected={tab === key}
-                                    onClick={() => setTab(key)}
-                                >
-                                    {label}
-                                </button>
-                            </li>
-                        ))}
-                    </ul>
+                    <div className="tab-container">
+                        <ul className="tab-nav nav nav-pills mb-3" role="tablist">
+                            {(
+                                [
+                                    ['products', 'Продукты'],
+                                    ['recipes', 'Рецепты'],
+                                    ['templates', 'Шаблоны'],
+                                    ['recent', 'За неделю'],
+                                ] as const
+                            ).map(([key, label]) => (
+                                <li className="nav-item" key={key}>
+                                    <button
+                                        type="button"
+                                        role="tab"
+                                        className={`nav-link ${tab === key ? 'active' : ''}`}
+                                        aria-selected={tab === key}
+                                        onClick={() => setTab(key)}
+                                    >
+                                        {label}
+                                    </button>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
 
                     {showSearch && (
                         <div className="mb-3">
@@ -163,6 +165,7 @@ export function ProductsPage() {
                     )}
                 </div>
 
+                <div className="diary-content">
                 {tab === 'products' && (
                     <>
                     <ul className="list-group list-group-flush rounded-4">
@@ -257,6 +260,7 @@ export function ProductsPage() {
                         ))}
                     </div>
                 )}
+                </div>
             </div>
             <BottomNav />
         </div>
