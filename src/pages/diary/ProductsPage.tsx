@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Link } from 'react-router-dom'
+import {Link} from 'react-router-dom'
 import { BottomNav } from '@/components/diary'
 import { DeferredImage } from '@/components/ui/DeferredImage'
 import {
@@ -14,6 +14,8 @@ import {
     type RecentDayGroup,
     type TemplateListItem,
 } from '@/api/meals'
+import {ImFileEmpty} from "react-icons/im";
+import {FaPlus} from "react-icons/fa6";
 
 type TabKey = 'products' | 'recipes' | 'templates' | 'recent'
 
@@ -168,27 +170,30 @@ export function ProductsPage() {
                 <div className="diary-content">
                 {tab === 'products' && (
                     <>
-                    <ul className="list-group list-group-flush rounded-4">
-                        {products.length === 0 && (
-                            <li className="list-group-item text-muted">{emptyHint}</li>
-                        )}
-                        {products.map((p) => (
-                            <li key={p.id} className="list-group-item p-0">
-                                <Link
-                                    to={`/diary/products/${p.id}`}
-                                    className="d-flex align-items-center gap-2 text-decoration-none text-reset p-3"
-                                >
-                                    <DeferredImage src={p.imageUrl} alt={p.name} />
-                                    <div>
-                                        <div className="fw-semibold">{p.name}</div>
-                                        {p.categoryCode && (
-                                            <div className="small text-muted">{p.categoryCode}</div>
-                                        )}
-                                    </div>
-                                </Link>
-                            </li>
-                        ))}
-                    </ul>
+                        <ul className="list-group list-group-flush rounded-4">
+                            {products.length === 0 && (
+                                <div className="no-content-placeholder">
+                                    <div>{emptyHint}</div>
+                                    <ImFileEmpty size={24}/>
+                                </div>
+                            )}
+                            {products.map((p) => (
+                                <li key={p.id} className="list-group-item p-0">
+                                    <Link
+                                        to={`/diary/products/${p.id}`}
+                                        className="d-flex align-items-center gap-2 text-decoration-none text-reset p-3"
+                                    >
+                                        <DeferredImage src={p.imageUrl} alt={p.name} />
+                                        <div>
+                                            <div className="fw-semibold">{p.name}</div>
+                                            {p.categoryCode && (
+                                                <div className="small text-muted">{p.categoryCode}</div>
+                                            )}
+                                        </div>
+                                    </Link>
+                                </li>
+                            ))}
+                        </ul>
                                             {!last && <div ref={sentinelRef} style={{ height: 24 }} />}
                         {loadingMore && (
                             <p className="text-muted small text-center mt-2 mb-0">Ещё…</p>
@@ -199,7 +204,10 @@ export function ProductsPage() {
                 {tab === 'recipes' && (
                     <ul className="list-group list-group-flush">
                         {recipes.length === 0 && (
-                            <li className="list-group-item text-muted">{emptyHint}</li>
+                            <div className="no-content-placeholder">
+                                <div>{emptyHint}</div>
+                                <ImFileEmpty size={24}/>
+                            </div>
                         )}
                         {recipes.map((r) => (
                             <li
@@ -221,7 +229,16 @@ export function ProductsPage() {
                 {tab === 'templates' && (
                     <ul className="list-group list-group-flush">
                         {templates.length === 0 && (
-                            <li className="list-group-item text-muted">{emptyHint}</li>
+                            <div className="no-content-placeholder">
+                                <div>{emptyHint}</div>
+
+                                <Link
+                                    to={`/diary/templates`}
+                                    className="btn btn-primary">
+                                        Добавить шаблон
+                                    <FaPlus className="ms-3 mb-1"/>
+                                </Link>
+                            </div>
                         )}
                         {templates.map((t) => (
                             <li key={t.id} className="list-group-item">
@@ -237,7 +254,10 @@ export function ProductsPage() {
                 {tab === 'recent' && (
                     <div>
                         {recent.length === 0 && (
-                            <p className="text-muted mb-0">{emptyHint}</p>
+                            <div className="no-content-placeholder">
+                                <div>{emptyHint}</div>
+                                <ImFileEmpty size={24}/>
+                            </div>
                         )}
                         {recent.map((day) => (
                             <div key={day.date} className="mb-3">

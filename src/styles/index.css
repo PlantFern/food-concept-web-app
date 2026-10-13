@@ -681,3 +681,19 @@ body {
 .bottom-nav-item svg {
     font-size: 1.2rem;
 }
+
+.no-content-placeholder {
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    justify-items: center;
+    align-content: center;
+    align-items: center;
+    flex-direction: column;
+    gap: var(--indent-16);
+
+    text-align: center;
+    color: var(--text-muted);
+
+    padding: var(--indent-12) var(--indent-16);
+}
