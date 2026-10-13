@@ -1,4 +1,5 @@
 import styles from './SleepCard.module.css'
+import {Link} from "react-router-dom";
 
 export type SleepEntry = {
     id: number
@@ -18,7 +19,7 @@ function formatTime(iso: string | null | undefined): string {
     return d.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })
 }
 
-export function SleepCard({ entries, onAdd }: SleepCardProps) {
+export function SleepCard({ entries}: SleepCardProps) {
     return (
         <section className={styles.infoCard}>
             <h3 className={styles.infoCardTitle}>Сон</h3>
@@ -35,9 +36,9 @@ export function SleepCard({ entries, onAdd }: SleepCardProps) {
                     ))}
                 </ul>
             )}
-            <button type="button" className="btn btn-secondary w-100 mt-2" onClick={onAdd}>
-                Добавить время
-            </button>
+            <Link className="btn btn-secondary mt-2" to="/diary/sleep-log/add">
+                Добавить запись
+            </Link>
         </section>
     )
 }
