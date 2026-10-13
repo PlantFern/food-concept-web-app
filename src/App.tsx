@@ -16,6 +16,7 @@ import { ProductDetailPage } from '@/pages/diary/ProductDetailPage'
 import { SettingsPage } from '@/pages/diary/SettingsPage'
 import { DiarySettingsPage } from '@/pages/diary/DiarySettingsPage'
 import { GoalsPage } from '@/pages/diary/GoalsPage'
+import { SleepLogFormPage } from '@/pages/diary/SleepLogFormPage'
 import { StatsPage } from '@/pages/diary/StatsPage'
 import { ClientsPage } from '@/pages/specialist/ClientsPage'
 import { SpecialistSettingsPage } from '@/pages/specialist/SpecialistSettingsPage'
@@ -46,11 +47,18 @@ function App() {
                         <Route element={<RequireDiary />}>
                             <Route path="/diary" element={<DiaryHomePage />} />
                             <Route path="/diary/stats" element={<StatsPage />} />
+
                             <Route path="/diary/products" element={<ProductsPage />} />
                             <Route path="/diary/products/:productId" element={<ProductDetailPage />} />
+
                             <Route path="/diary/settings" element={<SettingsPage />} />
+
                             <Route path="/diary/settings/diary" element={<DiarySettingsPage />} />
+
                             <Route path="/diary/settings/goals" element={<GoalsPage />} />
+
+                            <Route path="/diary/sleep-log/add" element={<SleepLogFormPage />}/>
+                            <Route path="/diary/sleep-log/:sleepLogId/edit" element={<SleepLogFormPage />}/>
                         </Route>
 
                         <Route element={<RequireSpecialist />}>
