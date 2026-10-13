@@ -1,6 +1,6 @@
 import { http } from '@/api/http'
 import { getDiaryProfileId } from '@/api/onboarding'
-import { photoUrl } from '@/api/food/photo'
+import { photoUrl } from '@/lib/photo'
 
 export type RecipeListItem = {
     id: number
