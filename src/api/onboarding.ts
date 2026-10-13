@@ -1,4 +1,6 @@
 import { http } from '@/api/http'
+import {hasStoredAuth, restoreAuthFromStorage} from "@/api/auth.ts";
+import {getMyProfile} from "@/api/profiles.ts";
 
 export type ProfileDataPayload = {
     height: number | null
@@ -100,6 +102,23 @@ export function getDiaryProfileId(): number | null {
         return null;
 
     return n;
+}
+
+
+export async function resolveDiaryProfileId(): Promise<number|null> {
+
+    const cached = getDiaryProfileId();
+    if( cached != null ) return cached;
+
+    restoreAuthFromStorage()
+    if(!hasStoredAuth()) return null;
+
+    try {
+        const profile = await getMyProfile();
+        return profile?.id ?? null;
+    } catch {
+        return null;
+    }
 }
 
 export function persistProfileId(dto?: DiaryProfileDto | null) {
