@@ -24,12 +24,15 @@ export function DiarySettingsPage() {
     const [visibleIds, setVisibleIds] = useState<Set<number>>(() => new Set(NUTRIENTS.map((n) => n.id)))
 
     useEffect(() => {
-        let cancelled = false
-        ;(async () => {
+        let cancelled = false;
+
+        (async () => {
             setLoading(true)
             const data = await fetchLatestSettings()
+
             if (cancelled) return
             setCurrent(data)
+
             if (data) {
                 setShowSleep(Boolean(data.showSleep))
                 setShowSleepLogs(Boolean(data.showSleepLogs))
@@ -46,6 +49,7 @@ export function DiarySettingsPage() {
     }, [])
 
     function toggleNutrient(id: number) {
+
         setVisibleIds((prev) => {
             const next = new Set(prev)
             if (next.has(id)) next.delete(id)
@@ -55,6 +59,7 @@ export function DiarySettingsPage() {
     }
 
     async function onSave() {
+
         setError('')
         setSaving(true)
         try {
