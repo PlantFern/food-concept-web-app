@@ -6,9 +6,8 @@ import {
     fetchLatestWeight,
     createWeightLog,
     updateWeightLog,
-    type WeightLogDto, type SleepLogDto,
-} from "@/api/diaryProfile";
-import {useAlert} from "@/components/ui/Alert";
+} from '@/api/diaryProfile'
+import { useAlert } from '@/components/ui/Alert'
 import { getErrorMessage } from '@/lib/errors'
 import {getDiaryProfileId} from "@/api/onboarding.ts";
 
@@ -21,7 +20,7 @@ type WeightLogFormValues =  {
 export function WeightLogFormPage() {
 
     const { showAlert } = useAlert()
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const navigate = useNavigate();
 
@@ -34,20 +33,19 @@ export function WeightLogFormPage() {
         register,
         handleSubmit,
         reset,
-        formState: {errors, isSubmitting}
-    } = useForm<WeightLogFormValues>(
-        {
-            mode: 'onTouched',
-            defaultValues: {
-                weight: "60",
-            }
-        }
-    )
+        formState: { errors, isSubmitting },
+    } = useForm<WeightLogFormValues>({
+        mode: 'onTouched',
+        defaultValues: {
+            weight: '',
+        },
+    })
 
     useEffect(() => {
 
-        setLoading(true);
-        let cancelled = false;
+        let cancelled = false
+        setLoading(true)
+        setError('')
 
         if (!isEdit) {
             const profileId = getDiaryProfileId();
@@ -57,35 +55,39 @@ export function WeightLogFormPage() {
                 navigate(-1);
                 return;
             }
-
-            setDiaryProfileId(profileId);
-            setLoading(false);
+            setDiaryProfileId(profileId)
+            setLoading(false)
+            return
         }
-        else {
-            (async () => {
-                setLoading(true)
-                const data = await fetchLatestWeight(Number(weightLogId));
+
+        (async () => {
+            try {
+                const data = await getWeightLogById(Number(weightLogId))
+                if (cancelled) return
                 if (!data) {
-                    showAlert("Не удалось найти запись о сне");
-                    navigate(-1);
-                    return;
+                    showAlert('Не удалось найти запись о весе', 'danger')
+                    navigate(-1)
+                    return
                 }
-
-
-                if (cancelled) return;
-                else {
-                    reset({weight: data.weight.toString() ?? ''});
-                    setLoading(false);
+                reset({ weight: data.weight != null ? String(data.weight) : '' })
+            } catch (err: unknown) {
+                if (!cancelled) {
+                    showAlert(getErrorMessage(err, 'Не удалось загрузить запись'), 'danger')
+                    navigate(-1)
                 }
-            })()
-        }
+            } finally {
+                if (!cancelled) setLoading(false)
+            }
+        })()
 
         return () => {
             cancelled = true;
         }
-    }, [weightLogId, isEdit, reset])
+    }, [weightLogId, isEdit, reset, navigate, showAlert])
 
     const onSubmit = async (formData: WeightLogFormValues) => {
+        setError('')
+        const weight = Number(formData.weight)
         try {
             if (isEdit) {
                 await updateWeightLog(Number(weightLogId), Number(formData.weight));
@@ -95,19 +97,16 @@ export function WeightLogFormPage() {
                 await createWeightLog(diaryProfileId, Number(formData.weight));
                 showAlert('Запись о весе добавлена', 'success');
             }
-        }
-        catch (error: unknown) {
-            if (error instanceof Error)
-                setError(getErrorMessage(error));
+            navigate('/diary', { replace: true })
+        } catch (err: unknown) {
+            setError(getErrorMessage(err, 'Не удалось сохранить'))
         }
     }
 
     return(
         <div className="diary-shell">
-            <div className='bg-brand text-invert
-                            p-2
-                            rounded-bottom-4'>
-                <Link to="/diary/settings" className="btn-tertiary bg-text-on-brand">
+            <div className="bg-brand text-invert p-2 rounded-bottom-4">
+                <Link to="/diary" className="btn-tertiary bg-text-on-brand">
                     ← Назад
                 </Link>
                 <h2 className="bg-text-on-brand mt-2 text-center">Запись о сне</h2>
@@ -118,50 +117,53 @@ export function WeightLogFormPage() {
 
             <div className="container">
                 <div className="row">
-                    { !loading &&
-                        (
-                            <form onSubmit={handleSubmit(onSubmit)}
-                                  className="form-card col-xl-3 col-lg-4 col-md-6 col-sm-8 col-10
-                                            d-flex flex-column gap-3
-                                            mx-auto">
+                    {!loading && (
+                        <form
+                            onSubmit={handleSubmit(onSubmit)}
+                            className="form-card col-xl-3 col-lg-4 col-md-6 col-sm-8 col-10
+                                            d-flex flex-column gap-3 mx-auto"
+                        >
+                            {error && <p className="text-danger small mb-0">{error}</p>}
 
-                                <div className="d-flex flex-column gap-1">
-                                    <div className="d-flex gap-2
-                                                justify-content-between
-                                                align-items-center align-items-stretch
-                                                w-100">
-                                        <label htmlFor="endedAt" className="label text-wrap align-self-center">Окончание сна</label>
-                                        <input
-                                            className="input rounded-3"
-                                            id="weight"
-                                            type="number"
-                                            min="30"
-                                            max="300"
-                                            {
-                                                ...register(
-                                                    'weight',
-                                                    {
-                                                        deps: ['weight'],
-                                                        required: 'Укажите время окончания сна',
-                                                        validate: (value) => {
-                                                            return (Number(value) > 30 && Number(value) < 300) || "Вес должен быть больше 30 и меньше 300";
-                                                        }
-                                                    }
-                                                )
-                                            }
-                                        />
-                                    </div>
-                                    {errors.weight && <span className="input-error-text">{errors.weight.message}</span>}
+                            <div className="d-flex flex-column gap-1">
+                                <div className="d-flex gap-2 justify-content-between align-items-center w-100">
+                                    <label htmlFor="weight" className="label text-wrap align-self-center">
+                                        Вес (кг)
+                                    </label>
+                                    <input
+                                        className="input rounded-3"
+                                        id="weight"
+                                        type="number"
+                                        min={30}
+                                        max={300}
+                                        step="any"
+                                        {...register('weight', {
+                                            required: 'Укажите вес',
+                                            validate: (value) => {
+                                                const n = Number(value)
+                                                if (!Number.isFinite(n)) return 'Введите число'
+                                                if (n < 30 || n > 300) {
+                                                    return 'Вес должен быть от 30 до 300 кг'
+                                                }
+                                                return true
+                                            },
+                                        })}
+                                    />
                                 </div>
+                                {errors.weight && (
+                                    <span className="input-error-text">{errors.weight.message}</span>
+                                )}
+                            </div>
 
-                                <button type="submit"
-                                        disabled={isSubmitting}
-                                        className="btn btn-primary w-100 mt-2">
-                                    {isSubmitting ? "Сохранение..." : isEdit ? "Сохранить" : "Создать"}
-                                </button>
-                            </form>
-                        )
-                    }
+                            <button
+                                type="submit"
+                                disabled={isSubmitting}
+                                className="btn btn-primary w-100 mt-2"
+                            >
+                                {isSubmitting ? 'Сохранение...' : isEdit ? 'Сохранить' : 'Создать'}
+                            </button>
+                        </form>
+                    )}
                 </div>
             </div>
 
