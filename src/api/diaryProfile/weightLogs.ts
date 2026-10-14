@@ -24,32 +24,32 @@ export async function updateWeightLog(
     const {data} = await http.put<WeightLogDto>(
         `/api/diary-profile/weight-log/weight-logs/${weightLogId}`,
         null,
-        {params: {weight}}
-    );
-
-    return data;
+        { params: { weight } },
+    )
+    return data
 }
 
-export async function deleteWeightLog(
-    weightLogId: number
-): Promise<void> {
+export async function deleteWeightLog(weightLogId: number): Promise<void> {
+    await http.delete(`/api/diary-profile/weight-log/weight-logs/${weightLogId}`)
+}
 
-    await http.delete( `/api/diary-profile/weight-log/weight-logs/${weightLogId}` );
+export async function getWeightLogById(weightLogId: number): Promise<WeightLogDto> {
+    const { data } = await http.get<WeightLogDto>(
+        `/api/diary-profile/weight-log/weight-logs/${weightLogId}`,
+    )
+    return data
 }
 
 export async function fetchLatestWeight(
     diaryProfileId: number,
 ): Promise<WeightLogDto | null> {
-
     try {
         const {data} = await http.get<WeightLogDto>(
             `/api/diary-profile/weight-log/diary-profile/${diaryProfileId}/get-latest`,
         )
-
-        return data;
-    }
-    catch {
-        return null;
+        return data
+    } catch {
+        return null
     }
 }
 
@@ -64,5 +64,9 @@ export async function fetchWeightByPeriod(
         {params: {startPeriod, endPeriod}},
     )
 
-    return data;
+export async function fetchAllWeights(diaryProfileId: number): Promise<WeightLogDto[]> {
+    const { data } = await http.get<WeightLogDto[]>(
+        `/api/diary-profile/weight-log/diary-profile/${diaryProfileId}/get-all`,
+    )
+    return Array.isArray(data) ? data : []
 }
