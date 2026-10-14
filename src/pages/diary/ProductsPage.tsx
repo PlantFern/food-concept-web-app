@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import {Link} from 'react-router-dom'
+import {Link, useSearchParams} from 'react-router-dom'
 import { BottomNav } from '@/components/diary'
 import { DeferredImage } from '@/components/ui/DeferredImage'
 import {
@@ -18,8 +18,15 @@ import {ImFileEmpty} from "react-icons/im";
 import {FaPlus} from "react-icons/fa6";
 
 type TabKey = 'products' | 'recipes' | 'templates' | 'recent'
+const TAB_KEYS: TabKey[] = ['products', 'recipes', 'templates', 'recent']
 
-const PAGE_SIZE = 12
+const PAGE_SIZE = 12;
+
+function parseTab(raw: string | null): TabKey {
+    if(raw && TAB_KEYS.includes(raw as TabKey))
+        return raw as TabKey;
+    return 'products';
+}
 
 function formatDayLabel(iso: string): string {
     const d = new Date(iso + 'T00:00:00')
@@ -32,7 +39,9 @@ function formatDayLabel(iso: string): string {
 }
 
 export function ProductsPage() {
-    const [tab, setTab] = useState<TabKey>('products')
+    const [searchParams, setSearchParams] = useSearchParams()
+    const tab = parseTab(searchParams.get('tab'))
+
     const [query, setQuery] = useState('')
     const [products, setProducts] = useState<ProductListItem[]>([])
     const [page, setPage] = useState(0)
@@ -45,6 +54,17 @@ export function ProductsPage() {
     const sentinelRef = useRef<HTMLDivElement | null>(null)
 
     const showSearch = tab === 'products' || tab === 'recipes'
+
+    function setTab(next: TabKey) {
+        setSearchParams(
+            (prev) => {
+                const param = new URLSearchParams(prev);
+                if (next === 'products') param.delete('tab');
+                else param.set('tab', next);
+                return param;
+            }, {replace:true},
+        )
+    }
 
     const loadProducts = useCallback(async (q: string, pageNum: number, append: boolean) => {
         if (append) setLoadingMore(true)
