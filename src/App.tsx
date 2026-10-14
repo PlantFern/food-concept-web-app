@@ -20,6 +20,8 @@ import { SleepLogFormPage } from '@/pages/diary/SleepLogFormPage'
 import { WeightLogFormPage } from '@/pages/diary/WeightLogFormPage'
 import { FoodRecordFormPage } from '@/pages/diary/FoodRecordFormPage'
 import { MealTemplateFormPage } from '@/pages/diary/MealTemplateFormPage'
+import { CommentFormPage } from '@/pages/diary/CommentFormPage'
+import { QuickProductFormPage } from '@/pages/diary/QuickProductFormPage'
 import { StatsPage } from '@/pages/diary/StatsPage'
 import { ClientsPage } from '@/pages/specialist/ClientsPage'
 import { SpecialistSettingsPage } from '@/pages/specialist/SpecialistSettingsPage'
@@ -65,9 +67,13 @@ function App() {
                             <Route path="/diary/weight-log/:weightLogId/edit" element={<WeightLogFormPage />} />
 
                             <Route path="/diary/food-records/:recordId/edit" element={<FoodRecordFormPage />} />
+                            <Route path="/diary/food-records/quick" element={<QuickProductFormPage />} />
 
                             <Route path="/diary/templates/add" element={<MealTemplateFormPage />} />
                             <Route path="/diary/templates/:templateId/edit" element={<MealTemplateFormPage />} />
+
+                            <Route path="/diary/comments/add" element={<CommentFormPage />} />
+                            <Route path="/diary/comments/:commentId/edit" element={<CommentFormPage />} />
                         </Route>
 
                         <Route element={<RequireSpecialist />}>
