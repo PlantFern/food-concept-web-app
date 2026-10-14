@@ -1,5 +1,6 @@
 import styles from './SleepCard.module.css'
 import {Link} from "react-router-dom";
+import {IoEllipsisVertical} from "react-icons/io5";
 
 export type SleepEntry = {
     id: number
@@ -32,13 +33,18 @@ export function SleepCard({ entries}: SleepCardProps) {
                             <span>{formatTime(e.start)}</span>
                             <span className={styles.sleepDash}>—</span>
                             <span>{formatTime(e.end)}</span>
+                            <button type="button" className={styles.mealSectionMenu} aria-label="Меню">
+                                <IoEllipsisVertical size={18} />
+                            </button>
                         </li>
                     ))}
                 </ul>
             )}
-            <Link className="btn btn-secondary mt-2" to="/diary/sleep-log/add">
-                Добавить запись
-            </Link>
+            <div className='d-flex justify-content-end align-items-end align-items-end'>
+                <Link className="btn btn-secondary mt-2" to="/diary/sleep-log/add">
+                    Добавить запись
+                </Link>
+            </div>
         </section>
     )
 }
