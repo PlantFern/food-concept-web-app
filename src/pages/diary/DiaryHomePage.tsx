@@ -170,49 +170,61 @@ export function DiaryHomePage() {
                     {secondaryItems.length > 0 && <NutrientBar items={secondaryItems} />}
                 </div>
             </header>
-
-            <div className="diary-content mt-2">
+            
+            <div className="diary-content container mt-2">
                 {loading && <p className="meal-empty">Загрузка…</p>}
 
-                <div className='d-flex flex-column'>
-                {!loading &&
-                    sections.map((section, index) => (
-                        <MealSection
-                            key={section.mealId}
-                            mealTypeCode={section.mealTypeCode}
-                            mealTypeId={section.mealTypeId}
-                            records={section.records ?? []}
-                            totalPrimaryNutrient={
-                                'totalPrimaryNutrient' in section
-                                    ? section.totalPrimaryNutrient
-                                    : null
-                            }
-                            primaryUnit={primaryUnit}
-                            templates={pickTemplatesForSection(
-                                day?.pendingTemplates ?? [],
-                                section.mealTypeCode,
-                                index,
-                                sections.length,
-                            )}
-                            applyingTemplateId={applyingTemplateId}
-                            onApplyTemplate={onApplyTemplate}
-                        />
-                    ))}
+                <div>
+                    <h4 className='mb-3'>Приемы пищи</h4>
+                    <div className='row g-2'>
+                    {!loading &&
+                        sections.map((section, index) => (
+                            <div className = 'col-lg-6 col-md-10 col-12'>
+                                <MealSection
+                                    key={section.mealId}
+                                    mealTypeCode={section.mealTypeCode}
+                                    mealTypeId={section.mealTypeId}
+                                    records={section.records ?? []}
+                                    totalPrimaryNutrient={
+                                        'totalPrimaryNutrient' in section
+                                            ? section.totalPrimaryNutrient
+                                            : null
+                                    }
+                                    primaryUnit={primaryUnit}
+                                    templates={pickTemplatesForSection(
+                                        day?.pendingTemplates ?? [],
+                                        section.mealTypeCode,
+                                        index,
+                                        sections.length,
+                                    )}
+                                    applyingTemplateId={applyingTemplateId}
+                                    onApplyTemplate={onApplyTemplate}
+                                />
+                            </div>
+                        ))}
+                    </div>
                 </div>
 
                 <div className='border-top pt-2'>
-                    <h3 className='mb-3'>Логи</h3>
-                    {!loading && <WeightCard weightKg={day?.latestWeight?.weight ?? null} />}
+                    <h4 className='mb-3'>Логи</h4>
 
-                    {!loading && (
-                        <SleepCard
-                            entries={(day?.sleepForDay ?? []).map((s) => ({
-                                id: s.id,
-                                start: s.beganAt,
-                                end: s.endedAt ?? '',
-                            }))}
-                        />
-                    )}
+                    <div className='row g-2'>
+                        <div className = 'col-lg-6 col-md-10 col-12'>
+                            {!loading && <WeightCard weightKg={day?.latestWeight?.weight ?? null} />}
+                        </div>
+
+                        <div className = 'col-lg-6 col-md-10 col-12'>
+                            {!loading && (
+                                <SleepCard
+                                    entries={(day?.sleepForDay ?? []).map((s) => ({
+                                        id: s.id,
+                                        start: s.beganAt,
+                                        end: s.endedAt ?? '',
+                                    }))}
+                                />
+                            )}
+                        </div>
+                    </div>
                 </div>
             </div>
 
