@@ -23,6 +23,7 @@ import { SpecialistSettingsPage } from '@/pages/specialist/SpecialistSettingsPag
 import { RequireAuth } from '@/routes/RequireAuth'
 import { RequireDiary } from '@/routes/RequireDiary'
 import { RequireSpecialist } from '@/routes/RequireSpecialist'
+import {WeightLogFormPage} from "@/pages/diary/WeightLogFormPage.tsx";
 
 function App() {
     return (
@@ -59,6 +60,9 @@ function App() {
 
                             <Route path="/diary/sleep-log/add" element={<SleepLogFormPage />}/>
                             <Route path="/diary/sleep-log/:sleepLogId/edit" element={<SleepLogFormPage />}/>
+
+                            <Route path="/diary/weight-log/add" element={<WeightLogFormPage />}></Route>
+                            <Route path="/diary/weight-log/:weightLogId/edit" element={<WeightLogFormPage />}></Route>
                         </Route>
 
                         <Route element={<RequireSpecialist />}>
