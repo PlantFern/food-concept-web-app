@@ -1,8 +1,9 @@
-import { IoAdd, IoEllipsisVertical } from 'react-icons/io5'
+import { IoAdd } from 'react-icons/io5'
 import type { MealFoodRecordItemDto, MealTemplateListItemDto } from '@/api/diaryProfile/diary.ts'
 import { formatFoodAmount, mealTypeLabel } from '@/api/diaryProfile/diary.ts'
 import { TemplateBlock } from '@/components/diary/TemplateBlock'
 import styles from './MealSection.module.css'
+import {Dropdown} from "@/components/ui/Dropdown";
 
 type MealSectionProps = {
     mealTypeCode: string
@@ -12,7 +13,6 @@ type MealSectionProps = {
     primaryUnit?: string
     templates?: MealTemplateListItemDto[]
     applyingTemplateId?: number | null
-    onAdd?: () => void
     onApplyTemplate?: (templateId: number, mealTypeId: number) => void
 }
 
@@ -24,25 +24,27 @@ export function MealSection({
     primaryUnit = 'kcal',
     templates = [],
     applyingTemplateId = null,
-    onAdd,
     onApplyTemplate,
 }: MealSectionProps) {
     return (
-        <section className={styles.mealSection}>
+        <section className={`${styles.mealSection}`}>
             <div className={styles.mealSectionHead}>
-                <button type="button" className={styles.mealSectionTitle} onClick={onAdd}>
-                    <IoAdd size={20} />
-                    <span>{mealTypeLabel(mealTypeCode)}</span>
-                </button>
+                <Dropdown trigger={{
+                                label: mealTypeLabel(mealTypeCode),
+                                icon: <IoAdd size={20}/>}}
+                            items={[
+                                { label: "Добавить продукт", to: "/diary/products?tab=products" },
+                                { label: "Добавить рецепт", to: "/diary/products?tab=recipes" },
+                                { label: "Последнее", to: "/diary/products?tab=recent" },
+                                { label: "Создать шаблон", to: "/diary/products?tab=templates" },
+                            ]}/>
+
                 <div className="d-flex align-items-center gap-2">
                     {totalPrimaryNutrient != null && (
                         <span className={styles.mealSectionTotal}>
                             {Math.round(totalPrimaryNutrient)} {primaryUnit}
                         </span>
                     )}
-                    <button type="button" className={styles.mealSectionMenu} aria-label="Меню">
-                        <IoEllipsisVertical size={18} />
-                    </button>
                 </div>
             </div>
 
