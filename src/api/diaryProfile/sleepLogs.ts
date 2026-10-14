@@ -3,7 +3,7 @@ import type { SleepLogDto } from '@/api/diaryProfile/diary'
 
 export type SleepPeriodPayload = {
     startPeriod: string
-    endPeriod: string
+    endPeriod: string | null
 }
 
 export async function createSleepLog(
