@@ -423,9 +423,6 @@ body {
 }
 
 .diary-content {
-    display: flex;
-    flex-direction: column;
-    gap: var(--indent-12);
     padding: var(--indent-12);
     min-height: calc(100vh - var(--nav-height) - 2rem);
 }
