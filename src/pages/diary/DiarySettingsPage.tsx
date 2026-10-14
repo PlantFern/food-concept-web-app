@@ -83,11 +83,13 @@ export function DiarySettingsPage() {
 
     return (
         <div className="diary-shell">
-            <div className="diary-content p-3" style={{ paddingBottom: '7.5rem' }}>
-                <Link to="/diary/settings" className="small text-decoration-none">
-                    ← Назад
-                </Link>
-                <h1 className="page-title mt-2">Настройки</h1>
+            <div className="diary-content" style={{ paddingBottom: '7.5rem' }}>
+                <div className='bg-brand text-invert p-2 rounded-bottom-4'>
+                    <Link to="/diary/settings" className="small text-decoration-none">
+                        ← Назад
+                    </Link>
+                    <h1 className="page-title mt-2">Настройки</h1>
+                </div>
 
                 {loading && <p className="text-muted">Загрузка…</p>}
 
