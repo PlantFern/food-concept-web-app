@@ -61,46 +61,46 @@ export function SleepLogFormPage() {
         }
     )
 
-    useEffect(() => {
-
-        setLoading(true);
-        let cancelled = false;
-
-        if (!isEdit) {
-            const profileId = getDiaryProfileId();
-
-            if(!profileId){
-                showAlert("Не удалось определить профиль дневника");
-                navigate(-1);
-                return;
-            }
-
-            setDiaryProfileId(profileId);
-            setLoading(false);
-        }
-        else {
-            (async () => {
-                setLoading(true)
-                const data = await getSleepLogById(Number(sleepLogId));
-                if (!data) {
-                    showAlert("Не удалось найти запись о сне");
-                    navigate(-1);
-                    return;
-                }
-
-
-                if (cancelled) return;
-                else {
-                    reset(toFormValues(data));
-                    setLoading(false);
-                }
-            })()
-        }
-
-        return () => {
-            cancelled = true;
-        }
-    }, [sleepLogId, isEdit, reset])
+    // useEffect(() => {
+    //
+    //     setLoading(true);
+    //     let cancelled = false;
+    //
+    //     if (!isEdit) {
+    //         const profileId = getDiaryProfileId();
+    //
+    //         if(!profileId){
+    //             showAlert("Не удалось определить профиль дневника");
+    //             navigate(-1);
+    //             return;
+    //         }
+    //
+    //         setDiaryProfileId(profileId);
+    //         setLoading(false);
+    //     }
+    //     else {
+    //         (async () => {
+    //             setLoading(true)
+    //             const data = await getSleepLogById(Number(sleepLogId));
+    //             if (!data) {
+    //                 showAlert("Не удалось найти запись о сне");
+    //                 navigate(-1);
+    //                 return;
+    //             }
+    //
+    //
+    //             if (cancelled) return;
+    //             else {
+    //                 reset(toFormValues(data));
+    //                 setLoading(false);
+    //             }
+    //         })()
+    //     }
+    //
+    //     return () => {
+    //         cancelled = true;
+    //     }
+    // }, [sleepLogId, isEdit, reset])
 
     const onSubmit = async (formData: SleepLogFormValues) => {
         try {
@@ -140,7 +140,7 @@ export function SleepLogFormPage() {
                         <form onSubmit={handleSubmit(onSubmit)}
                                 className="form-card col-xl-4 col-lg-6 col-md-8 col-sm-10 col-12
                                             d-flex flex-column gap-3
-                                            ">
+                                            mx-auto">
                             <div className="d-flex flex-column gap-1">
                                 <div className="d-flex gap-3
                                                 justify-content-between

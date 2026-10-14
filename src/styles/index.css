@@ -262,7 +262,6 @@ body {
 }
 
 .form-card {
-    width: 100%;
     padding: var(--indent-24);
 }
 
