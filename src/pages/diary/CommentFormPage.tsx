@@ -6,6 +6,7 @@ import {
     getCommentById,
     createComment,
     updateComment,
+    deleteComment,
     type CommentType,
 } from '@/api/diaryProfile'
 import { useAlert } from '@/components/ui/Alert'
@@ -24,6 +25,7 @@ export function CommentFormPage() {
     const { showAlert } = useAlert()
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState('')
+    const [deleting, setDeleting] = useState(false)
     const navigate = useNavigate()
     const [searchParams] = useSearchParams()
 
@@ -110,6 +112,22 @@ export function CommentFormPage() {
             navigate('/diary', { replace: true })
         } catch (err: unknown) {
             setError(getErrorMessage(err, 'Не удалось сохранить'))
+        }
+    }
+
+    const onDelete = async () => {
+        if (!isEdit) return
+        if (!window.confirm('Удалить комментарий?')) return
+        setDeleting(true)
+        setError('')
+        try {
+            await deleteComment(Number(commentId))
+            showAlert('Комментарий удалён', 'success')
+            navigate('/diary', { replace: true })
+        } catch (err: unknown) {
+            setError(getErrorMessage(err, 'Не удалось удалить'))
+        } finally {
+            setDeleting(false)
         }
     }
 
@@ -206,11 +224,22 @@ export function CommentFormPage() {
 
                             <button
                                 type="submit"
-                                disabled={isSubmitting}
+                                disabled={isSubmitting || deleting}
                                 className="btn btn-primary w-100 mt-2"
                             >
                                 {isSubmitting ? 'Сохранение...' : isEdit ? 'Сохранить' : 'Создать'}
                             </button>
+
+                            {isEdit && (
+                                <button
+                                    type="button"
+                                    disabled={isSubmitting || deleting}
+                                    className="btn btn-outline-danger w-100"
+                                    onClick={() => void onDelete()}
+                                >
+                                    {deleting ? 'Удаление...' : 'Удалить'}
+                                </button>
+                            )}
                         </form>
                     )}
                 </div>
