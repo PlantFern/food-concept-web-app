@@ -1,33 +1,33 @@
-import {useEffect, useState} from "react";
-import {useForm}  from "react-hook-form";
-import {Link, useParams, useNavigate} from 'react-router-dom';
-import { BottomNav } from '@/components/diary';
+import { useEffect, useState } from 'react'
+import { useForm } from 'react-hook-form'
+import { Link, useParams, useNavigate } from 'react-router-dom'
+import { BottomNav } from '@/components/diary'
 import {
-    fetchLatestWeight,
+    getWeightLogById,
     createWeightLog,
     updateWeightLog,
+    deleteWeightLog,
 } from '@/api/diaryProfile'
 import { useAlert } from '@/components/ui/Alert'
 import { getErrorMessage } from '@/lib/errors'
-import {getDiaryProfileId} from "@/api/onboarding.ts";
+import { getDiaryProfileId } from '@/api/onboarding.ts'
 
-
-type WeightLogFormValues =  {
-    weight: string;
+type WeightLogFormValues = {
+    weight: string
 }
-
 
 export function WeightLogFormPage() {
 
-    const { showAlert } = useAlert()
+    const { showAlert } = useAlert();
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+    const [deleting, setDeleting] = useState(false);
     const navigate = useNavigate();
 
-    const {weightLogId} = useParams();
+    const { weightLogId } = useParams();
     const isEdit = Boolean(weightLogId);
 
-    const [diaryProfileId, setDiaryProfileId] = useState<number>(-1);
+    const [diaryProfileId, setDiaryProfileId] = useState<number>(-1)
 
     const {
         register,
@@ -90,11 +90,11 @@ export function WeightLogFormPage() {
         const weight = Number(formData.weight)
         try {
             if (isEdit) {
-                await updateWeightLog(Number(weightLogId), Number(formData.weight));
+                await updateWeightLog(Number(weightLogId), weight);
                 showAlert('Данные обновлены', 'success');
             }
             else {
-                await createWeightLog(diaryProfileId, Number(formData.weight));
+                await createWeightLog(diaryProfileId, weight);
                 showAlert('Запись о весе добавлена', 'success');
             }
             navigate('/diary', { replace: true })
@@ -103,17 +103,32 @@ export function WeightLogFormPage() {
         }
     }
 
-    return(
+    const onDelete = async () => {
+        if (!isEdit) return
+        if (!window.confirm('Удалить запись о весе?')) return
+        setDeleting(true)
+        setError('')
+        try {
+            await deleteWeightLog(Number(weightLogId))
+            showAlert('Запись удалена', 'success')
+            navigate('/diary', { replace: true })
+        } catch (err: unknown) {
+            setError(getErrorMessage(err, 'Не удалось удалить'))
+        } finally {
+            setDeleting(false)
+        }
+    }
+
+    return (
         <div className="diary-shell">
             <div className="bg-brand text-invert p-2 rounded-bottom-4">
                 <Link to="/diary" className="btn-tertiary bg-text-on-brand">
                     ← Назад
                 </Link>
-                <h2 className="bg-text-on-brand mt-2 text-center">Запись о сне</h2>
+                <h2 className="bg-text-on-brand mt-2 text-center">Запись о весе</h2>
             </div>
-            {
-                loading && <p className="no-content-placeholder">Загрузка…</p>
-            }
+
+            {loading && <p className="no-content-placeholder">Загрузка…</p>}
 
             <div className="container">
                 <div className="row">
@@ -157,11 +172,22 @@ export function WeightLogFormPage() {
 
                             <button
                                 type="submit"
-                                disabled={isSubmitting}
+                                disabled={isSubmitting || deleting}
                                 className="btn btn-primary w-100 mt-2"
                             >
                                 {isSubmitting ? 'Сохранение...' : isEdit ? 'Сохранить' : 'Создать'}
                             </button>
+
+                            {isEdit && (
+                                <button
+                                    type="button"
+                                    disabled={isSubmitting || deleting}
+                                    className="btn btn-outline-danger w-100"
+                                    onClick={() => void onDelete()}
+                                >
+                                    {deleting ? 'Удаление...' : 'Удалить'}
+                                </button>
+                            )}
                         </form>
                     )}
                 </div>
@@ -169,5 +195,5 @@ export function WeightLogFormPage() {
 
             <BottomNav />
         </div>
-    );
+    )
 }
