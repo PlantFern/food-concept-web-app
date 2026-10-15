@@ -8,6 +8,8 @@ import {
     HiOutlineFlag,
     HiOutlineArrowRightOnRectangle,
     HiOutlineUserGroup,
+    HiOutlineMagnifyingGlass,
+    HiOutlineLink,
 } from 'react-icons/hi2'
 import { BottomNav } from '@/components/diary'
 import { logoutLocal } from '@/api/auth'
@@ -137,6 +139,24 @@ export function SettingsPage() {
                                 icon={<HiOutlineFlag />}
                                 label="Цели"
                                 to="/diary/settings/goals"
+                            />
+                        </div>
+                    </section>
+                )}
+
+                {hasDiary && (
+                    <section className={styles.section}>
+                        <div className={styles.sectionTitle}>Специалисты</div>
+                        <div className={styles.group}>
+                            <SettingsRow
+                                icon={<HiOutlineMagnifyingGlass />}
+                                label="Найти специалиста"
+                                to="/diary/specialists/search"
+                            />
+                            <SettingsRow
+                                icon={<HiOutlineLink />}
+                                label="Мои связи"
+                                to="/diary/specialists/relations"
                             />
                         </div>
                     </section>
