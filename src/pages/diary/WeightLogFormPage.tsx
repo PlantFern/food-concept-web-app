@@ -6,6 +6,7 @@ import {
     getWeightLogById,
     createWeightLog,
     updateWeightLog,
+    deleteWeightLog,
 } from '@/api/diaryProfile'
 import { useAlert } from '@/components/ui/Alert'
 import { getErrorMessage } from '@/lib/errors'
@@ -19,6 +20,7 @@ export function WeightLogFormPage() {
     const { showAlert } = useAlert()
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState('')
+    const [deleting, setDeleting] = useState(false)
     const navigate = useNavigate()
 
     const { weightLogId } = useParams()
@@ -97,6 +99,22 @@ export function WeightLogFormPage() {
         }
     }
 
+    const onDelete = async () => {
+        if (!isEdit) return
+        if (!window.confirm('Удалить запись о весе?')) return
+        setDeleting(true)
+        setError('')
+        try {
+            await deleteWeightLog(Number(weightLogId))
+            showAlert('Запись удалена', 'success')
+            navigate('/diary', { replace: true })
+        } catch (err: unknown) {
+            setError(getErrorMessage(err, 'Не удалось удалить'))
+        } finally {
+            setDeleting(false)
+        }
+    }
+
     return (
         <div className="diary-shell">
             <div className="bg-brand text-invert p-2 rounded-bottom-4">
@@ -150,11 +168,22 @@ export function WeightLogFormPage() {
 
                             <button
                                 type="submit"
-                                disabled={isSubmitting}
+                                disabled={isSubmitting || deleting}
                                 className="btn btn-primary w-100 mt-2"
                             >
                                 {isSubmitting ? 'Сохранение...' : isEdit ? 'Сохранить' : 'Создать'}
                             </button>
+
+                            {isEdit && (
+                                <button
+                                    type="button"
+                                    disabled={isSubmitting || deleting}
+                                    className="btn btn-outline-danger w-100"
+                                    onClick={() => void onDelete()}
+                                >
+                                    {deleting ? 'Удаление...' : 'Удалить'}
+                                </button>
+                            )}
                         </form>
                     )}
                 </div>
