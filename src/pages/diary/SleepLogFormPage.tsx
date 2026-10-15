@@ -6,6 +6,7 @@ import {
     getSleepLogById,
     createSleepLog,
     updateSleepLog,
+    deleteSleepLog,
     type SleepLogDto, type SleepPeriodPayload,
 } from "@/api/diaryProfile";
 import {useAlert} from "@/components/ui/Alert";
@@ -37,6 +38,7 @@ export function SleepLogFormPage() {
     const { showAlert } = useAlert()
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+    const [deleting, setDeleting] = useState(false);
     const navigate = useNavigate();
 
     const {sleepLogId} = useParams();
@@ -119,6 +121,22 @@ export function SleepLogFormPage() {
         }
     }
 
+    const onDelete = async () => {
+        if (!isEdit) return
+        if (!window.confirm('Удалить запись о сне?')) return
+        setDeleting(true)
+        setError('')
+        try {
+            await deleteSleepLog(Number(sleepLogId))
+            showAlert('Запись удалена', 'success')
+            navigate('/diary', { replace: true })
+        } catch (err: unknown) {
+            setError(getErrorMessage(err, 'Не удалось удалить'))
+        } finally {
+            setDeleting(false)
+        }
+    }
+
     return(
         <div className="diary-shell">
             <div className='bg-brand text-invert
@@ -141,6 +159,7 @@ export function SleepLogFormPage() {
                                 className="form-card col-xl-4 col-lg-6 col-md-8 col-sm-10 col-12
                                             d-flex flex-column gap-3
                                             mx-auto">
+                            {error && <p className="text-danger small mb-0">{error}</p>}
                             <div className="d-flex flex-column gap-1">
                                 <div className="d-flex gap-3
                                                 justify-content-between
@@ -204,10 +223,21 @@ export function SleepLogFormPage() {
                             </div>
 
                             <button type="submit"
-                                    disabled={isSubmitting}
+                                    disabled={isSubmitting || deleting}
                                     className="btn btn-primary w-100 mt-2">
                                 {isSubmitting ? "Сохранение..." : isEdit ? "Сохранить" : "Создать"}
                             </button>
+
+                            {isEdit && (
+                                <button
+                                    type="button"
+                                    disabled={isSubmitting || deleting}
+                                    className="btn btn-outline-danger w-100"
+                                    onClick={() => void onDelete()}
+                                >
+                                    {deleting ? "Удаление..." : "Удалить"}
+                                </button>
+                            )}
                         </form>
                         )
                     }
