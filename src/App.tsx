@@ -23,6 +23,8 @@ import { MealTemplateFormPage } from '@/pages/diary/MealTemplateFormPage'
 import { CommentFormPage } from '@/pages/diary/CommentFormPage'
 import { QuickProductFormPage } from '@/pages/diary/QuickProductFormPage'
 import { StatsPage } from '@/pages/diary/StatsPage'
+import { SpecialistSearchPage } from '@/pages/diary/SpecialistSearchPage'
+import { MySpecialistRelationsPage } from '@/pages/diary/MySpecialistRelationsPage'
 import { ClientsPage } from '@/pages/specialist/ClientsPage'
 import { SpecialistSettingsPage } from '@/pages/specialist/SpecialistSettingsPage'
 import { RequireAuth } from '@/routes/RequireAuth'
@@ -59,6 +61,9 @@ function App() {
                             <Route path="/diary/settings" element={<SettingsPage />} />
                             <Route path="/diary/settings/diary" element={<DiarySettingsPage />} />
                             <Route path="/diary/settings/goals" element={<GoalsPage />} />
+
+                            <Route path="/diary/specialists/search" element={<SpecialistSearchPage />} />
+                            <Route path="/diary/specialists/relations" element={<MySpecialistRelationsPage />} />
 
                             <Route path="/diary/sleep-log/add" element={<SleepLogFormPage />} />
                             <Route path="/diary/sleep-log/:sleepLogId/edit" element={<SleepLogFormPage />} />
