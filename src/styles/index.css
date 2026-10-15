@@ -130,6 +130,17 @@ body {
     text-decoration: underline;
 }
 
+.tab-container{
+    overflow-x: auto;
+    white-space: nowrap;
+}
+
+.tab-nav{
+    flex-wrap: nowrap;
+    display: flex;
+    gap: var(--indent-12);
+}
+
 .nav-pills .nav-link{
     background-color: transparent !important;
     color: var(--cta-fg) !important;
@@ -251,7 +262,6 @@ body {
 }
 
 .form-card {
-    width: 100%;
     padding: var(--indent-24);
 }
 
@@ -279,6 +289,12 @@ body {
 
 .input.is-invalid {
     border-color: var(--danger);
+}
+
+.input-error-text {
+    font-size: calc(var(--font-size) * 0.75);
+    color: var(--danger);
+    font-weight: 600;
 }
 
 .form-alert {
@@ -407,9 +423,6 @@ body {
 }
 
 .diary-content {
-    display: flex;
-    flex-direction: column;
-    gap: var(--indent-12);
     padding: var(--indent-12);
     min-height: calc(100vh - var(--nav-height) - 2rem);
 }
@@ -669,4 +682,20 @@ body {
 
 .bottom-nav-item svg {
     font-size: 1.2rem;
+}
+
+.no-content-placeholder {
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    justify-items: center;
+    align-content: center;
+    align-items: center;
+    flex-direction: column;
+    gap: var(--indent-16);
+
+    text-align: center;
+    color: var(--text-muted);
+
+    padding: var(--indent-12) var(--indent-16);
 }

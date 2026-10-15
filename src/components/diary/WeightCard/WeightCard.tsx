@@ -1,4 +1,5 @@
 import styles from './WeightCard.module.css'
+import {Link} from "react-router-dom";
 
 type WeightCardProps = {
     weightKg: number | null
@@ -14,9 +15,11 @@ export function WeightCard({ weightKg, onLog }: WeightCardProps) {
                     {weightKg != null ? `${weightKg} кг` : '—'}
                 </div>
             </div>
-            <button type="button" className="btn btn-secondary w-100 mt-3" onClick={onLog}>
-                Записать вес
-            </button>
+            <div className='d-flex justify-content-end align-items-end align-items-end'>
+                <Link className="btn btn-secondary mt-2" to="/diary/weight-log/add">
+                    Записать вес
+                </Link>
+            </div>
         </section>
     )
 }

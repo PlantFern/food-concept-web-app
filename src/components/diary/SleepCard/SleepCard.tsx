@@ -1,4 +1,6 @@
 import styles from './SleepCard.module.css'
+import {Link} from "react-router-dom";
+import {IoEllipsisVertical} from "react-icons/io5";
 
 export type SleepEntry = {
     id: number
@@ -18,7 +20,7 @@ function formatTime(iso: string | null | undefined): string {
     return d.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })
 }
 
-export function SleepCard({ entries, onAdd }: SleepCardProps) {
+export function SleepCard({ entries}: SleepCardProps) {
     return (
         <section className={styles.infoCard}>
             <h3 className={styles.infoCardTitle}>Сон</h3>
@@ -31,13 +33,18 @@ export function SleepCard({ entries, onAdd }: SleepCardProps) {
                             <span>{formatTime(e.start)}</span>
                             <span className={styles.sleepDash}>—</span>
                             <span>{formatTime(e.end)}</span>
+                            <button type="button" className={styles.mealSectionMenu} aria-label="Меню">
+                                <IoEllipsisVertical size={18} />
+                            </button>
                         </li>
                     ))}
                 </ul>
             )}
-            <button type="button" className="btn btn-secondary w-100 mt-2" onClick={onAdd}>
-                Добавить время
-            </button>
+            <div className='d-flex justify-content-end align-items-end align-items-end'>
+                <Link className="btn btn-secondary mt-2" to="/diary/sleep-log/add">
+                    Добавить запись
+                </Link>
+            </div>
         </section>
     )
 }
