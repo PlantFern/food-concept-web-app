@@ -6,7 +6,7 @@ import {
     nutrientDisplayUnit,
     type DayMealsDto,
     type MealTemplateListItemDto,
-} from '@/api/diaryProfile/diary.ts'
+} from '@/api/diaryProfile/diary'
 import { getDiaryProfileId } from '@/api/onboarding'
 import { getErrorMessage } from '@/lib/errors'
 import { useAlert } from '@/components/ui/Alert'
@@ -54,10 +54,10 @@ function pickTemplatesForSection(
 
     const range = hourHints[code]
     if (range) {
-        const matched = templates.filter((t) => {
-            if (!t.scheduledTime) return false
-            const h = Number(String(t.scheduledTime).slice(0, 2))
-            return Number.isFinite(h) && h >= range[0] && h < range[1]
+        const matched = templates.filter((template) => {
+            if (!template.scheduledTime) return false
+            const hour = Number(String(template.scheduledTime).slice(0, 2))
+            return Number.isFinite(hour) && hour >= range[0] && hour < range[1]
         })
         if (matched.length) return matched
     }
@@ -69,91 +69,90 @@ function pickTemplatesForSection(
 }
 
 export function DiaryHomePage() {
-    const { showAlert } = useAlert()
-    const [date, setDate] = useState(() => new Date())
-    const [day, setDay] = useState<DayMealsDto | null>(null)
-    const [loading, setLoading] = useState(true)
-    const [applyingTemplateId, setApplyingTemplateId] = useState<number | null>(null)
-    // const [statsPage, setStatsPage] = useState(0)
+    const { showAlert } = useAlert();
+    const [date, setDate] = useState(() => new Date());
+    const [day, setDay] = useState<DayMealsDto | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [applyingTemplateId, setApplyingTemplateId] = useState<number | null>(null);
 
-    const iso = useMemo(() => toIsoDate(date), [date])
-    const profileId = getDiaryProfileId()
+    const iso = useMemo(() => toIsoDate(date), [date]);
+    const profileId = getDiaryProfileId();
 
     const load = useCallback(async () => {
+        
         if (profileId == null) {
-            setDay(null)
-            setLoading(false)
-            showAlert('Нет профиля дневника. Пройдите онбординг.', 'warning')
-            return
+            setDay(null);
+            setLoading(false);
+            showAlert('Нет профиля дневника. Пройдите онбординг.', 'warning');
+            return;
         }
-        setLoading(true)
+        setLoading(true);
+        
         try {
-            const data = await fetchDayMeals(iso, profileId)
-            setDay(data)
+            const data = await fetchDayMeals(iso, profileId);
+            setDay(data);
         } catch (err: unknown) {
-            setDay(null)
-            showAlert(getErrorMessage(err, 'Не удалось загрузить день'), 'danger')
+            setDay(null);
+            showAlert(getErrorMessage(err, 'Не удалось загрузить день'), 'danger');
         } finally {
-            setLoading(false)
+            setLoading(false);
         }
     }, [iso, profileId, showAlert])
 
     useEffect(() => {
-        void load()
-    }, [load])
+        void load();
+    }, [load]);
 
     function shiftDay(delta: number) {
         setDate((prev) => {
-            const next = new Date(prev)
-            next.setDate(prev.getDate() + delta)
-            return next
+            const next = new Date(prev);
+            next.setDate(prev.getDate() + delta);
+            return next;
         })
     }
 
     async function onApplyTemplate(templateId: number, mealTypeId: number) {
-        setApplyingTemplateId(templateId)
+        setApplyingTemplateId(templateId);
         try {
-            await applyMealTemplate(templateId, mealTypeId, iso)
-            await load()
+            await applyMealTemplate(templateId, mealTypeId, iso);
+            await load();
         } catch {
-            showAlert('Не удалось отметить шаблон', 'danger')
+            showAlert('Не удалось отметить шаблон', 'danger');
         } finally {
-            setApplyingTemplateId(null)
+            setApplyingTemplateId(null);
         }
     }
 
-    const primary = day?.targets?.find(
-        (t) =>
-            t.nutrientId === day.primaryNutrient ||
-            t.nutrientCode?.toUpperCase() === day.primaryNutrientCode?.toUpperCase(),
-    )
+    const primary = day?.targets?.find((target) =>
+            target.nutrientId === day.primaryNutrient ||
+            target.nutrientCode?.toUpperCase() === day.primaryNutrientCode?.toUpperCase(),
+    );
 
     const primaryName =
         day?.primaryNutrientName?.trim() ||
         (primary ? nutrientDisplayName(primary) : day?.primaryNutrientCode) ||
-        ''
+        '';
 
     const primaryUnit =
         day?.primaryNutrientUnit?.trim() ||
         (primary ? nutrientDisplayUnit(primary) : '') ||
-        ''
+        '';
 
-    const secondary = (day?.targets ?? []).filter(
-        (t) =>
-            t.nutrientId !== day?.primaryNutrient &&
-            t.nutrientCode?.toUpperCase() !== day?.primaryNutrientCode?.toUpperCase(),
-    )
+    const secondary = (day?.targets ?? []).filter((target) =>
+            target.nutrientId !== day?.primaryNutrient &&
+            target.nutrientCode?.toUpperCase() !== day?.primaryNutrientCode?.toUpperCase(),
+    );
 
-    const secondaryItems = secondary.map((t, index) => ({
-        key: String(t.nutrientId ?? t.nutrientCode ?? index),
-        label: nutrientDisplayName(t),
-        value: Math.max(t.factAmount ?? 0, 0),
-        unit: nutrientDisplayUnit(t),
+    const secondaryItems = secondary.map((target, index) => ({
+        key: String(target.nutrientId ?? target.nutrientCode ?? index),
+        label: nutrientDisplayName(target),
+        value: Math.max(target.factAmount ?? 0, 0),
+        unit: nutrientDisplayUnit(target),
         color: PALETTE[index % PALETTE.length],
-    }))
+    }));
 
     const sections =
-        day?.sections && day.sections.length > 0 ? day.sections : DEFAULT_SECTIONS
+        day?.sections && day.sections.length > 0 ? day.sections : DEFAULT_SECTIONS;
 
     return (
         <div className="diary-shell">
@@ -170,7 +169,7 @@ export function DiaryHomePage() {
                     {secondaryItems.length > 0 && <NutrientBar items={secondaryItems} />}
                 </div>
             </header>
-            
+
             <div className="diary-content container mt-2">
                 {loading && <p className="meal-empty">Загрузка…</p>}
 
@@ -180,25 +179,25 @@ export function DiaryHomePage() {
                     {!loading &&
                         sections.map((section, index) => (
                             <div className = 'col-lg-6 col-md-10 col-12'>
-                                <MealSection
-                                    key={section.mealId}
-                                    mealTypeCode={section.mealTypeCode}
-                                    mealTypeId={section.mealTypeId}
-                                    records={section.records ?? []}
-                                    totalPrimaryNutrient={
-                                        'totalPrimaryNutrient' in section
-                                            ? section.totalPrimaryNutrient
-                                            : null
-                                    }
-                                    primaryUnit={primaryUnit}
-                                    templates={pickTemplatesForSection(
-                                        day?.pendingTemplates ?? [],
-                                        section.mealTypeCode,
-                                        index,
-                                        sections.length,
-                                    )}
-                                    applyingTemplateId={applyingTemplateId}
-                                    onApplyTemplate={onApplyTemplate}
+                        <MealSection
+                            key={section.mealId}
+                            mealTypeCode={section.mealTypeCode}
+                            mealTypeId={section.mealTypeId}
+                            records={section.records ?? []}
+                            totalPrimaryNutrient={
+                                'totalPrimaryNutrient' in section
+                                    ? section.totalPrimaryNutrient
+                                    : null
+                            }
+                            primaryUnit={primaryUnit}
+                            templates={pickTemplatesForSection(
+                                day?.pendingTemplates ?? [],
+                                section.mealTypeCode,
+                                index,
+                                sections.length,
+                            )}
+                            applyingTemplateId={applyingTemplateId}
+                            onApplyTemplate={onApplyTemplate}
                                 />
                             </div>
                         ))}
