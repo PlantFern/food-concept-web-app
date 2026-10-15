@@ -51,14 +51,3 @@ export async function getCommentById(commentId: number): Promise<DiaryCommentDto
     )
     return data
 }
-
-export async function fetchCommentsByType(
-    diaryProfileId: number,
-    commentType: string,
-): Promise<DiaryCommentDto[]> {
-    const { data } = await http.get<DiaryCommentDto[]>(
-        `/api/diary-profile/comment/diary-profile/${diaryProfileId}/get-by-comment-type`,
-        { params: { commentType } },
-    )
-    return Array.isArray(data) ? data : []
-}
