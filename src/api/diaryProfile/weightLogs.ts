@@ -62,7 +62,10 @@ export async function fetchWeightByPeriod(
     const {data} = await http.get<WeightLogDto[]>(
         `/api/diary-profile/weight-log/diary-profile/${diaryProfileId}/get-by-period`,
         {params: {startPeriod, endPeriod}},
-    )
+    );
+
+    return data;
+}
 
 export async function fetchAllWeights(diaryProfileId: number): Promise<WeightLogDto[]> {
     const { data } = await http.get<WeightLogDto[]>(
