@@ -3,11 +3,12 @@ import type { MealFoodRecordItemDto, MealTemplateListItemDto } from '@/api/diary
 import { formatFoodAmount, mealTypeLabel } from '@/api/diaryProfile/diary.ts'
 import { TemplateBlock } from '@/components/diary/TemplateBlock'
 import styles from './MealSection.module.css'
-import {Dropdown} from "@/components/ui/Dropdown";
+import { Dropdown } from '@/components/ui/Dropdown'
 
 type MealSectionProps = {
     mealTypeCode: string
     mealTypeId: number
+    date?: string
     records: MealFoodRecordItemDto[]
     totalPrimaryNutrient?: number | null
     primaryUnit?: string
@@ -19,6 +20,7 @@ type MealSectionProps = {
 export function MealSection({
     mealTypeCode,
     mealTypeId,
+    date,
     records,
     totalPrimaryNutrient,
     primaryUnit = 'kcal',
@@ -26,18 +28,46 @@ export function MealSection({
     applyingTemplateId = null,
     onApplyTemplate,
 }: MealSectionProps) {
+    const q = new URLSearchParams()
+    q.set('mealTypeId', String(mealTypeId))
+    if (date) q.set('date', date)
+    const mealQs = q.toString()
+
     return (
         <section className={`${styles.mealSection}`}>
             <div className={styles.mealSectionHead}>
-                <Dropdown trigger={{
-                                label: mealTypeLabel(mealTypeCode),
-                                icon: <IoAdd size={20}/>}}
-                            items={[
-                                { label: "Добавить продукт", to: "/diary/products?tab=products" },
-                                { label: "Добавить рецепт", to: "/diary/products?tab=recipes" },
-                                { label: "Последнее", to: "/diary/products?tab=recent" },
-                                { label: "Создать шаблон", to: "/diary/products?tab=templates" },
-                            ]}/>
+                <Dropdown
+                    trigger={{
+                        label: mealTypeLabel(mealTypeCode),
+                        icon: <IoAdd size={20} />,
+                    }}
+                    items={[
+                        {
+                            label: 'Добавить продукт',
+                            to: `/diary/products?tab=products&${mealQs}`,
+                        },
+                        {
+                            label: 'Добавить рецепт',
+                            to: `/diary/products?tab=recipes&${mealQs}`,
+                        },
+                        {
+                            label: 'Быстрая запись нутриентов',
+                            to: `/diary/food-records/quick?${mealQs}`,
+                        },
+                        {
+                            label: 'Создать шаблон',
+                            to: `/diary/templates/add?${mealQs}`,
+                        },
+                        {
+                            label: 'Создать продукт',
+                            to: `/diary/products?tab=products&create=1&${mealQs}`,
+                        },
+                        {
+                            label: 'Комментарий к приёму',
+                            to: `/diary/comments/add?commentableType=MEAL&${mealQs}`,
+                        },
+                    ]}
+                />
 
                 <div className="d-flex align-items-center gap-2">
                     {totalPrimaryNutrient != null && (
@@ -59,10 +89,21 @@ export function MealSection({
                                 <div className={styles.foodName}>{item.productDescription}</div>
                                 <div className={styles.foodAmount}>{formatFoodAmount(item)}</div>
                             </div>
-                            <div className={styles.foodKcal}>
-                                <span>{item.nutrient != null ? Math.round(item.nutrient) : '—'}</span>
-                                <span>{primaryUnit}</span>
-                            </div>
+                            <Dropdown
+                                trigger={{
+                                    label: `${item.nutrient != null ? Math.round(item.nutrient) : '—'} ${primaryUnit}`,
+                                }}
+                                items={[
+                                    {
+                                        label: 'Изменить',
+                                        to: `/diary/food-records/${item.recordId}/edit`,
+                                    },
+                                    {
+                                        label: 'Удалить',
+                                        to: `/diary/food-records/${item.recordId}/edit?delete=1`,
+                                    },
+                                ]}
+                            />
                         </li>
                     ))}
                 </ul>
