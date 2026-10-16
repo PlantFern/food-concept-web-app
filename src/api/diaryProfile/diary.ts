@@ -129,6 +129,7 @@ export function mealTypeLabel(code: string | null | undefined): string {
         DINNER: 'Ужин',
         SNACK: 'Перекус',
         BRUNCH: 'Бранч',
+        OTHERS: 'Другое',
     }
     return map[code.toUpperCase()] ?? code
 }
