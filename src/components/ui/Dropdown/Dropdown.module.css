@@ -21,9 +21,9 @@
     top: 100%;
     left: 0;
 
-    background-color: var(--bg-surface);
+    background-color: #fff;
     box-shadow: var(--shadow-soft);
-    border: 1px solid var(--border-default);
+    border: 1px solid var(--border-default, #dee2e6);
     border-radius: var(--radius-sm);
 
     list-style: none;
@@ -40,7 +40,7 @@
 
 .dropdown-list .divider{
     height: 1px;
-    background-color: var(--border-default);
+    background-color: var(--border-default, #dee2e6);
     margin: var(--indent-4) 0;
     padding: 0;
 }
@@ -54,19 +54,20 @@
     padding: 0;
 }
 .dropdown-list-item:not(:last-child):not(.divider){
-    border-bottom: 1px solid var(--border-default);
+    border-bottom: 1px solid var(--border-default, #dee2e6);
 }
 
 .link {
     display: flex;
 
     text-decoration: none;
-    color: var(--cta-bg);
+    color: #212529;
 
     margin: 0;
     padding: var(--indent-12) var(--indent-16);
 }
 
 .link:hover {
-    background-color: var(--cta-bg-hover-invert);
+    background-color: #f1f3f5;
+    color: #0d6efd;
 }
