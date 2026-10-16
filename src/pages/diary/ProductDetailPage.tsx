@@ -18,6 +18,7 @@ const MEAL_TYPES = [
     { id: 2, code: 'LUNCH', label: 'Обед' },
     { id: 3, code: 'SNACK', label: 'Перекус' },
     { id: 4, code: 'DINNER', label: 'Ужин' },
+    { id: 5, code: 'OTHERS', label: 'Другое' },
 ]
 
 function todayIso(): string {
@@ -41,6 +42,11 @@ function servingLabel(s: FoodServingDto): string {
         s.gramWeight != null ? `${s.gramWeight} г` : null,
     ].filter(Boolean)
     return parts.join(' · ') || `Serving #${s.id}`
+}
+
+function formatNutrientAmount(amount: number | null | undefined): string {
+    if (amount == null || !Number.isFinite(amount)) return '—'
+    return Number.isInteger(amount) ? String(amount) : amount.toFixed(1)
 }
 
 export function ProductDetailPage() {
@@ -88,6 +94,8 @@ export function ProductDetailPage() {
         [product?.photoPath],
     )
 
+    const nutrients = product?.nutrients ?? []
+
     async function onSubmit(e: SyntheticEvent) {
         e.preventDefault()
         setFormError('')
@@ -120,10 +128,10 @@ export function ProductDetailPage() {
     return (
         <div className="diary-shell">
             <div className={`diary-content ${styles.page}`}>
-                <div className='bg-brand text-invert p-2 rounded-bottom-4'>
+                <div className="bg-brand text-invert p-2 rounded-bottom-4">
                     <Link to="/diary/products" className={styles.back}>
                         ← Продукты
-                        </Link>
+                    </Link>
                 </div>
 
                 {loading && <p className="text-muted mt-3">Загрузка…</p>}
@@ -147,6 +155,27 @@ export function ProductDetailPage() {
                                 )}
                             </div>
                         </div>
+
+                        <section className={styles.nutrients}>
+                            <h2 className={styles.formTitle}>Нутриенты (на 100 г)</h2>
+                            {nutrients.length === 0 ? (
+                                <p className={styles.meta}>Нет данных о нутриентах</p>
+                            ) : (
+                                <ul className={styles.nutrientList}>
+                                    {nutrients.map((n) => (
+                                        <li key={n.nutrientId} className={styles.nutrientRow}>
+                                            <span className={styles.nutrientName}>
+                                                {n.nutrientCode ?? `Nutrient #${n.nutrientId}`}
+                                            </span>
+                                            <span className={styles.nutrientValue}>
+                                                {formatNutrientAmount(n.amountPer100g)}
+                                                {n.unitCode ? ` ${n.unitCode}` : ''}
+                                            </span>
+                                        </li>
+                                    ))}
+                                </ul>
+                            )}
+                        </section>
 
                         <form className={styles.form} onSubmit={onSubmit}>
                             <h2 className={styles.formTitle}>Добавить в приём пищи</h2>
