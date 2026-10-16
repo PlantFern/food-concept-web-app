@@ -25,6 +25,7 @@ const DEFAULT_SECTIONS = [
     { mealId: -2, mealTypeCode: 'LUNCH', mealTypeId: 2, records: [] as never[] },
     { mealId: -3, mealTypeCode: 'SNACK', mealTypeId: 3, records: [] as never[] },
     { mealId: -4, mealTypeCode: 'DINNER', mealTypeId: 4, records: [] as never[] },
+    { mealId: -5, mealTypeCode: 'OTHERS', mealTypeId: 5, records: [] as never[] },
 ]
 
 const PALETTE = ['#3498db', '#f39c12', '#2ecc71', '#9b59b6', '#e74c3c', '#1abc9c']
@@ -62,7 +63,7 @@ function pickTemplatesForSection(
         if (matched.length) return matched
     }
 
-    if (sectionIndex === sectionsCount - 1) {
+    if (code === 'OTHERS' || sectionIndex === sectionsCount - 1) {
         return templates.filter((t) => !t.scheduledTime)
     }
     return []
@@ -178,11 +179,11 @@ export function DiaryHomePage() {
                     <div className='row g-2'>
                     {!loading &&
                         sections.map((section, index) => (
-                            <div className = 'col-lg-6 col-md-10 col-12'>
+                            <div className = 'col-lg-6 col-md-10 col-12' key={section.mealId}>
                         <MealSection
-                            key={section.mealId}
                             mealTypeCode={section.mealTypeCode}
                             mealTypeId={section.mealTypeId}
+                            date={iso}
                             records={section.records ?? []}
                             totalPrimaryNutrient={
                                 'totalPrimaryNutrient' in section
