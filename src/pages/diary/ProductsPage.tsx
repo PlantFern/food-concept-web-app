@@ -22,6 +22,14 @@ const TAB_KEYS: TabKey[] = ['products', 'recipes', 'templates', 'recent']
 
 const PAGE_SIZE = 12
 
+const listThumbStyle: React.CSSProperties = {
+    width: 45,
+    height: 45,
+    borderRadius: 8,
+    objectFit: 'cover',
+    flexShrink: 0,
+}
+
 function parseTab(raw: string | null): TabKey {
     if (raw && TAB_KEYS.includes(raw as TabKey)) return raw as TabKey
     return 'products'
@@ -217,7 +225,20 @@ export function ProductsPage() {
                                             to={productHref(p.id)}
                                             className="d-flex align-items-center gap-2 text-decoration-none text-reset p-3"
                                         >
-                                            <DeferredImage src={p.imageUrl} alt={p.name} />
+                                            <DeferredImage
+                                                src={p.imageUrl}
+                                                alt={p.name}
+                                                className="list-thumb"
+                                                // style wins over empty module defaults
+                                            />
+                                            <span style={listThumbStyle} className="d-none" aria-hidden />
+                                            <div style={{ width: 45, height: 45, flexShrink: 0 }}>
+                                                <DeferredImage
+                                                    src={p.imageUrl}
+                                                    alt={p.name}
+                                                    className=""
+                                                />
+                                            </div>
                                             <div>
                                                 <div className="fw-semibold">{p.name}</div>
                                                 {p.categoryCode && (
@@ -249,7 +270,9 @@ export function ProductsPage() {
                                         to={`/diary/recipes/${r.id}`}
                                         className="d-flex align-items-center gap-2 text-decoration-none text-reset p-3"
                                     >
-                                        <DeferredImage src={r.imageUrl} alt={r.name} />
+                                        <div style={{ width: 45, height: 45, flexShrink: 0 }}>
+                                            <DeferredImage src={r.imageUrl} alt={r.name} />
+                                        </div>
                                         <div>
                                             <div className="fw-semibold">{r.name}</div>
                                             {r.description && (
