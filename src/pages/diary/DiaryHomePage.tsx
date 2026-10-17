@@ -7,6 +7,7 @@ import {
     type DayMealsDto,
     type MealTemplateListItemDto,
 } from '@/api/diaryProfile/diary'
+import { fetchCommentsByType, type DiaryCommentDto } from '@/api/diaryProfile/comments'
 import { getDiaryProfileId } from '@/api/onboarding'
 import { getErrorMessage } from '@/lib/errors'
 import { useAlert } from '@/components/ui/Alert'
@@ -76,6 +77,7 @@ export function DiaryHomePage() {
     const { showAlert } = useAlert()
     const [date, setDate] = useState(() => new Date())
     const [day, setDay] = useState<DayMealsDto | null>(null)
+    const [mealComments, setMealComments] = useState<DiaryCommentDto[]>([])
     const [loading, setLoading] = useState(true)
     const [applyingTemplateId, setApplyingTemplateId] = useState<number | null>(null)
 
@@ -85,6 +87,7 @@ export function DiaryHomePage() {
     const load = useCallback(async () => {
         if (profileId == null) {
             setDay(null)
+            setMealComments([])
             setLoading(false)
             showAlert('Нет профиля дневника. Пройдите онбординг.', 'warning')
             return
@@ -92,10 +95,15 @@ export function DiaryHomePage() {
         setLoading(true)
 
         try {
-            const data = await fetchDayMeals(iso, profileId)
+            const [data, comments] = await Promise.all([
+                fetchDayMeals(iso, profileId),
+                fetchCommentsByType(profileId, 'MEAL'),
+            ])
             setDay(data)
+            setMealComments(comments)
         } catch (err: unknown) {
             setDay(null)
+            setMealComments([])
             showAlert(getErrorMessage(err, 'Не удалось загрузить день'), 'danger')
         } finally {
             setLoading(false)
@@ -202,6 +210,7 @@ export function DiaryHomePage() {
                                         mealPhotoPath={
                                             'photoPath' in section ? section.photoPath : null
                                         }
+                                        comments={mealComments}
                                         primaryUnit={primaryUnit}
                                         templates={pickTemplatesForSection(
                                             day?.pendingTemplates ?? [],

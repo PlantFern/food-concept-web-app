@@ -13,11 +13,16 @@ import {
     createGoal,
     fetchActiveGoal,
     type GoalDto,
+    type GoalNutrientDto,
 } from '@/api/diaryProfile/goals'
 import { hasActiveSpecialistControl } from '@/api/specialist'
 import { getDiaryProfileId } from '@/api/onboarding'
 import { NUTRIENT_BY_ID, unitLabel } from '@/data/nutrients'
 import { getErrorMessage } from '@/lib/errors'
+
+function sortedNutrients(list: GoalNutrientDto[] | null | undefined): GoalNutrientDto[] {
+    return [...(list ?? [])].sort((a, b) => Number(a.nutrientId) - Number(b.nutrientId))
+}
 
 export function GoalsPage() {
     const { showAlert } = useAlert()
@@ -140,10 +145,10 @@ export function GoalsPage() {
                                 {goal.startDate ?? '—'} → {goal.plannedEndDate ?? 'без срока'}
                             </p>
                             <ul className="list-unstyled mb-0 small">
-                                {(goal.nutrientSet ?? []).map((n) => {
+                                {sortedNutrients(goal.nutrientSet).map((n) => {
                                     const def = NUTRIENT_BY_ID[n.nutrientId]
                                     return (
-                                        <li key={n.nutrientId}>
+                                        <li key={`${n.nutrientId}-${n.id ?? n.amount}`}>
                                             {def?.name ?? `Nutrient #${n.nutrientId}`}: {n.amount}
                                             {def ? ` ${unitLabel(def.unit)}` : ''}
                                         </li>

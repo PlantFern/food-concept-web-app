@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { BottomNav } from '@/components/diary'
 import { DeferredImage } from '@/components/ui/DeferredImage'
@@ -21,6 +21,16 @@ type TabKey = 'products' | 'recipes' | 'templates' | 'recent'
 const TAB_KEYS: TabKey[] = ['products', 'recipes', 'templates', 'recent']
 
 const PAGE_SIZE = 12
+
+const thumbWrap: CSSProperties = {
+    width: 45,
+    height: 45,
+    flexShrink: 0,
+    borderRadius: 8,
+    overflow: 'hidden',
+}
+
+const thumbImg = 'product-list-thumb'
 
 function parseTab(raw: string | null): TabKey {
     if (raw && TAB_KEYS.includes(raw as TabKey)) return raw as TabKey
@@ -153,6 +163,16 @@ export function ProductsPage() {
 
     return (
         <div className="diary-shell">
+            <style>{`
+                .product-list-thumb,
+                .product-list-thumb img {
+                    width: 45px !important;
+                    height: 45px !important;
+                    object-fit: cover !important;
+                    border-radius: 8px;
+                    display: block;
+                }
+            `}</style>
             <div>
                 <div className="bg-brand text-invert p-2 rounded-bottom-4">
                     <h2 className="page-title text-center p-2 bg-text-on-brand">
@@ -217,7 +237,13 @@ export function ProductsPage() {
                                             to={productHref(p.id)}
                                             className="d-flex align-items-center gap-2 text-decoration-none text-reset p-3"
                                         >
-                                            <DeferredImage src={p.imageUrl} alt={p.name} />
+                                            <div style={thumbWrap}>
+                                                <DeferredImage
+                                                    src={p.imageUrl}
+                                                    alt={p.name}
+                                                    className={thumbImg}
+                                                />
+                                            </div>
                                             <div>
                                                 <div className="fw-semibold">{p.name}</div>
                                                 {p.categoryCode && (
@@ -249,7 +275,13 @@ export function ProductsPage() {
                                         to={`/diary/recipes/${r.id}`}
                                         className="d-flex align-items-center gap-2 text-decoration-none text-reset p-3"
                                     >
-                                        <DeferredImage src={r.imageUrl} alt={r.name} />
+                                        <div style={thumbWrap}>
+                                            <DeferredImage
+                                                src={r.imageUrl}
+                                                alt={r.name}
+                                                className={thumbImg}
+                                            />
+                                        </div>
                                         <div>
                                             <div className="fw-semibold">{r.name}</div>
                                             {r.description && (
