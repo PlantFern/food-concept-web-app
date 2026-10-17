@@ -9,6 +9,27 @@ export type RecipeListItem = {
     description?: string | null
 }
 
+export type RecipeComponentItem = {
+    componentId: number
+    productServingId: number
+    amount?: number | null
+    productDescription?: string | null
+    servingUnitCode?: string | null
+    gramWeight?: number | null
+    nutrient?: number | null
+}
+
+export type RecipeDetail = {
+    recipeId: number
+    recipeName: string
+    recipeDescription?: string | null
+    recipeText?: string | null
+    photoPath?: string | null
+    totalWeightGrams?: number | null
+    isFavorite?: boolean | null
+    components: RecipeComponentItem[]
+}
+
 export async function searchRecipes(query: string): Promise<RecipeListItem[]> {
     const profileId = getDiaryProfileId()
     if (profileId == null) return []
@@ -30,4 +51,28 @@ export async function searchRecipes(query: string): Promise<RecipeListItem[]> {
     } catch {
         return []
     }
+}
+
+export async function fetchRecipeDetail(recipeId: number): Promise<RecipeDetail | null> {
+    const profileId = getDiaryProfileId()
+    if (profileId == null) return null
+    try {
+        const { data } = await http.get<RecipeDetail>(
+            `/api/food/recipes/diary-profile/${profileId}/recipes/${recipeId}`,
+        )
+        return {
+            ...data,
+            components: Array.isArray(data.components) ? data.components : [],
+        }
+    } catch {
+        return null
+    }
+}
+
+export function formatComponentAmount(item: RecipeComponentItem): string {
+    const parts: string[] = []
+    if (item.amount != null && item.amount !== 1) parts.push(String(item.amount))
+    if (item.gramWeight != null) parts.push(`${item.gramWeight}г`)
+    else if (item.servingUnitCode) parts.push(item.servingUnitCode)
+    return parts.length ? parts.join(' × ') : '—'
 }
