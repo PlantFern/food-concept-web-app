@@ -8,8 +8,8 @@
     text-align: center;
     font-size: 1.25rem;
     font-weight: 700;
-    margin: 0.25rem 0 1rem;
-    color: var(--brand, #1a5632);
+    margin: 0.25rem 0 0.5rem;
+    color: #fff;
 }
 
 .card {
@@ -39,6 +39,7 @@
 .name {
     font-weight: 600;
     font-size: 1rem;
+    color: #212529;
 }
 
 .email {
@@ -54,7 +55,7 @@
     font-size: 0.75rem;
     text-transform: uppercase;
     letter-spacing: 0.04em;
-    color: #8a93a0;
+    color: #6c757d;
     margin: 0 0.35rem 0.4rem;
 }
 
@@ -107,7 +108,7 @@
     background: transparent;
     text-align: left;
     text-decoration: none;
-    color: inherit;
+    color: #212529;
     border-bottom: 1px solid #f1f3f5;
 }
 
@@ -124,14 +125,15 @@
 .rowLabel {
     flex: 1;
     font-size: 0.95rem;
+    color: #212529;
 }
 
 .rowValue {
     font-size: 0.85rem;
-    color: #8a93a0;
+    color: #6c757d;
 }
 
 .rowChevron {
-    color: #c0c4cc;
+    color: #adb5bd;
     font-size: 0.9rem;
 }

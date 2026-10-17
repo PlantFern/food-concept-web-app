@@ -8,8 +8,17 @@ export type UserRelationDto = {
     relationStatusCode: string
 }
 
+function statusCode(r: UserRelationDto): string {
+    return String(r.relationStatusCode ?? '').toUpperCase()
+}
+
+export function isPendingRelation(r: UserRelationDto): boolean {
+    const code = statusCode(r)
+    return code === 'PENDING' || code.includes('PENDING')
+}
+
 export function isActiveRelation(r: UserRelationDto): boolean {
-    const code = String(r.relationStatusCode ?? '').toUpperCase()
+    const code = statusCode(r)
     return code === 'ACTIVE' || code.includes('ACTIVE')
 }
 
@@ -67,7 +76,7 @@ export async function fetchDiarySpecialistRelations(
 export async function initiateSpecialistRelation(
     diaryProfileId: number,
     specialistId: number,
-    relationType: string,
+    relationType: string = 'SPECIALIST',
 ): Promise<void> {
     await http.put(
         `/api/diary-profile/${diaryProfileId}/specialists/spacialist/${specialistId}/initiate`,
