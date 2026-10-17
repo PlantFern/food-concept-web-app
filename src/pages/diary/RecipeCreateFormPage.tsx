@@ -1,18 +1,19 @@
-import { useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
-import { IoTrashOutline } from 'react-icons/io5'
+import { IoChevronDown, IoTrashOutline } from 'react-icons/io5'
 import { BottomNav } from '@/components/diary'
 import { http } from '@/api/http'
 import { uploadFile } from '@/api/files'
 import {
-    searchProducts,
+    searchProductsPage,
     fetchProductDetail,
     type ProductListItem,
     type FoodServingDto,
 } from '@/api/food'
 import { useAlert } from '@/components/ui/Alert'
 import { getErrorMessage } from '@/lib/errors'
+import styles from './RecipeCreateFormPage.module.css'
 
 type FormValues = {
     name: string
@@ -28,6 +29,8 @@ type DraftComponent = {
     servingLabel: string
     amount: number
 }
+
+const PAGE_SIZE = 20
 
 function servingLabel(s: FoodServingDto): string {
     const unit = s.servingUnit?.code || s.servingUnit?.name || ''
@@ -47,14 +50,23 @@ export function RecipeCreateFormPage() {
     const [error, setError] = useState('')
     const [photoFile, setPhotoFile] = useState<File | null>(null)
 
+    const [dropdownOpen, setDropdownOpen] = useState(false)
     const [productQuery, setProductQuery] = useState('')
     const [productResults, setProductResults] = useState<ProductListItem[]>([])
+    const [page, setPage] = useState(0)
+    const [hasMore, setHasMore] = useState(true)
     const [searching, setSearching] = useState(false)
-    const [selectedProductId, setSelectedProductId] = useState<number | null>(null)
+    const [loadingMore, setLoadingMore] = useState(false)
+
+    const [selectedProduct, setSelectedProduct] = useState<ProductListItem | null>(null)
     const [servings, setServings] = useState<FoodServingDto[]>([])
     const [selectedServingId, setSelectedServingId] = useState<number | ''>('')
     const [componentAmount, setComponentAmount] = useState('1')
     const [components, setComponents] = useState<DraftComponent[]>([])
+
+    const listRef = useRef<HTMLUListElement>(null)
+    const dropdownRef = useRef<HTMLDivElement>(null)
+    const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
     const {
         register,
@@ -64,22 +76,65 @@ export function RecipeCreateFormPage() {
         defaultValues: { name: '', description: '', recipe: '' },
     })
 
-    async function onSearchProducts() {
-        setSearching(true)
-        setError('')
-        try {
-            const items = await searchProducts(productQuery.trim())
-            setProductResults(items)
-            if (!items.length) setError('Продукты не найдены')
-        } catch (err: unknown) {
-            setError(getErrorMessage(err, 'Не удалось найти продукты'))
-        } finally {
-            setSearching(false)
+    const loadProducts = useCallback(
+        async (query: string, pageNum: number, append: boolean) => {
+            if (append) setLoadingMore(true)
+            else setSearching(true)
+            try {
+                const res = await searchProductsPage(query, pageNum, PAGE_SIZE)
+                setProductResults((prev) => (append ? [...prev, ...res.items] : res.items))
+                setPage(res.page)
+                setHasMore(!res.last && res.items.length > 0)
+            } catch (err: unknown) {
+                if (!append) {
+                    setError(getErrorMessage(err, 'Не удалось загрузить продукты'))
+                    setProductResults([])
+                    setHasMore(false)
+                }
+            } finally {
+                setSearching(false)
+                setLoadingMore(false)
+            }
+        },
+        [],
+    )
+
+    // Initial load + debounced search when query changes
+    useEffect(() => {
+        if (!dropdownOpen) return
+        if (debounceRef.current) clearTimeout(debounceRef.current)
+        debounceRef.current = setTimeout(() => {
+            void loadProducts(productQuery.trim(), 0, false)
+        }, 300)
+        return () => {
+            if (debounceRef.current) clearTimeout(debounceRef.current)
+        }
+    }, [productQuery, dropdownOpen, loadProducts])
+
+    // Close dropdown on outside click
+    useEffect(() => {
+        if (!dropdownOpen) return
+        function onOutside(e: MouseEvent) {
+            if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+                setDropdownOpen(false)
+            }
+        }
+        document.addEventListener('mousedown', onOutside)
+        return () => document.removeEventListener('mousedown', onOutside)
+    }, [dropdownOpen])
+
+    function onListScroll() {
+        const el = listRef.current
+        if (!el || loadingMore || searching || !hasMore) return
+        const nearBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - 40
+        if (nearBottom) {
+            void loadProducts(productQuery.trim(), page + 1, true)
         }
     }
 
     async function onPickProduct(p: ProductListItem) {
-        setSelectedProductId(p.id)
+        setSelectedProduct(p)
+        setDropdownOpen(false)
         setError('')
         const detail = await fetchProductDetail(p.id)
         const list = detail?.servings ?? []
@@ -88,7 +143,7 @@ export function RecipeCreateFormPage() {
     }
 
     function onAddComponent() {
-        if (selectedProductId == null || !selectedServingId) {
+        if (selectedProduct == null || !selectedServingId) {
             setError('Выберите продукт и порцию')
             return
         }
@@ -97,7 +152,6 @@ export function RecipeCreateFormPage() {
             setError('Количество компонента должно быть больше 0')
             return
         }
-        const product = productResults.find((x) => x.id === selectedProductId)
         const serving = servings.find((s) => s.id === Number(selectedServingId))
         if (!serving) {
             setError('Порция не найдена')
@@ -106,9 +160,9 @@ export function RecipeCreateFormPage() {
         setComponents((prev) => [
             ...prev,
             {
-                key: `${selectedProductId}-${selectedServingId}-${Date.now()}`,
-                productId: selectedProductId,
-                productName: product?.name ?? `Продукт #${selectedProductId}`,
+                key: `${selectedProduct.id}-${selectedServingId}-${Date.now()}`,
+                productId: selectedProduct.id,
+                productName: selectedProduct.name,
                 productServingId: Number(selectedServingId),
                 servingLabel: servingLabel(serving),
                 amount,
@@ -219,55 +273,74 @@ export function RecipeCreateFormPage() {
                         />
                     </div>
 
-                    <div className="border rounded-3 p-3 d-flex flex-column gap-2">
-                        <p className="label mb-0">Компоненты</p>
+                    <div className={styles.componentsBlock}>
+                        <p className="label mb-2">Компоненты</p>
 
-                        <div className="d-flex gap-2">
-                            <input
-                                className="input rounded-3 flex-grow-1"
-                                placeholder="Поиск продукта…"
-                                value={productQuery}
-                                onChange={(e) => setProductQuery(e.target.value)}
-                                onKeyDown={(e) => {
-                                    if (e.key === 'Enter') {
-                                        e.preventDefault()
-                                        void onSearchProducts()
-                                    }
-                                }}
-                            />
+                        {/* Product search dropdown with infinite scroll */}
+                        <div className={styles.dropdown} ref={dropdownRef}>
                             <button
                                 type="button"
-                                className="btn btn-outline-secondary"
-                                disabled={searching}
-                                onClick={() => void onSearchProducts()}
+                                className={styles.dropdownTrigger}
+                                onClick={() => setDropdownOpen((o) => !o)}
+                                aria-haspopup="listbox"
+                                aria-expanded={dropdownOpen}
                             >
-                                {searching ? '…' : 'Найти'}
+                                <span className={styles.triggerLabel}>
+                                    {selectedProduct?.name ?? 'Выберите продукт'}
+                                </span>
+                                <IoChevronDown size={18} />
                             </button>
+
+                            {dropdownOpen && (
+                                <div className={styles.dropdownPanel}>
+                                    <input
+                                        className={styles.searchInput}
+                                        placeholder="Поиск…"
+                                        value={productQuery}
+                                        onChange={(e) => setProductQuery(e.target.value)}
+                                        autoFocus
+                                    />
+                                    <ul
+                                        ref={listRef}
+                                        className={styles.dropdownList}
+                                        role="listbox"
+                                        onScroll={onListScroll}
+                                    >
+                                        {searching && productResults.length === 0 && (
+                                            <li className={styles.listHint}>Загрузка…</li>
+                                        )}
+                                        {!searching && productResults.length === 0 && (
+                                            <li className={styles.listHint}>Ничего не найдено</li>
+                                        )}
+                                        {productResults.map((p) => (
+                                            <li key={p.id} className={styles.listItem}>
+                                                <button
+                                                    type="button"
+                                                    className={`${styles.listBtn} ${
+                                                        selectedProduct?.id === p.id
+                                                            ? styles.listBtnActive
+                                                            : ''
+                                                    }`}
+                                                    onClick={() => void onPickProduct(p)}
+                                                >
+                                                    {p.name}
+                                                </button>
+                                            </li>
+                                        ))}
+                                        {loadingMore && (
+                                            <li className={styles.listHint}>Ещё…</li>
+                                        )}
+                                        {!hasMore && productResults.length > 0 && (
+                                            <li className={styles.listHint}>Все загружено</li>
+                                        )}
+                                    </ul>
+                                </div>
+                            )}
                         </div>
 
-                        {productResults.length > 0 && (
-                            <ul className="list-group list-group-flush">
-                                {productResults.slice(0, 8).map((p) => (
-                                    <li key={p.id} className="list-group-item px-0 py-1">
-                                        <button
-                                            type="button"
-                                            className={`btn btn-sm w-100 text-start ${
-                                                selectedProductId === p.id
-                                                    ? 'btn-primary'
-                                                    : 'btn-outline-secondary'
-                                            }`}
-                                            onClick={() => void onPickProduct(p)}
-                                        >
-                                            {p.name}
-                                        </button>
-                                    </li>
-                                ))}
-                            </ul>
-                        )}
-
-                        {selectedProductId != null && servings.length > 0 && (
-                            <div className="d-flex flex-column gap-2">
-                                <label className="small mb-0">
+                        {selectedProduct != null && servings.length > 0 && (
+                            <div className={styles.servingRow}>
+                                <label className="small mb-0 flex-grow-1">
                                     Порция
                                     <select
                                         className="form-select form-select-sm mt-1"
@@ -285,8 +358,8 @@ export function RecipeCreateFormPage() {
                                         ))}
                                     </select>
                                 </label>
-                                <label className="small mb-0">
-                                    Количество
+                                <label className="small mb-0" style={{ width: 90 }}>
+                                    Кол-во
                                     <input
                                         type="number"
                                         min={0.01}
@@ -298,25 +371,22 @@ export function RecipeCreateFormPage() {
                                 </label>
                                 <button
                                     type="button"
-                                    className="btn btn-sm btn-outline-primary"
+                                    className="btn btn-sm btn-outline-primary align-self-end"
                                     onClick={onAddComponent}
                                 >
-                                    + Добавить компонент
+                                    +
                                 </button>
                             </div>
                         )}
 
                         {components.length === 0 ? (
-                            <p className="small text-muted mb-0">
+                            <p className="small text-muted mb-0 mt-2">
                                 Компоненты можно добавить сейчас или позже на странице рецепта.
                             </p>
                         ) : (
-                            <ul className="list-unstyled mb-0 d-flex flex-column gap-1">
+                            <ul className={styles.componentList}>
                                 {components.map((c) => (
-                                    <li
-                                        key={c.key}
-                                        className="d-flex justify-content-between align-items-center border rounded-2 px-2 py-1"
-                                    >
+                                    <li key={c.key} className={styles.componentItem}>
                                         <div className="small">
                                             <div className="fw-semibold">{c.productName}</div>
                                             <div className="text-muted">
