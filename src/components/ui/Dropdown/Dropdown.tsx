@@ -2,7 +2,15 @@ import { useState, useRef, useEffect, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import styles from './Dropdown.module.css'
 
-export type DropdownItem = { divider: true } | { divider?: false; label: string; to: string }
+export type DropdownItem =
+    | { divider: true }
+    | {
+          divider?: false
+          label: string
+          to: string
+          icon?: ReactNode
+          danger?: boolean
+      }
 
 export interface DropdownTrigger {
     label: string
@@ -52,8 +60,13 @@ export default function Dropdown({ trigger, items }: DropdownProps) {
                                 <Link
                                     to={item.to}
                                     onClick={() => setIsOpen(false)}
-                                    className={`${styles.link} btn-link btn-tertiary`}
+                                    className={`${styles.link} btn-link btn-tertiary ${item.danger ? styles.danger : ''}`}
                                 >
+                                    {item.icon && (
+                                        <span className={styles.itemIcon} aria-hidden>
+                                            {item.icon}
+                                        </span>
+                                    )}
                                     {item.label}
                                 </Link>
                             </li>

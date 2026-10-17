@@ -44,6 +44,7 @@ export function DeferredImage({
             alt={alt}
             loading="lazy"
             decoding="async"
+            referrerPolicy="no-referrer"
             className={`${styles.image} ${className}`}
             onError={() => setFailed(true)}
         />

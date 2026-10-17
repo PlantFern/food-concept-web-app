@@ -25,6 +25,7 @@ export type TemplateFoodRecordItem = {
     gramWeight?: number | null
     servingUnitCode?: string | null
     nutrient?: number | null
+    photoPath?: string | null
 }
 
 export type MealTemplateDetail = {

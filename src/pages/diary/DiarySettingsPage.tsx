@@ -7,6 +7,8 @@ import {
     saveSettings,
     type ProfileFeatureSettingsDto,
 } from '@/api/diaryProfile/settings'
+import { hasActiveSpecialistControl } from '@/api/specialist'
+import { getDiaryProfileId } from '@/api/onboarding'
 import { NUTRIENT_GROUPS, NUTRIENTS, nutrientsByGroup } from '@/data/nutrients'
 import { getErrorMessage } from '@/lib/errors'
 
@@ -16,6 +18,7 @@ export function DiarySettingsPage() {
     const [loading, setLoading] = useState(true)
     const [saving, setSaving] = useState(false)
     const [error, setError] = useState('')
+    const [lockedBySpecialist, setLockedBySpecialist] = useState(false)
 
     const [showSleep, setShowSleep] = useState(false)
     const [showSleepLogs, setShowSleepLogs] = useState(false)
@@ -28,10 +31,15 @@ export function DiarySettingsPage() {
 
         (async () => {
             setLoading(true)
-            const data = await fetchLatestSettings()
+            const profileId = getDiaryProfileId()
+            const [data, locked] = await Promise.all([
+                fetchLatestSettings(),
+                profileId != null ? hasActiveSpecialistControl(profileId) : Promise.resolve(false),
+            ])
 
             if (cancelled) return
             setCurrent(data)
+            setLockedBySpecialist(locked)
 
             if (data) {
                 setShowSleep(Boolean(data.showSleep))
@@ -49,7 +57,7 @@ export function DiarySettingsPage() {
     }, [])
 
     function toggleNutrient(id: number) {
-
+        if (lockedBySpecialist) return
         setVisibleIds((prev) => {
             const next = new Set(prev)
             if (next.has(id)) next.delete(id)
@@ -59,7 +67,7 @@ export function DiarySettingsPage() {
     }
 
     async function onSave() {
-
+        if (lockedBySpecialist) return
         setError('')
         setSaving(true)
         try {
@@ -81,6 +89,8 @@ export function DiarySettingsPage() {
         }
     }
 
+    const disabled = loading || lockedBySpecialist
+
     return (
         <div className="diary-shell">
             <div className="diary-content" style={{ paddingBottom: '7.5rem' }}>
@@ -92,6 +102,13 @@ export function DiarySettingsPage() {
                 </div>
 
                 {loading && <p className="text-muted">Загрузка…</p>}
+
+                {!loading && lockedBySpecialist && (
+                    <div className="alert alert-warning small" role="status">
+                        У вас активная связь со специалистом (тип «специалист»). Настройки
+                        управляются специалистом и недоступны для изменения.
+                    </div>
+                )}
 
                 {!loading && (
                     <>
@@ -105,6 +122,7 @@ export function DiarySettingsPage() {
                                         type="checkbox"
                                         id="show-sleep"
                                         checked={showSleep}
+                                        disabled={disabled}
                                         onChange={(e) => setShowSleep(e.target.checked)}
                                     />
                                     <label className="form-check-label" htmlFor="show-sleep">
@@ -117,6 +135,7 @@ export function DiarySettingsPage() {
                                         type="checkbox"
                                         id="show-sleep-logs"
                                         checked={showSleepLogs}
+                                        disabled={disabled}
                                         onChange={(e) => setShowSleepLogs(e.target.checked)}
                                     />
                                     <label className="form-check-label" htmlFor="show-sleep-logs">
@@ -129,6 +148,7 @@ export function DiarySettingsPage() {
                                         type="checkbox"
                                         id="show-weight"
                                         checked={showWeight}
+                                        disabled={disabled}
                                         onChange={(e) => setShowWeight(e.target.checked)}
                                     />
                                     <label className="form-check-label" htmlFor="show-weight">
@@ -141,6 +161,7 @@ export function DiarySettingsPage() {
                                         type="checkbox"
                                         id="show-weight-logs"
                                         checked={showWeightLogs}
+                                        disabled={disabled}
                                         onChange={(e) => setShowWeightLogs(e.target.checked)}
                                     />
                                     <label className="form-check-label" htmlFor="show-weight-logs">
@@ -167,6 +188,7 @@ export function DiarySettingsPage() {
                                                         type="checkbox"
                                                         id={`vis-${n.id}`}
                                                         checked={visibleIds.has(n.id)}
+                                                        disabled={disabled}
                                                         onChange={() => toggleNutrient(n.id)}
                                                     />
                                                     <label className="form-check-label" htmlFor={`vis-${n.id}`}>
@@ -194,7 +216,7 @@ export function DiarySettingsPage() {
                 <button
                     type="button"
                     className="btn btn-success w-100 shadow"
-                    disabled={loading || saving}
+                    disabled={disabled || saving}
                     onClick={() => void onSave()}
                 >
                     {saving ? 'Сохранение…' : 'Обновить'}

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { Link, useParams, useNavigate } from 'react-router-dom'
+import { IoTrashOutline } from 'react-icons/io5'
 import { BottomNav } from '@/components/diary'
 import {
     getWeightLogById,
@@ -182,10 +183,13 @@ export function WeightLogFormPage() {
                                 <button
                                     type="button"
                                     disabled={isSubmitting || deleting}
-                                    className="btn btn-outline-danger w-100"
+                                    className="btn btn-outline-danger w-100 d-inline-flex align-items-center justify-content-center gap-2"
                                     onClick={() => void onDelete()}
+                                    aria-label="Удалить"
+                                    title="Удалить"
                                 >
-                                    {deleting ? 'Удаление...' : 'Удалить'}
+                                    <IoTrashOutline size={18} />
+                                    {deleting ? 'Удаление...' : null}
                                 </button>
                             )}
                         </form>

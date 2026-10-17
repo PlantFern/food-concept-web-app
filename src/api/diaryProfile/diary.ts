@@ -22,6 +22,7 @@ export type MealFoodRecordItemDto = {
     gramWeight: number | null
     servingUnitCode: string | null
     nutrient: number | null
+    photoPath?: string | null
 }
 
 export type MealSectionDto = {

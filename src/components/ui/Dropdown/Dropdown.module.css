@@ -59,6 +59,8 @@
 
 .link {
     display: flex;
+    align-items: center;
+    gap: 0.5rem;
 
     text-decoration: none;
     color: #212529;
@@ -70,4 +72,18 @@
 .link:hover {
     background-color: #f1f3f5;
     color: #0d6efd;
+}
+
+.itemIcon {
+    display: inline-flex;
+    flex-shrink: 0;
+}
+
+.danger {
+    color: #dc3545;
+}
+
+.danger:hover {
+    color: #bb2d3b;
+    background-color: #fff5f5;
 }

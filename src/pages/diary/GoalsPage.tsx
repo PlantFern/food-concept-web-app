@@ -5,7 +5,6 @@ import { useAlert } from '@/components/ui/Alert'
 import {
     GoalNutrientForm,
     emptyGoalForm,
-    formValuesFromGoal,
     toNutrientGoals,
     type GoalNutrientFormValues,
 } from '@/components/goals'
@@ -15,6 +14,8 @@ import {
     fetchActiveGoal,
     type GoalDto,
 } from '@/api/diaryProfile/goals'
+import { hasActiveSpecialistControl } from '@/api/specialist'
+import { getDiaryProfileId } from '@/api/onboarding'
 import { NUTRIENT_BY_ID, unitLabel } from '@/data/nutrients'
 import { getErrorMessage } from '@/lib/errors'
 
@@ -25,12 +26,18 @@ export function GoalsPage() {
     const [saving, setSaving] = useState(false)
     const [completing, setCompleting] = useState(false)
     const [error, setError] = useState('')
+    const [lockedBySpecialist, setLockedBySpecialist] = useState(false)
     const [form, setForm] = useState<GoalNutrientFormValues>(() => emptyGoalForm(true))
 
     async function reload() {
         setLoading(true)
-        const active = await fetchActiveGoal()
+        const profileId = getDiaryProfileId()
+        const [active, locked] = await Promise.all([
+            fetchActiveGoal(),
+            profileId != null ? hasActiveSpecialistControl(profileId) : Promise.resolve(false),
+        ])
         setGoal(active)
+        setLockedBySpecialist(locked)
         setForm(emptyGoalForm(true))
         setLoading(false)
     }
@@ -40,6 +47,7 @@ export function GoalsPage() {
     }, [])
 
     async function onSave() {
+        if (lockedBySpecialist) return
         setError('')
         const nutrients = toNutrientGoals(form.amounts)
         if (nutrients.length === 0) {
@@ -59,7 +67,6 @@ export function GoalsPage() {
                 plannedEndDate: form.plannedEndDate || null,
                 nutrientGoals: nutrients,
             }
-            // Always create a new goal (previous active is superseded on backend / by complete)
             if (goal?.id) {
                 await completeGoal(goal.id).catch(() => undefined)
             }
@@ -76,7 +83,7 @@ export function GoalsPage() {
     }
 
     async function onComplete() {
-        if (!goal?.id) return
+        if (!goal?.id || lockedBySpecialist) return
         setCompleting(true)
         setError('')
         try {
@@ -91,6 +98,8 @@ export function GoalsPage() {
         }
     }
 
+    const disabled = loading || lockedBySpecialist
+
     return (
         <div className="diary-shell">
             <div className="diary-content p-3" style={{ paddingBottom: '7.5rem' }}>
@@ -101,6 +110,13 @@ export function GoalsPage() {
 
                 {loading && <p className="text-muted">Загрузка…</p>}
 
+                {!loading && lockedBySpecialist && (
+                    <div className="alert alert-warning small" role="status">
+                        У вас активная связь со специалистом (тип «специалист»). Цели управляются
+                        специалистом и недоступны для изменения.
+                    </div>
+                )}
+
                 {!loading && goal && (
                     <div className="card border-0 shadow-sm mb-3">
                         <div className="card-body">
@@ -109,7 +125,7 @@ export function GoalsPage() {
                                 <button
                                     type="button"
                                     className="btn btn-outline-secondary btn-sm"
-                                    disabled={completing}
+                                    disabled={completing || lockedBySpecialist}
                                     onClick={() => void onComplete()}
                                 >
                                     {completing ? '…' : 'Завершить'}
@@ -148,6 +164,7 @@ export function GoalsPage() {
                                 onChange={setForm}
                                 showMetaFields
                                 showAllNutrients
+                                disabled={disabled}
                             />
                         </div>
                     </div>
@@ -165,7 +182,7 @@ export function GoalsPage() {
                 <button
                     type="button"
                     className="btn btn-success w-100 shadow"
-                    disabled={loading || saving}
+                    disabled={disabled || saving}
                     onClick={() => void onSave()}
                 >
                     {saving ? 'Сохранение…' : 'Создать цель'}
