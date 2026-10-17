@@ -140,9 +140,14 @@ export function ClientDiaryPage() {
 
     async function saveGoal(e: React.FormEvent) {
         e.preventDefault()
-        const nutrientGoals = MAIN_NUTRIENTS
-            .filter((n) => goalAmounts[n.id].trim() !== '')
-            .map((n) => ({ nutrientId: n.id, amount: Number(goalAmounts[n.id]) }))
+        const nutrientGoals = [
+            ...(goal?.nutrientSet ?? [])
+                .filter((saved) => !MAIN_NUTRIENTS.some((n) => n.id === saved.nutrientId))
+                .map((saved) => ({ nutrientId: saved.nutrientId, amount: saved.amount })),
+            ...MAIN_NUTRIENTS
+                .filter((n) => goalAmounts[n.id].trim() !== '')
+                .map((n) => ({ nutrientId: n.id, amount: Number(goalAmounts[n.id]) })),
+        ]
         if (nutrientGoals.some((n) => !Number.isFinite(n.amount) || n.amount <= 0)) {
             showAlert('Цели нутриентов должны быть положительными числами', 'warning')
             return
