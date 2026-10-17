@@ -30,6 +30,7 @@ import { StatsPage } from '@/pages/diary/StatsPage'
 import { SpecialistSearchPage } from '@/pages/diary/SpecialistSearchPage'
 import { MySpecialistRelationsPage } from '@/pages/diary/MySpecialistRelationsPage'
 import { ClientsPage } from '@/pages/specialist/ClientsPage'
+import { ClientDiaryPage } from '@/pages/specialist/ClientDiaryPage'
 import { SpecialistSettingsPage } from '@/pages/specialist/SpecialistSettingsPage'
 import { RequireAuth } from '@/routes/RequireAuth'
 import { RequireDiary } from '@/routes/RequireDiary'
@@ -93,6 +94,7 @@ function App() {
                         <Route element={<RequireSpecialist />}>
                             <Route path="/specialist" element={<Navigate to="/specialist/clients" replace />} />
                             <Route path="/specialist/clients" element={<ClientsPage />} />
+                            <Route path="/specialist/clients/:diaryProfileId" element={<ClientDiaryPage />} />
                             <Route path="/specialist/settings" element={<SpecialistSettingsPage />} />
                         </Route>
 

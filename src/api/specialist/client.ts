@@ -2,7 +2,8 @@ import { http } from '@/api/http'
 import type { DiaryProfileDto } from '@/api/diaryProfile/diary'
 import type { GoalDto } from '@/api/diaryProfile/goals'
 import type { SleepLogDto, WeightLogDto } from '@/api/diaryProfile/diary'
-import type { DiaryCommentDto } from '@/api/diaryProfile/comments'
+import type { DiaryCommentDto, CommentType } from '@/api/diaryProfile/comments'
+import type { ProfileFeatureSettingsDto, ProfileFeatureSettingsPayload } from '@/api/diaryProfile/settings'
 
 export async function getClientProfile(diaryProfileId: number): Promise<DiaryProfileDto> {
     const { data } = await http.get<DiaryProfileDto>(`/api/specialist/diary-profile/${diaryProfileId}`)
@@ -56,7 +57,7 @@ export async function createClientGoal(
         plannedWeight?: number | null
         startDate: string
         plannedEndDate?: string | null
-        nutrientGoals: Array<{ nutrientId: number; targetAmount: number }>
+        nutrientGoals: Array<{ nutrientId: number; amount: number }>
     },
 ): Promise<GoalDto> {
     const { data } = await http.post<GoalDto>(`/api/specialist/goal/${diaryProfileId}`, payload)
@@ -69,7 +70,7 @@ export async function updateClientGoal(
         plannedWeight?: number | null
         startDate: string
         plannedEndDate?: string | null
-        nutrientGoals: Array<{ nutrientId: number; targetAmount: number }>
+        nutrientGoals: Array<{ nutrientId: number; amount: number }>
     },
 ): Promise<GoalDto> {
     const { data } = await http.put<GoalDto>(`/api/specialist/goal/goals/${goalId}`, payload)
@@ -130,6 +131,27 @@ export async function getClientWeightByPeriod(
         { params: { startPeriod, endPeriod } },
     )
     return Array.isArray(data) ? data : []
+}
+
+export async function getClientLatestSettings(diaryProfileId: number): Promise<ProfileFeatureSettingsDto | null> {
+    try {
+        const { data } = await http.get<ProfileFeatureSettingsDto>(`/api/specialist/profile-settings/diary-profile/${diaryProfileId}/latest`)
+        return data
+    } catch {
+        return null
+    }
+}
+
+export async function saveClientSettings(diaryProfileId: number, current: ProfileFeatureSettingsDto | null, payload: ProfileFeatureSettingsPayload): Promise<ProfileFeatureSettingsDto> {
+    const { data } = current?.id
+        ? await http.put<ProfileFeatureSettingsDto>(`/api/specialist/profile-settings/settings/${current.id}`, payload)
+        : await http.post<ProfileFeatureSettingsDto>(`/api/specialist/profile-settings/${diaryProfileId}`, payload)
+    return data
+}
+
+export async function createClientComment(diaryProfileId: number, payload: { commentableType: CommentType; commentableId: number; body: string }): Promise<DiaryCommentDto> {
+    const { data } = await http.post<DiaryCommentDto>(`/api/specialist/comment/${diaryProfileId}`, null, { params: payload })
+    return data
 }
 
 export async function getClientCommentsByType(

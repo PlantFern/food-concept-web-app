@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { SpecialistBottomNav } from '@/components/specialist/SpecialistBottomNav';
 import {
     activateRelation,
@@ -29,6 +30,11 @@ function RelationCard(props: {
                 <div className="small text-muted mb-2">
                     Тип: {r.relationType} · Статус: {r.relationStatusCode}
                 </div>
+                {isActiveRelation(r) && (
+                    <Link className="btn btn-outline-primary btn-sm mb-2 me-2" to={`/specialist/clients/${r.diaryProfileId}?relationType=${encodeURIComponent(r.relationType)}`}>
+                        Открыть дневник и профиль
+                    </Link>
+                )}
 
                 <div className="d-flex flex-wrap gap-2">
                     {isPendingRelation(r) && (

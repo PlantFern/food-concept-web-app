@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useParams, useSearchParams } from 'react-router-dom'
 import { BottomNav } from '@/components/diary'
 import { DeferredImage } from '@/components/ui/DeferredImage'
 import {
@@ -8,14 +8,27 @@ import {
     type RecipeDetail,
 } from '@/api/food/recipes'
 import { photoPathToUrl } from '@/lib/photo'
+import { addFoodRecord } from '@/api/food/foodRecords'
+import { useAlert } from '@/components/ui/Alert'
+import { getErrorMessage } from '@/lib/errors'
 import mealStyles from '@/components/diary/MealSection/MealSection.module.css'
 import styles from './ProductDetailPage.module.css'
 
 export function RecipeDetailPage() {
     const { recipeId } = useParams()
+    const [searchParams] = useSearchParams()
+    const { showAlert } = useAlert()
+    const today = new Date()
+    const localDate = [today.getFullYear(), String(today.getMonth() + 1).padStart(2, '0'), String(today.getDate()).padStart(2, '0')].join('-')
     const id = Number(recipeId)
     const [recipe, setRecipe] = useState<RecipeDetail | null>(null)
     const [loading, setLoading] = useState(true)
+    const [mealTypeId, setMealTypeId] = useState(searchParams.get('mealTypeId') || '1')
+    const [date, setDate] = useState(searchParams.get('date') || localDate)
+    const [eatenAt, setEatenAt] = useState(String(today.getHours()).padStart(2, '0') + ':' + String(today.getMinutes()).padStart(2, '0'))
+    const [servingId, setServingId] = useState('')
+    const [amount, setAmount] = useState('1')
+    const [saving, setSaving] = useState(false)
 
     useEffect(() => {
         if (!Number.isFinite(id) || id <= 0) {
@@ -28,6 +41,7 @@ export function RecipeDetailPage() {
             const data = await fetchRecipeDetail(id)
             if (!cancelled) {
                 setRecipe(data)
+                setServingId(data?.servings?.[0] ? String(data.servings[0].id) : '')
                 setLoading(false)
             }
         })()
@@ -37,6 +51,28 @@ export function RecipeDetailPage() {
     }, [id])
 
     const image = photoPathToUrl(recipe?.photoPath) ?? null
+
+    async function onAddToMeal(e: React.FormEvent) {
+        e.preventDefault()
+        if (!recipe || !servingId) {
+            showAlert('У этого рецепта нет доступной порции для записи в дневник', 'warning')
+            return
+        }
+        const quantity = Number(amount)
+        if (!Number.isFinite(quantity) || quantity <= 0 || !date || !eatenAt) {
+            showAlert('Проверьте дату, время и количество', 'warning')
+            return
+        }
+        setSaving(true)
+        try {
+            await addFoodRecord({ mealTypeId: Number(mealTypeId), servingId: Number(servingId), amount: quantity, date, eatenAt })
+            showAlert('Рецепт добавлен в приём пищи', 'success')
+        } catch (err: unknown) {
+            showAlert(getErrorMessage(err, 'Не удалось записать рецепт в дневник'), 'danger')
+        } finally {
+            setSaving(false)
+        }
+    }
 
     return (
         <div className="diary-shell">
@@ -73,6 +109,46 @@ export function RecipeDetailPage() {
                             </div>
                         </div>
 
+
+                        <section className={mealStyles.mealSection}>
+                            <div className={mealStyles.mealSectionHead}><strong>Записать в приём пищи</strong></div>
+                            <form className="p-3" onSubmit={(e) => void onAddToMeal(e)}>
+                                <div className="row g-2">
+                                    <div className="col-12">
+                                        <label className="form-label small mb-1" htmlFor="recipe-serving">Порция рецепта</label>
+                                        <select id="recipe-serving" className="form-select" value={servingId} onChange={(e) => setServingId(e.target.value)} required disabled={!recipe.servings?.length}>
+                                            {(recipe.servings ?? []).map((s) => (
+                                                <option key={s.id} value={s.id}>
+                                                    {s.description || ([s.amount, s.servingUnit?.name || s.servingUnit?.code, s.gramWeight != null ? String(s.gramWeight) + ' г' : null].filter(Boolean).join(' · ')) || ('Порция #' + s.id)}
+                                                </option>
+                                            ))}
+                                        </select>
+                                        {!recipe.servings?.length && <div className="form-text">Backend не вернул порции для этого рецепта.</div>}
+                                    </div>
+                                    <div className="col-6">
+                                        <label className="form-label small mb-1" htmlFor="recipe-meal-type">Приём пищи</label>
+                                        <select id="recipe-meal-type" className="form-select" value={mealTypeId} onChange={(e) => setMealTypeId(e.target.value)}>
+                                            <option value="1">Завтрак</option><option value="2">Обед</option><option value="3">Перекус</option><option value="4">Ужин</option><option value="5">Другое</option>
+                                        </select>
+                                    </div>
+                                    <div className="col-6">
+                                        <label className="form-label small mb-1" htmlFor="recipe-amount">Количество порций</label>
+                                        <input id="recipe-amount" type="number" min="0.1" step="0.1" className="form-control" value={amount} onChange={(e) => setAmount(e.target.value)} required />
+                                    </div>
+                                    <div className="col-6">
+                                        <label className="form-label small mb-1" htmlFor="recipe-date">Дата</label>
+                                        <input id="recipe-date" type="date" className="form-control" value={date} onChange={(e) => setDate(e.target.value)} required />
+                                    </div>
+                                    <div className="col-6">
+                                        <label className="form-label small mb-1" htmlFor="recipe-time">Время</label>
+                                        <input id="recipe-time" type="time" className="form-control" value={eatenAt} onChange={(e) => setEatenAt(e.target.value)} required />
+                                    </div>
+                                </div>
+                                <button type="submit" className="btn btn-primary w-100 mt-3" disabled={saving || !recipe.servings?.length}>
+                                    {saving ? 'Записываем…' : 'Добавить в дневник'}
+                                </button>
+                            </form>
+                        </section>
                         <section className={mealStyles.mealSection}>
                             <div className={mealStyles.mealSectionHead}>
                                 <strong>Компоненты</strong>

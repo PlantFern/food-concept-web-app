@@ -19,6 +19,16 @@ export type RecipeComponentItem = {
     nutrient?: number | null
 }
 
+export type RecipeServing = {
+    id: number
+    itemType?: string | null
+    itemId?: number | null
+    amount?: number | null
+    gramWeight?: number | null
+    servingUnit?: { id?: number; code?: string; name?: string } | null
+    description?: string | null
+}
+
 export type RecipeDetail = {
     recipeId: number
     recipeName: string
@@ -28,6 +38,7 @@ export type RecipeDetail = {
     totalWeightGrams?: number | null
     isFavorite?: boolean | null
     components: RecipeComponentItem[]
+    servings?: RecipeServing[] | null
 }
 
 export async function searchRecipes(query: string): Promise<RecipeListItem[]> {

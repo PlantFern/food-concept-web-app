@@ -19,6 +19,7 @@ export function SpecialistSearchPage() {
     const [loading, setLoading] = useState(false);
     const [busyId, setBusyId] = useState<number | null>(null);
     const [searched, setSearched] = useState(false);
+    const [relationType, setRelationType] = useState<'SPECIALIST' | 'OBSERVER'>('SPECIALIST');
 
     async function onSearch(e?: React.FormEvent) {
         e?.preventDefault();
@@ -54,8 +55,8 @@ export function SpecialistSearchPage() {
         setBusyId(specialistId);
 
         try {
-            await initiateSpecialistRelation(profileId, specialistId, 'SPECIALIST');
-            showAlert('Заявка отправлена специалисту', 'success');
+            await initiateSpecialistRelation(profileId, specialistId, relationType);
+            showAlert(`Заявка отправлена. Тип связи: ${relationType === 'SPECIALIST' ? 'Специалист' : 'Наблюдатель'}`, 'success');
         } catch (err: unknown) {
             showAlert(getErrorMessage(err, 'Не удалось отправить заявку'), 'danger');
         } finally {
@@ -90,6 +91,15 @@ export function SpecialistSearchPage() {
                         </button>
                     </div>
                 </form>
+
+                <div className="mb-3">
+                    <label htmlFor="relationType" className="form-label">Тип связи</label>
+                    <select id="relationType" className="form-select" value={relationType} onChange={(e) => setRelationType(e.target.value as 'SPECIALIST' | 'OBSERVER')}>
+                        <option value="SPECIALIST">Специалист — работа с дневником и целями</option>
+                        <option value="OBSERVER">Наблюдатель — просмотр дневника</option>
+                    </select>
+                    <div className="form-text">Выбранный тип будет передан вместе с заявкой.</div>
+                </div>
 
                 {searched && !loading && results.length === 0 && (
                     <p className="text-muted mb-0">Ничего не найдено</p>
