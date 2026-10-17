@@ -40,6 +40,7 @@ function formatDayLabel(iso: string): string {
 export function ProductsPage() {
     const [searchParams, setSearchParams] = useSearchParams()
     const tab = parseTab(searchParams.get('tab'))
+    const templateId = searchParams.get('templateId')
 
     const [query, setQuery] = useState('')
     const [products, setProducts] = useState<ProductListItem[]>([])
@@ -64,6 +65,17 @@ export function ProductsPage() {
             },
             { replace: true },
         )
+    }
+
+    function productHref(productId: number): string {
+        const q = new URLSearchParams()
+        if (templateId) q.set('templateId', templateId)
+        const mealTypeId = searchParams.get('mealTypeId')
+        const date = searchParams.get('date')
+        if (mealTypeId) q.set('mealTypeId', mealTypeId)
+        if (date) q.set('date', date)
+        const qs = q.toString()
+        return qs ? `/diary/products/${productId}?${qs}` : `/diary/products/${productId}`
     }
 
     const loadProducts = useCallback(async (q: string, pageNum: number, append: boolean) => {
@@ -143,7 +155,9 @@ export function ProductsPage() {
         <div className="diary-shell">
             <div>
                 <div className="bg-brand text-invert p-2 rounded-bottom-4">
-                    <h2 className="page-title text-center p-2 bg-text-on-brand">Продукты</h2>
+                    <h2 className="page-title text-center p-2 bg-text-on-brand">
+                        {templateId ? 'Продукт в шаблон' : 'Продукты'}
+                    </h2>
 
                     <div className="tab-container">
                         <ul className="tab-nav nav nav-pills mb-3" role="tablist">
@@ -200,7 +214,7 @@ export function ProductsPage() {
                                 {products.map((p) => (
                                     <li key={p.id} className="list-group-item p-0">
                                         <Link
-                                            to={`/diary/products/${p.id}`}
+                                            to={productHref(p.id)}
                                             className="d-flex align-items-center gap-2 text-decoration-none text-reset p-3"
                                         >
                                             <DeferredImage src={p.imageUrl} alt={p.name} />
