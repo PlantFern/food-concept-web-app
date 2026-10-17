@@ -1,17 +1,17 @@
-import { logoutLocal, restoreAuthFromStorage } from '@/api/auth'
-import axios from 'axios'
-import { API_BASE_URE } from '@/config/apiBases'
+import { logoutLocal, restoreAuthFromStorage } from "@/api/auth";
+import axios from "axios";
+import { API_BASE_URL } from "@/config/apiBases";
 
 export const http = axios.create({
-    baseURL: API_BASE_URE,
+    baseURL: API_BASE_URL,
     timeout: 15000,
     headers: {
-        'Content-Type': 'application/json',
-        Accept: 'application/json',
+        "Content-Type": "application/json",
+        Accept: "application/json",
     },
-})
+});
 
-restoreAuthFromStorage()
+restoreAuthFromStorage();
 
 http.interceptors.response.use(
     (response) => response,
@@ -20,13 +20,13 @@ http.interceptors.response.use(
         const isNetwork = !error.response;
         if (status === 401 && !isNetwork) {
             logoutLocal();
-            const path = window.location.pathname
-            if (path !== '/login' && path !== '/register' && path !== '/get-start') {
-                window.location.href = '/login'
+            const path = window.location.pathname;
+            if (path !== "/login" && path !== "/register" && path !== "/get-start") {
+                window.location.href = "/login";
             }
         }
-        return Promise.reject(error)
+        return Promise.reject(error);
     },
-)
+);
 
-export default http
+export default http;
