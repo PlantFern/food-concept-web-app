@@ -63,6 +63,8 @@
     border-radius: 0.5rem;
     background: rgba(0, 0, 0, 0.06);
     flex-shrink: 0;
+    object-fit: cover;
+    display: block;
 }
 
 .foodMeta {
