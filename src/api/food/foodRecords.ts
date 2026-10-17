@@ -24,7 +24,8 @@ export type QuickProductPayload = {
     amount: number
     description: string
     gramWeight: number
-    nutrients: Array<{ nutrientId: number; amount: number }>
+    /** Backend expects Map<Long, Float> — object keyed by nutrientId */
+    nutrients: Record<string, number>
 }
 
 export type FoodRecordDto = {
@@ -52,7 +53,16 @@ export async function addQuickProductRecord(payload: QuickProductPayload): Promi
     const profileId = requireProfileId()
     const { data } = await http.post<number>(
         `/api/diary-profile/${profileId}/food-records/quick-product`,
-        payload,
+        {
+            mealId: payload.mealId ?? null,
+            mealTypeId: payload.mealTypeId,
+            date: payload.date,
+            eatenAt: payload.eatenAt,
+            amount: payload.amount,
+            description: payload.description,
+            gramWeight: payload.gramWeight,
+            nutrients: payload.nutrients,
+        },
     )
     return data
 }
@@ -79,4 +89,16 @@ export async function updateFoodRecord(
 export async function deleteFoodRecord(recordId: number): Promise<void> {
     const profileId = requireProfileId()
     await http.delete(`/api/diary-profile/${profileId}/food-records/${recordId}`)
+}
+
+export async function uploadMealPhoto(mealId: number, file: File): Promise<string> {
+    const profileId = requireProfileId()
+    const form = new FormData()
+    form.append('file', file)
+    const { data } = await http.patch<string>(
+        `/api/diary-profile/${profileId}/meals/${mealId}/photo`,
+        form,
+        { headers: { 'Content-Type': 'multipart/form-data' } },
+    )
+    return data
 }
