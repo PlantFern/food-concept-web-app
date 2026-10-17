@@ -22,7 +22,7 @@ import { photoPathToUrl } from '@/lib/photo'
 import { GoalNutrientForm, emptyGoalForm, formValuesFromGoal, toNutrientGoals, type GoalNutrientFormValues } from '@/components/goals'
 import type { GoalDto } from '@/api/diaryProfile/goals'
 import type { ProfileFeatureSettingsDto } from '@/api/diaryProfile/settings'
-import { NUTRIENT_GROUPS, NUTRIENTS, nutrientsByGroup, unitLabel } from '@/data/nutrients'
+import { NUTRIENT_GROUPS, nutrientsByGroup, unitLabel } from '@/data/nutrients'
 import { useAlert } from '@/components/ui/Alert'
 import { getErrorMessage } from '@/lib/errors'
 
@@ -51,9 +51,6 @@ export function ClientDiaryPage() {
     const [error, setError] = useState('')
     const [commentDrafts, setCommentDrafts] = useState<Record<string, string>>({})
     const [busyComment, setBusyComment] = useState<string | null>(null)
-    const [goalWeight, setGoalWeight] = useState('')
-    const [goalStart, setGoalStart] = useState(todayLocal())
-    const [goalEnd, setGoalEnd] = useState('')
     const [goalForm, setGoalForm] = useState<GoalNutrientFormValues>(() => emptyGoalForm(true))
     const [settingsValues, setSettingsValues] = useState({ showSleep: true, showSleepLogs: true, showWeight: true, showWeightLogs: true, showAllergensWarning: true, hiddenNutrients: [] as number[] })
     const isObserver = relationType === 'OBSERVER'
@@ -97,9 +94,6 @@ export function ClientDiaryPage() {
             setGoal(latestGoal)
             setSettings(latestSettings)
             const nextGoalForm = formValuesFromGoal(latestGoal)
-            setGoalWeight(nextGoalForm.plannedWeight)
-            setGoalStart(nextGoalForm.startDate)
-            setGoalEnd(nextGoalForm.plannedEndDate)
             setGoalForm(nextGoalForm)
             setSettingsValues({
                 showSleep: latestSettings?.showSleep ?? true,
