@@ -8,8 +8,12 @@ import {
     type ProductListItem,
     type RecipeListItem,
 } from '@/api/food'
-import { fetchTemplates, type TemplateListItem } from '@/api/meals'
-import { fetchRecentWeekFoods, type RecentDayFoodGroupDto } from '@/api/diaryProfile/recent'
+import {
+    fetchTemplates,
+    fetchRecentWeekFoods,
+    type TemplateListItem,
+    type RecentDayGroup,
+} from '@/api/meals'
 import styles from './ProductDetailPage.module.css'
 
 type TabKey = 'products' | 'recipes' | 'templates' | 'recent'
@@ -40,7 +44,7 @@ export function ProductsPage() {
     const [products, setProducts] = useState<ProductListItem[]>([])
     const [recipes, setRecipes] = useState<RecipeListItem[]>([])
     const [templates, setTemplates] = useState<TemplateListItem[]>([])
-    const [recent, setRecent] = useState<RecentDayFoodGroupDto[]>([])
+    const [recent, setRecent] = useState<RecentDayGroup[]>([])
 
     const [page, setPage] = useState(0)
     const [last, setLast] = useState(true)
@@ -104,13 +108,13 @@ export function ProductsPage() {
     }, [tab])
 
     useEffect(() => {
-        if (!showSearch) return
-        const timer = window.setTimeout(() => {
+        if (tab !== 'products' && tab !== 'recipes') return
+        const t = window.setTimeout(() => {
             void loadTab(tab, query)
         }, 300)
-        return () => window.clearTimeout(timer)
+        return () => window.clearTimeout(t)
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [query, showSearch, tab])
+    }, [query, tab])
 
     useEffect(() => {
         if (tab !== 'products' || last || loading || loadingMore) return
@@ -138,57 +142,56 @@ export function ProductsPage() {
 
     return (
         <div className="diary-shell">
-            <style>{`
-                .product-list-thumb,
-                .product-list-thumb img {
-                    width: 45px !important;
-                    height: 45px !important;
-                    border-radius: 8px;
-                    object-fit: cover;
-                    flex-shrink: 0;
-                }
-            `}</style>
             <div className="bg-brand text-invert p-2 rounded-bottom-4">
-                <h2 className="page-title text-center p-2 bg-text-on-brand mb-0">Каталог</h2>
-            </div>
+                <h2 className="page-title text-center p-2 bg-text-on-brand">Продукты</h2>
 
-            <div className="diary-content container pb-5">
-                <div className="d-flex gap-2 mb-3 flex-wrap">
-                    {TABS.map((t) => (
-                        <button
-                            key={t.key}
-                            type="button"
-                            className={`btn btn-sm ${tab === t.key ? 'btn-primary' : 'btn-outline-secondary'}`}
-                            onClick={() => setTab(t.key)}
-                        >
-                            {t.label}
-                        </button>
-                    ))}
-                    <button
-                        type="button"
-                        className="btn btn-sm btn-outline-secondary ms-auto"
-                        onClick={() => setShowSearch((v) => !v)}
-                    >
-                        {showSearch ? 'Скрыть поиск' : 'Поиск'}
-                    </button>
+                <div className="tab-container">
+                    <ul className="tab-nav nav nav-pills mb-3" role="tablist">
+                        {TABS.map(({ key, label }) => (
+                            <li className="nav-item" key={key}>
+                                <button
+                                    type="button"
+                                    role="tab"
+                                    className={`nav-link ${tab === key ? 'active' : ''}`}
+                                    aria-selected={tab === key}
+                                    onClick={() => setTab(key)}
+                                >
+                                    {label}
+                                </button>
+                            </li>
+                        ))}
+                    </ul>
                 </div>
 
-                {showSearch && tab !== 'recent' && (
-                    <input
-                        className="form-control mb-3"
-                        placeholder="Поиск…"
-                        value={query}
-                        onChange={(e) => setQuery(e.target.value)}
-                    />
+                {(tab === 'products' || tab === 'recipes') && (
+                    <div className="mb-2 d-flex gap-2">
+                        {showSearch ? (
+                            <input
+                                type="search"
+                                className="form-control"
+                                placeholder={
+                                    tab === 'products' ? 'Поиск продуктов…' : 'Поиск рецептов…'
+                                }
+                                value={query}
+                                onChange={(e) => setQuery(e.target.value)}
+                                autoFocus
+                            />
+                        ) : (
+                            <button
+                                type="button"
+                                className="btn btn-sm btn-outline-light"
+                                onClick={() => setShowSearch(true)}
+                            >
+                                Поиск
+                            </button>
+                        )}
+                    </div>
                 )}
+            </div>
 
+            <div className="diary-content p-3">
                 {tab === 'products' && (
                     <>
-                        <div className="d-flex justify-content-end mb-2">
-                            <Link to="/diary/products/create" className="btn btn-sm btn-primary">
-                                + Продукт
-                            </Link>
-                        </div>
                         {products.length === 0 ? (
                             <p className="text-muted">{emptyHint}</p>
                         ) : (
@@ -202,18 +205,23 @@ export function ProductsPage() {
                                             <DeferredImage
                                                 src={p.imageUrl}
                                                 alt={p.name}
-                                                className="product-list-thumb"
                                                 style={thumbStyle}
                                             />
-                                            <span className="fw-semibold">{p.name}</span>
+                                            <div>
+                                                <div className="fw-semibold">{p.name}</div>
+                                                {p.categoryCode && (
+                                                    <div className="small text-muted">{p.categoryCode}</div>
+                                                )}
+                                            </div>
                                         </Link>
                                     </li>
                                 ))}
                             </ul>
                         )}
-                        <div ref={sentinelRef} className="py-2 text-center small text-muted">
-                            {loadingMore ? 'Загрузка…' : !last ? '…' : ''}
-                        </div>
+                        {!last && <div ref={sentinelRef} style={{ height: 24 }} />}
+                        {loadingMore && (
+                            <p className="text-muted small text-center mt-2 mb-0">Ещё…</p>
+                        )}
                     </>
                 )}
 
@@ -237,10 +245,14 @@ export function ProductsPage() {
                                             <DeferredImage
                                                 src={r.imageUrl}
                                                 alt={r.name}
-                                                className="product-list-thumb"
                                                 style={thumbStyle}
                                             />
-                                            <span className="fw-semibold">{r.name}</span>
+                                            <div>
+                                                <div className="fw-semibold">{r.name}</div>
+                                                {r.description && (
+                                                    <div className="small text-muted">{r.description}</div>
+                                                )}
+                                            </div>
                                         </Link>
                                     </li>
                                 ))}
@@ -284,7 +296,7 @@ export function ProductsPage() {
                                 <div className="small text-muted mb-1">{group.date}</div>
                                 <ul className="list-unstyled mb-0">
                                     {group.items.map((item) => (
-                                        <li key={item.recordId} className="border-bottom py-1 small">
+                                        <li key={item.id} className="border-bottom py-1 small">
                                             {item.name}
                                             {item.mealTypeCode ? ` · ${item.mealTypeCode}` : ''}
                                         </li>
