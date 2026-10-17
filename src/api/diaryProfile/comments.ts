@@ -9,6 +9,7 @@ export type DiaryCommentDto = {
     commentableId: number
     body: string
     createdAt?: string
+    createdById?: number | null
 }
 
 export type CommentPayload = {
