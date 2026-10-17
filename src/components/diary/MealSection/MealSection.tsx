@@ -59,11 +59,11 @@ export function MealSection({
                         },
                         {
                             label: 'Создать продукт',
-                            to: `/diary/products?tab=products&create=1&${mealQs}`,
+                            to: `/diary/products/create?${mealQs}`,
                         },
                         {
                             label: 'Создать рецепт',
-                            to: `/diary/products?tab=recipes&create=1&${mealQs}`,
+                            to: `/diary/recipes/create?${mealQs}`,
                         },
                         {
                             label: 'Создать шаблон',
@@ -75,7 +75,7 @@ export function MealSection({
                         },
                         {
                             label: 'Добавить фото',
-                            to: `/diary/comments/add?commentableType=MEAL&withPhoto=1&${mealQs}`,
+                            to: `/diary/meals/photo?${mealQs}`,
                         },
                     ]}
                 />

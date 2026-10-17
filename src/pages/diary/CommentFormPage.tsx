@@ -15,11 +15,13 @@ import { getDiaryProfileId } from '@/api/onboarding.ts'
 
 type CommentFormValues = {
     body: string
-    commentableType: string
-    commentableId: string
 }
 
-const COMMENT_TYPES: CommentType[] = ['MEAL', 'SLEEP_LOG', 'WEIGHT_LOG']
+const TYPE_LABEL: Record<string, string> = {
+    MEAL: 'Приём пищи',
+    SLEEP_LOG: 'Лог сна',
+    WEIGHT_LOG: 'Лог веса',
+}
 
 export function CommentFormPage() {
     const { showAlert } = useAlert()
@@ -32,6 +34,15 @@ export function CommentFormPage() {
     const { commentId } = useParams()
     const isEdit = Boolean(commentId)
 
+    const commentableType = (searchParams.get('commentableType') ?? 'MEAL') as CommentType
+    const commentableIdRaw =
+        searchParams.get('commentableId') ??
+        searchParams.get('mealId') ??
+        searchParams.get('sleepLogId') ??
+        searchParams.get('weightLogId') ??
+        ''
+    const commentableId = Number(commentableIdRaw)
+
     const [diaryProfileId, setDiaryProfileId] = useState<number>(-1)
 
     const {
@@ -41,11 +52,7 @@ export function CommentFormPage() {
         formState: { errors, isSubmitting },
     } = useForm<CommentFormValues>({
         mode: 'onTouched',
-        defaultValues: {
-            body: '',
-            commentableType: searchParams.get('commentableType') ?? 'MEAL',
-            commentableId: searchParams.get('commentableId') ?? '',
-        },
+        defaultValues: { body: '' },
     })
 
     useEffect(() => {
@@ -57,6 +64,11 @@ export function CommentFormPage() {
             const profileId = getDiaryProfileId()
             if (!profileId) {
                 showAlert('Не удалось определить профиль дневника', 'warning')
+                navigate(-1)
+                return
+            }
+            if (!Number.isFinite(commentableId) || commentableId <= 0) {
+                showAlert('Сначала создайте приём / лог, затем добавьте комментарий', 'warning')
                 navigate(-1)
                 return
             }
@@ -74,11 +86,7 @@ export function CommentFormPage() {
                     navigate(-1)
                     return
                 }
-                reset({
-                    body: data.body ?? '',
-                    commentableType: String(data.commentableType ?? 'MEAL'),
-                    commentableId: String(data.commentableId ?? ''),
-                })
+                reset({ body: data.body ?? '' })
             } catch (err: unknown) {
                 if (!cancelled) {
                     showAlert(getErrorMessage(err, 'Не удалось загрузить комментарий'), 'danger')
@@ -92,21 +100,24 @@ export function CommentFormPage() {
         return () => {
             cancelled = true
         }
-    }, [commentId, isEdit, reset, navigate, showAlert])
+    }, [commentId, isEdit, reset, navigate, showAlert, commentableId])
 
     const onSubmit = async (formData: CommentFormValues) => {
         setError('')
-        const payload = {
-            commentableType: formData.commentableType,
-            commentableId: Number(formData.commentableId),
-            body: formData.body.trim(),
-        }
         try {
             if (isEdit) {
-                await updateComment(Number(commentId), payload)
+                await updateComment(Number(commentId), {
+                    commentableType,
+                    commentableId,
+                    body: formData.body.trim(),
+                })
                 showAlert('Данные обновлены', 'success')
             } else {
-                await createComment(diaryProfileId, payload)
+                await createComment(diaryProfileId, {
+                    commentableType,
+                    commentableId,
+                    body: formData.body.trim(),
+                })
                 showAlert('Комментарий добавлен', 'success')
             }
             navigate('/diary', { replace: true })
@@ -152,55 +163,11 @@ export function CommentFormPage() {
                         >
                             {error && <p className="text-danger small mb-0">{error}</p>}
 
-                            <div className="d-flex flex-column gap-1">
-                                <div className="d-flex gap-2 justify-content-between align-items-center w-100">
-                                    <label htmlFor="commentableType" className="label text-wrap align-self-center">
-                                        Тип
-                                    </label>
-                                    <select
-                                        className="input rounded-3"
-                                        id="commentableType"
-                                        {...register('commentableType', {
-                                            required: 'Укажите тип',
-                                        })}
-                                    >
-                                        {COMMENT_TYPES.map((t) => (
-                                            <option key={t} value={t}>
-                                                {t}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </div>
-                                {errors.commentableType && (
-                                    <span className="input-error-text">{errors.commentableType.message}</span>
-                                )}
-                            </div>
-
-                            <div className="d-flex flex-column gap-1">
-                                <div className="d-flex gap-2 justify-content-between align-items-center w-100">
-                                    <label htmlFor="commentableId" className="label text-wrap align-self-center">
-                                        Id объекта
-                                    </label>
-                                    <input
-                                        className="input rounded-3"
-                                        id="commentableId"
-                                        type="number"
-                                        {...register('commentableId', {
-                                            required: 'Укажите id объекта',
-                                            validate: (value) => {
-                                                const n = Number(value)
-                                                if (!Number.isFinite(n) || n <= 0) {
-                                                    return 'Id должен быть больше 0'
-                                                }
-                                                return true
-                                            },
-                                        })}
-                                    />
-                                </div>
-                                {errors.commentableId && (
-                                    <span className="input-error-text">{errors.commentableId.message}</span>
-                                )}
-                            </div>
+                            {!isEdit && (
+                                <p className="small text-muted mb-0">
+                                    К: {TYPE_LABEL[commentableType] ?? commentableType}
+                                </p>
+                            )}
 
                             <div className="d-flex flex-column gap-1">
                                 <div className="d-flex gap-2 justify-content-between align-items-center w-100">
