@@ -208,17 +208,19 @@ export function ProductsPage() {
                                 </div>
                             )}
                             {recipes.map((r) => (
-                                <li
-                                    key={r.id}
-                                    className="list-group-item d-flex align-items-center gap-2"
-                                >
-                                    <DeferredImage src={r.imageUrl} alt={r.name} />
-                                    <div>
-                                        <div className="fw-semibold">{r.name}</div>
-                                        {r.description && (
-                                            <div className="small text-muted">{r.description}</div>
-                                        )}
-                                    </div>
+                                <li key={r.id} className="list-group-item p-0">
+                                    <Link
+                                        to={`/diary/recipes/${r.id}`}
+                                        className="d-flex align-items-center gap-2 text-decoration-none text-reset p-3"
+                                    >
+                                        <DeferredImage src={r.imageUrl} alt={r.name} />
+                                        <div>
+                                            <div className="fw-semibold">{r.name}</div>
+                                            {r.description && (
+                                                <div className="small text-muted">{r.description}</div>
+                                            )}
+                                        </div>
+                                    </Link>
                                 </li>
                             ))}
                         </ul>
