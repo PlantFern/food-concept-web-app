@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { SpecialistBottomNav } from '@/components/specialist/SpecialistBottomNav'
 import {
     activateRelation,
@@ -24,7 +24,7 @@ export function ClientsPage() {
     const [error, setError] = useState('')
     const [tab, setTab] = useState<Tab>('pending')
 
-    const load = useCallback(async () => {
+    async function load() {
         setLoading(true)
         setError('')
         const me = await getMySpecialist()
@@ -39,11 +39,12 @@ export function ClientsPage() {
         const list = await fetchSpecialistClients(me.id)
         setRelations(list)
         setLoading(false)
-    }, [])
+    }
 
     useEffect(() => {
         void load()
-    }, [load])
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [])
 
     const pending = relations.filter(isPendingRelation)
     const active = relations.filter(isActiveRelation)
