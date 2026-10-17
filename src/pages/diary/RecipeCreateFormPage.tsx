@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { BottomNav } from '@/components/diary'
 import { http } from '@/api/http'
+import { uploadFile } from '@/api/files'
 import { useAlert } from '@/components/ui/Alert'
 import { getErrorMessage } from '@/lib/errors'
 
@@ -17,6 +18,7 @@ export function RecipeCreateFormPage() {
     const navigate = useNavigate()
     const [searchParams] = useSearchParams()
     const [error, setError] = useState('')
+    const [photoFile, setPhotoFile] = useState<File | null>(null)
 
     const {
         register,
@@ -29,11 +31,17 @@ export function RecipeCreateFormPage() {
     const onSubmit = async (form: FormValues) => {
         setError('')
         try {
+            let photoPathId: number | null = null
+            if (photoFile) {
+                const uploaded = await uploadFile(photoFile, 'FOOD_RECIPES')
+                photoPathId = uploaded.id
+            }
+
             const { data: recipeId } = await http.post<number>('/api/food/recipes', {
                 name: form.name.trim(),
                 description: form.description.trim() || null,
                 recipe: form.recipe.trim() || null,
-                photoPathId: null,
+                photoPathId,
                 components: [],
             })
             showAlert('Рецепт создан', 'success')
@@ -97,6 +105,19 @@ export function RecipeCreateFormPage() {
                             className="input rounded-3 w-100"
                             rows={5}
                             {...register('recipe')}
+                        />
+                    </div>
+
+                    <div>
+                        <label className="label" htmlFor="photo">
+                            Фото (необязательно)
+                        </label>
+                        <input
+                            id="photo"
+                            type="file"
+                            accept="image/*"
+                            className="form-control"
+                            onChange={(e) => setPhotoFile(e.target.files?.[0] ?? null)}
                         />
                     </div>
 
