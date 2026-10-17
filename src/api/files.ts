@@ -15,7 +15,9 @@ export async function uploadFile(
     const form = new FormData()
     form.append('file', file)
     form.append('storage_folder', storageFolder)
-    const { data } = await http.post<FileUploadResponse>('/api/files', form)
+    const { data } = await http.post<FileUploadResponse>('/api/files', form, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+    })
     return data
 }
 

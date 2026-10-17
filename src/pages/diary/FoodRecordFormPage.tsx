@@ -7,13 +7,23 @@ import {
     getFoodRecord,
     updateFoodRecord,
     deleteFoodRecord,
+    type FoodRecordDto,
 } from '@/api/food'
+import { mealTypeLabel } from '@/api/diaryProfile/diary'
 import { useAlert } from '@/components/ui/Alert'
 import { getErrorMessage } from '@/lib/errors'
 
 type FoodRecordFormValues = {
     amount: string
     eatenAt: string
+}
+
+const MEAL_TYPE_BY_ID: Record<number, string> = {
+    1: 'BREAKFAST',
+    2: 'LUNCH',
+    3: 'SNACK',
+    4: 'DINNER',
+    5: 'OTHERS',
 }
 
 /** datetime-local value from ISO or HH:mm */
@@ -24,11 +34,20 @@ function toTimeInput(value?: string | null): string {
     return value
 }
 
+function servingLabel(r: FoodRecordDto): string {
+    const parts: string[] = []
+    if (r.servingAmount != null) parts.push(String(r.servingAmount))
+    if (r.servingUnitCode) parts.push(r.servingUnitCode)
+    if (r.gramWeight != null) parts.push(`(${r.gramWeight} г)`)
+    return parts.length ? parts.join(' ') : 'Порция'
+}
+
 export function FoodRecordFormPage() {
     const { showAlert } = useAlert()
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState('')
     const [deleting, setDeleting] = useState(false)
+    const [record, setRecord] = useState<FoodRecordDto | null>(null)
     const navigate = useNavigate()
     const [searchParams] = useSearchParams()
 
@@ -56,7 +75,6 @@ export function FoodRecordFormPage() {
             return
         }
 
-        // Quick delete from list icon
         if (searchParams.get('delete') === '1') {
             ;(async () => {
                 if (!window.confirm('Удалить запись из дневника?')) {
@@ -81,6 +99,7 @@ export function FoodRecordFormPage() {
             try {
                 const data = await getFoodRecord(id)
                 if (cancelled) return
+                setRecord(data)
                 reset({
                     amount: data.amount != null ? String(data.amount) : '',
                     eatenAt: toTimeInput(data.eatenAt),
@@ -134,6 +153,9 @@ export function FoodRecordFormPage() {
         }
     }
 
+    const mealTypeCode =
+        record?.mealTypeId != null ? MEAL_TYPE_BY_ID[record.mealTypeId] : null
+
     return (
         <div className="diary-shell">
             <div className="bg-brand text-invert p-2 rounded-bottom-4">
@@ -155,10 +177,28 @@ export function FoodRecordFormPage() {
                         >
                             {error && <p className="text-danger small mb-0">{error}</p>}
 
+                            {/* Same info block as when adding product to a meal */}
+                            <div className="border rounded-3 p-3 bg-light">
+                                <div className="fw-semibold">
+                                    {record?.productDescription?.trim() ||
+                                        `Продукт #${record?.servingId ?? '—'}`}
+                                </div>
+                                <div className="small text-muted mt-1">
+                                    Порция: {record ? servingLabel(record) : '—'}
+                                </div>
+                                {(mealTypeCode || record?.mealDate) && (
+                                    <div className="small text-muted mt-1">
+                                        {[mealTypeLabel(mealTypeCode), record?.mealDate]
+                                            .filter(Boolean)
+                                            .join(' · ')}
+                                    </div>
+                                )}
+                            </div>
+
                             <div className="d-flex flex-column gap-1">
                                 <div className="d-flex gap-2 justify-content-between align-items-center w-100">
                                     <label htmlFor="amount" className="label text-wrap align-self-center">
-                                        Количество
+                                        Количество порций
                                     </label>
                                     <input
                                         className="input rounded-3"

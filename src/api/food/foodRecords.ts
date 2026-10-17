@@ -31,7 +31,13 @@ export type QuickProductPayload = {
 export type FoodRecordDto = {
     id: number
     mealId: number
+    mealTypeId?: number | null
+    mealDate?: string | null
     servingId: number
+    productDescription?: string | null
+    servingAmount?: number | null
+    gramWeight?: number | null
+    servingUnitCode?: string | null
     amount: number | null
     eatenAt: string | null
 }

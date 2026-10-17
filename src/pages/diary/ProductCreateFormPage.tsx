@@ -3,12 +3,14 @@ import { useForm } from 'react-hook-form'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { BottomNav } from '@/components/diary'
 import { http } from '@/api/http'
+import { uploadFile } from '@/api/files'
 import { useAlert } from '@/components/ui/Alert'
 import { getErrorMessage } from '@/lib/errors'
 import { CORE_GOAL_NUTRIENT_IDS, NUTRIENT_BY_ID, unitLabel } from '@/data/nutrients'
 
 type FormValues = {
     description: string
+    barcode: string
     gramWeight: string
     energy: string
     protein: string
@@ -16,11 +18,25 @@ type FormValues = {
     carbs: string
 }
 
+async function optionalUpload(
+    file: File | null,
+    folder: string,
+): Promise<number | null> {
+    if (!file) return null
+    const res = await uploadFile(file, folder)
+    return res.id
+}
+
 export function ProductCreateFormPage() {
     const { showAlert } = useAlert()
     const navigate = useNavigate()
     const [searchParams] = useSearchParams()
     const [error, setError] = useState('')
+    const [photoFile, setPhotoFile] = useState<File | null>(null)
+    const [frontFile, setFrontFile] = useState<File | null>(null)
+    const [compositionFile, setCompositionFile] = useState<File | null>(null)
+    const [nutritionFile, setNutritionFile] = useState<File | null>(null)
+    const [barcodePhotoFile, setBarcodePhotoFile] = useState<File | null>(null)
 
     const {
         register,
@@ -29,6 +45,7 @@ export function ProductCreateFormPage() {
     } = useForm<FormValues>({
         defaultValues: {
             description: '',
+            barcode: '',
             gramWeight: '100',
             energy: '',
             protein: '',
@@ -55,20 +72,43 @@ export function ProductCreateFormPage() {
             }
             nutrients.push({ nutrientId: id, amount: n })
         }
+        if (nutrients.length === 0) {
+            setError('Укажите хотя бы один нутриент')
+            return
+        }
+
+        const barcode = form.barcode.trim()
+        if (!barcode) {
+            setError('Укажите штрихкод')
+            return
+        }
 
         try {
-            const barcode = `USR${Date.now()}`
+            const [
+                photoPathId,
+                frontPhotoPathId,
+                productCompositionPhotoPathId,
+                productNutritionPhotoPathId,
+                barcodePhotoPathId,
+            ] = await Promise.all([
+                optionalUpload(photoFile, 'FOOD_PRODUCTS'),
+                optionalUpload(frontFile, 'FOOD_PRODUCT_REQUEST'),
+                optionalUpload(compositionFile, 'FOOD_PRODUCT_REQUEST'),
+                optionalUpload(nutritionFile, 'FOOD_PRODUCT_REQUEST'),
+                optionalUpload(barcodePhotoFile, 'FOOD_PRODUCT_REQUEST'),
+            ])
+
             const { data: productId } = await http.post<number>('/api/food/products/barcode', {
                 description: form.description.trim(),
                 categoryId: null,
-                photoPathId: null,
+                photoPathId,
                 barcode,
                 gramWeight: Number(form.gramWeight),
                 nutrients,
-                frontPhotoPathId: null,
-                productCompositionPhotoPathId: null,
-                productNutritionPhotoPathId: null,
-                barcodePhotoPathId: null,
+                frontPhotoPathId,
+                productCompositionPhotoPathId,
+                productNutritionPhotoPathId,
+                barcodePhotoPathId,
             })
 
             showAlert('Продукт создан', 'success')
@@ -113,8 +153,29 @@ export function ProductCreateFormPage() {
                     </div>
 
                     <div>
+                        <label className="label" htmlFor="barcode">
+                            Штрихкод
+                        </label>
+                        <input
+                            id="barcode"
+                            className="input rounded-3 w-100"
+                            placeholder="Например 4601234567890"
+                            {...register('barcode', {
+                                required: 'Укажите штрихкод',
+                                validate: (v) => v.trim().length > 0 || 'Укажите штрихкод',
+                            })}
+                        />
+                        {errors.barcode && (
+                            <span className="input-error-text">{errors.barcode.message}</span>
+                        )}
+                        <p className="small text-muted mb-0 mt-1">
+                            Должен быть уникальным. Порции 1 г и 100 г создаются автоматически.
+                        </p>
+                    </div>
+
+                    <div>
                         <label className="label" htmlFor="gramWeight">
-                            Вес порции (г)
+                            Базовый вес порции (г)
                         </label>
                         <input
                             id="gramWeight"
@@ -159,6 +220,55 @@ export function ProductCreateFormPage() {
                                 </div>
                             )
                         })}
+                    </div>
+
+                    <div>
+                        <p className="label mb-2">Фото (необязательно)</p>
+                        <label className="small d-block mb-2">
+                            Основное фото продукта
+                            <input
+                                type="file"
+                                accept="image/*"
+                                className="form-control form-control-sm mt-1"
+                                onChange={(e) => setPhotoFile(e.target.files?.[0] ?? null)}
+                            />
+                        </label>
+                        <label className="small d-block mb-2">
+                            Фото упаковки (спереди)
+                            <input
+                                type="file"
+                                accept="image/*"
+                                className="form-control form-control-sm mt-1"
+                                onChange={(e) => setFrontFile(e.target.files?.[0] ?? null)}
+                            />
+                        </label>
+                        <label className="small d-block mb-2">
+                            Фото состава
+                            <input
+                                type="file"
+                                accept="image/*"
+                                className="form-control form-control-sm mt-1"
+                                onChange={(e) => setCompositionFile(e.target.files?.[0] ?? null)}
+                            />
+                        </label>
+                        <label className="small d-block mb-2">
+                            Фото нутриентов на упаковке
+                            <input
+                                type="file"
+                                accept="image/*"
+                                className="form-control form-control-sm mt-1"
+                                onChange={(e) => setNutritionFile(e.target.files?.[0] ?? null)}
+                            />
+                        </label>
+                        <label className="small d-block mb-0">
+                            Фото штрихкода
+                            <input
+                                type="file"
+                                accept="image/*"
+                                className="form-control form-control-sm mt-1"
+                                onChange={(e) => setBarcodePhotoFile(e.target.files?.[0] ?? null)}
+                            />
+                        </label>
                     </div>
 
                     <button type="submit" className="btn btn-primary w-100" disabled={isSubmitting}>
