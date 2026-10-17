@@ -1,6 +1,7 @@
 import {useEffect, useState} from "react";
 import {useForm}  from "react-hook-form";
 import {Link, useParams, useNavigate} from 'react-router-dom';
+import { IoTrashOutline } from 'react-icons/io5';
 import { BottomNav } from '@/components/diary';
 import {
     getSleepLogById,
@@ -63,46 +64,48 @@ export function SleepLogFormPage() {
         }
     )
 
-    // useEffect(() => {
-    //
-    //     setLoading(true);
-    //     let cancelled = false;
-    //
-    //     if (!isEdit) {
-    //         const profileId = getDiaryProfileId();
-    //
-    //         if(!profileId){
-    //             showAlert("Не удалось определить профиль дневника");
-    //             navigate(-1);
-    //             return;
-    //         }
-    //
-    //         setDiaryProfileId(profileId);
-    //         setLoading(false);
-    //     }
-    //     else {
-    //         (async () => {
-    //             setLoading(true)
-    //             const data = await getSleepLogById(Number(sleepLogId));
-    //             if (!data) {
-    //                 showAlert("Не удалось найти запись о сне");
-    //                 navigate(-1);
-    //                 return;
-    //             }
-    //
-    //
-    //             if (cancelled) return;
-    //             else {
-    //                 reset(toFormValues(data));
-    //                 setLoading(false);
-    //             }
-    //         })()
-    //     }
-    //
-    //     return () => {
-    //         cancelled = true;
-    //     }
-    // }, [sleepLogId, isEdit, reset])
+    useEffect(() => {
+        setLoading(true);
+        let cancelled = false;
+
+        if (!isEdit) {
+            const profileId = getDiaryProfileId();
+
+            if(!profileId){
+                showAlert("Не удалось определить профиль дневника", 'warning');
+                navigate(-1);
+                return;
+            }
+
+            setDiaryProfileId(profileId);
+            setLoading(false);
+            return;
+        }
+
+        (async () => {
+            try {
+                const data = await getSleepLogById(Number(sleepLogId));
+                if (cancelled) return;
+                if (!data) {
+                    showAlert("Не удалось найти запись о сне", 'danger');
+                    navigate(-1);
+                    return;
+                }
+                reset(toFormValues(data));
+            } catch (err: unknown) {
+                if (!cancelled) {
+                    showAlert(getErrorMessage(err, 'Не удалось загрузить'), 'danger');
+                    navigate(-1);
+                }
+            } finally {
+                if (!cancelled) setLoading(false);
+            }
+        })();
+
+        return () => {
+            cancelled = true;
+        }
+    }, [sleepLogId, isEdit, reset, navigate, showAlert])
 
     const onSubmit = async (formData: SleepLogFormValues) => {
         try {
@@ -114,6 +117,7 @@ export function SleepLogFormPage() {
                 await createSleepLog(diaryProfileId, toPayload(formData));
                 showAlert('Запись о сне добавлена', 'success');
             }
+            navigate('/diary', { replace: true });
         }
         catch (error: unknown) {
             if (error instanceof Error)
@@ -142,7 +146,7 @@ export function SleepLogFormPage() {
             <div className='bg-brand text-invert
                             p-2
                             rounded-bottom-4'>
-                <Link to="/diary/settings" className="btn-tertiary bg-text-on-brand">
+                <Link to="/diary" className="btn-tertiary bg-text-on-brand">
                     ← Назад
                 </Link>
                 <h2 className="bg-text-on-brand mt-2 text-center">Запись о сне</h2>
@@ -232,10 +236,13 @@ export function SleepLogFormPage() {
                                 <button
                                     type="button"
                                     disabled={isSubmitting || deleting}
-                                    className="btn btn-outline-danger w-100"
+                                    className="btn btn-outline-danger w-100 d-inline-flex align-items-center justify-content-center gap-2"
                                     onClick={() => void onDelete()}
+                                    aria-label="Удалить"
+                                    title="Удалить"
                                 >
-                                    {deleting ? "Удаление..." : "Удалить"}
+                                    <IoTrashOutline size={18} />
+                                    {deleting ? "Удаление..." : null}
                                 </button>
                             )}
                         </form>
