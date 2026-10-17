@@ -4,7 +4,6 @@ import type { GoalDto } from '@/api/diaryProfile/goals'
 import type { SleepLogDto, WeightLogDto } from '@/api/diaryProfile/diary'
 import type { DiaryCommentDto } from '@/api/diaryProfile/comments'
 
-/** Specialist views / manages client diary profile */
 export async function getClientProfile(diaryProfileId: number): Promise<DiaryProfileDto> {
     const { data } = await http.get<DiaryProfileDto>(`/api/specialist/diary-profile/${diaryProfileId}`)
     return data
@@ -17,7 +16,6 @@ export async function getClientProfilesByIds(ids: number[]): Promise<DiaryProfil
     return Array.isArray(data) ? data : []
 }
 
-// Goals (specialist can CRUD client goals)
 export async function getClientGoals(diaryProfileId: number): Promise<GoalDto[]> {
     const { data } = await http.get<GoalDto[]>(
         `/api/specialist/goal/diary-profile/${diaryProfileId}/get-all`,
@@ -82,7 +80,6 @@ export async function deleteClientGoal(goalId: number): Promise<void> {
     await http.delete(`/api/specialist/goal/goals/${goalId}`)
 }
 
-// Logs (sleep / weight read for client)
 export async function getClientSleepByDay(
     diaryProfileId: number,
     date: string,
@@ -135,7 +132,6 @@ export async function getClientWeightByPeriod(
     return Array.isArray(data) ? data : []
 }
 
-// Comments (if ClientCommentController exists — placeholder based on pattern)
 export async function getClientCommentsByType(
     diaryProfileId: number,
     commentType: string,
