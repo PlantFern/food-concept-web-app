@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { Link, useParams, useNavigate } from 'react-router-dom'
+import { IoTrashOutline } from 'react-icons/io5'
 import { BottomNav } from '@/components/diary'
 import {
     getMealTemplate,
@@ -289,19 +290,21 @@ export function MealTemplateFormPage() {
                                                             {formatTemplateAmount(item)}
                                                         </div>
                                                     </div>
-                                                    <div className={mealStyles.foodKcal}>
-                                                        <span>
+                                                    <div className={mealStyles.foodActions}>
+                                                        <span className={mealStyles.foodKcalInline}>
                                                             {item.nutrient != null
                                                                 ? Math.round(item.nutrient)
                                                                 : '—'}
+                                                            {' kcal'}
                                                         </span>
-                                                        <span>kcal</span>
                                                         <button
                                                             type="button"
-                                                            className="btn btn-link btn-sm text-danger p-0"
+                                                            className={`${mealStyles.iconBtn} ${mealStyles.iconBtnDanger}`}
                                                             onClick={() => void onDeleteRecord(item.id)}
+                                                            aria-label="Удалить"
+                                                            title="Удалить"
                                                         >
-                                                            Удалить
+                                                            <IoTrashOutline size={18} />
                                                         </button>
                                                     </div>
                                                 </li>
@@ -327,10 +330,13 @@ export function MealTemplateFormPage() {
                                 <button
                                     type="button"
                                     disabled={isSubmitting || deleting}
-                                    className="btn btn-outline-danger w-100"
+                                    className="btn btn-outline-danger w-100 d-inline-flex align-items-center justify-content-center gap-2"
                                     onClick={() => void onDelete()}
+                                    aria-label="Удалить шаблон"
+                                    title="Удалить шаблон"
                                 >
-                                    {deleting ? 'Удаление...' : 'Удалить шаблон'}
+                                    <IoTrashOutline size={18} />
+                                    {deleting ? 'Удаление...' : null}
                                 </button>
                             )}
                         </form>
