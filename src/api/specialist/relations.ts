@@ -41,14 +41,10 @@ export async function hasActiveSpecialistControl(diaryProfileId: number): Promis
 }
 
 export async function fetchSpecialistClients(specialistId: number): Promise<UserRelationDto[]> {
-    try {
-        const { data } = await http.get<UserRelationDto[]>(
-            `/api/specialist/${specialistId}/relations`,
-        )
-        return Array.isArray(data) ? data : []
-    } catch {
-        return []
-    }
+    const { data } = await http.get<UserRelationDto[]>(
+        `/api/specialist/${specialistId}/relations`,
+    )
+    return Array.isArray(data) ? data : []
 }
 
 export async function getRelationById(
