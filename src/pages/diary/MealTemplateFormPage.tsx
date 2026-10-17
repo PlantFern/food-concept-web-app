@@ -7,10 +7,14 @@ import {
     createMealTemplate,
     updateMealTemplate,
     deleteMealTemplate,
+    deleteTemplateRecord,
+    formatTemplateAmount,
+    type TemplateFoodRecordItem,
 } from '@/api/meals'
 import { useAlert } from '@/components/ui/Alert'
 import { getErrorMessage } from '@/lib/errors'
 import { getDiaryProfileId } from '@/api/onboarding.ts'
+import mealStyles from '@/components/diary/MealSection/MealSection.module.css'
 
 type TemplateFormValues = {
     name: string
@@ -24,11 +28,17 @@ function toTimeInput(value?: string | null): string {
     return value
 }
 
+function todayIso(): string {
+    const d = new Date()
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
+
 export function MealTemplateFormPage() {
     const { showAlert } = useAlert()
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState('')
     const [deleting, setDeleting] = useState(false)
+    const [records, setRecords] = useState<TemplateFoodRecordItem[]>([])
     const navigate = useNavigate()
 
     const { templateId } = useParams()
@@ -58,6 +68,7 @@ export function MealTemplateFormPage() {
                 navigate(-1)
                 return
             }
+            setRecords([])
             setLoading(false)
             return
         }
@@ -73,6 +84,7 @@ export function MealTemplateFormPage() {
                     scheduledTime: toTimeInput(data.scheduledTime),
                     frequency: data.frequency != null ? String(data.frequency) : '1',
                 })
+                setRecords(data.records ?? [])
             } catch (err: unknown) {
                 if (!cancelled) {
                     showAlert(getErrorMessage(err, 'Не удалось загрузить шаблон'), 'danger')
@@ -91,7 +103,7 @@ export function MealTemplateFormPage() {
     const onSubmit = async (formData: TemplateFormValues) => {
         setError('')
         const frequency = Number(formData.frequency)
-        const startedAt = Date.now()
+        const startedAt = todayIso()
 
         try {
             if (isEdit) {
@@ -134,6 +146,17 @@ export function MealTemplateFormPage() {
         }
     }
 
+    const onDeleteRecord = async (recordId: number) => {
+        if (!window.confirm('Удалить позицию из шаблона?')) return
+        try {
+            await deleteTemplateRecord(recordId)
+            setRecords((prev) => prev.filter((r) => r.id !== recordId))
+            showAlert('Позиция удалена', 'success')
+        } catch (err: unknown) {
+            showAlert(getErrorMessage(err, 'Не удалось удалить позицию'), 'danger')
+        }
+    }
+
     return (
         <div className="diary-shell">
             <div className="bg-brand text-invert p-2 rounded-bottom-4">
@@ -147,7 +170,7 @@ export function MealTemplateFormPage() {
 
             {loading && <p className="no-content-placeholder">Загрузка…</p>}
 
-            <div className="container">
+            <div className="container pb-5">
                 <div className="row">
                     {!loading && (
                         <form
@@ -233,6 +256,55 @@ export function MealTemplateFormPage() {
                                 )}
                             </div>
 
+                            {isEdit && (
+                                <section className={mealStyles.mealSection}>
+                                    <div className={mealStyles.mealSectionHead}>
+                                        <strong>Продукты в шаблоне</strong>
+                                        <Link
+                                            to={`/diary/products?tab=products&templateId=${templateId}`}
+                                            className="btn btn-sm btn-outline-primary"
+                                        >
+                                            + Добавить
+                                        </Link>
+                                    </div>
+                                    {records.length === 0 ? (
+                                        <p className={mealStyles.mealEmpty}>Пока пусто</p>
+                                    ) : (
+                                        <ul className={mealStyles.foodList}>
+                                            {records.map((item) => (
+                                                <li key={item.id} className={mealStyles.foodRow}>
+                                                    <div className={mealStyles.foodThumb} />
+                                                    <div className={mealStyles.foodMeta}>
+                                                        <div className={mealStyles.foodName}>
+                                                            {item.productDescription ||
+                                                                `Serving #${item.servingId}`}
+                                                        </div>
+                                                        <div className={mealStyles.foodAmount}>
+                                                            {formatTemplateAmount(item)}
+                                                        </div>
+                                                    </div>
+                                                    <div className={mealStyles.foodKcal}>
+                                                        <span>
+                                                            {item.nutrient != null
+                                                                ? Math.round(item.nutrient)
+                                                                : '—'}
+                                                        </span>
+                                                        <span>kcal</span>
+                                                        <button
+                                                            type="button"
+                                                            className="btn btn-link btn-sm text-danger p-0"
+                                                            onClick={() => void onDeleteRecord(item.id)}
+                                                        >
+                                                            Удалить
+                                                        </button>
+                                                    </div>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    )}
+                                </section>
+                            )}
+
                             <button
                                 type="submit"
                                 disabled={isSubmitting || deleting}
@@ -252,7 +324,7 @@ export function MealTemplateFormPage() {
                                     className="btn btn-outline-danger w-100"
                                     onClick={() => void onDelete()}
                                 >
-                                    {deleting ? 'Удаление...' : 'Удалить'}
+                                    {deleting ? 'Удаление...' : 'Удалить шаблон'}
                                 </button>
                             )}
                         </form>
