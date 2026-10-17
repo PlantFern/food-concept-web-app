@@ -50,6 +50,9 @@ function pickTemplatesForSection(
         BREAKFAST: [5, 11],
         LUNCH: [11, 16],
         SNACK: [15, 18],
+        MORNING_SNACK: [9, 12],
+        AFTERNOON_SNACK: [14, 17],
+        LATE_SNACK: [20, 24],
         DINNER: [17, 23],
     }
 
@@ -63,86 +66,87 @@ function pickTemplatesForSection(
         if (matched.length) return matched
     }
 
-    if (code === 'OTHERS' || sectionIndex === sectionsCount - 1) {
+    if (code === 'OTHERS' || code === 'OTHER' || sectionIndex === sectionsCount - 1) {
         return templates.filter((t) => !t.scheduledTime)
     }
     return []
 }
 
 export function DiaryHomePage() {
-    const { showAlert } = useAlert();
-    const [date, setDate] = useState(() => new Date());
-    const [day, setDay] = useState<DayMealsDto | null>(null);
-    const [loading, setLoading] = useState(true);
-    const [applyingTemplateId, setApplyingTemplateId] = useState<number | null>(null);
+    const { showAlert } = useAlert()
+    const [date, setDate] = useState(() => new Date())
+    const [day, setDay] = useState<DayMealsDto | null>(null)
+    const [loading, setLoading] = useState(true)
+    const [applyingTemplateId, setApplyingTemplateId] = useState<number | null>(null)
 
-    const iso = useMemo(() => toIsoDate(date), [date]);
-    const profileId = getDiaryProfileId();
+    const iso = useMemo(() => toIsoDate(date), [date])
+    const profileId = getDiaryProfileId()
 
     const load = useCallback(async () => {
-        
         if (profileId == null) {
-            setDay(null);
-            setLoading(false);
-            showAlert('Нет профиля дневника. Пройдите онбординг.', 'warning');
-            return;
+            setDay(null)
+            setLoading(false)
+            showAlert('Нет профиля дневника. Пройдите онбординг.', 'warning')
+            return
         }
-        setLoading(true);
-        
+        setLoading(true)
+
         try {
-            const data = await fetchDayMeals(iso, profileId);
-            setDay(data);
+            const data = await fetchDayMeals(iso, profileId)
+            setDay(data)
         } catch (err: unknown) {
-            setDay(null);
-            showAlert(getErrorMessage(err, 'Не удалось загрузить день'), 'danger');
+            setDay(null)
+            showAlert(getErrorMessage(err, 'Не удалось загрузить день'), 'danger')
         } finally {
-            setLoading(false);
+            setLoading(false)
         }
     }, [iso, profileId, showAlert])
 
     useEffect(() => {
-        void load();
-    }, [load]);
+        void load()
+    }, [load])
 
     function shiftDay(delta: number) {
         setDate((prev) => {
-            const next = new Date(prev);
-            next.setDate(prev.getDate() + delta);
-            return next;
+            const next = new Date(prev)
+            next.setDate(prev.getDate() + delta)
+            return next
         })
     }
 
     async function onApplyTemplate(templateId: number, mealTypeId: number) {
-        setApplyingTemplateId(templateId);
+        setApplyingTemplateId(templateId)
         try {
-            await applyMealTemplate(templateId, mealTypeId, iso);
-            await load();
+            await applyMealTemplate(templateId, mealTypeId, iso)
+            await load()
         } catch {
-            showAlert('Не удалось отметить шаблон', 'danger');
+            showAlert('Не удалось отметить шаблон', 'danger')
         } finally {
-            setApplyingTemplateId(null);
+            setApplyingTemplateId(null)
         }
     }
 
-    const primary = day?.targets?.find((target) =>
+    const primary = day?.targets?.find(
+        (target) =>
             target.nutrientId === day.primaryNutrient ||
             target.nutrientCode?.toUpperCase() === day.primaryNutrientCode?.toUpperCase(),
-    );
+    )
 
     const primaryName =
         day?.primaryNutrientName?.trim() ||
         (primary ? nutrientDisplayName(primary) : day?.primaryNutrientCode) ||
-        '';
+        ''
 
     const primaryUnit =
         day?.primaryNutrientUnit?.trim() ||
         (primary ? nutrientDisplayUnit(primary) : '') ||
-        '';
+        ''
 
-    const secondary = (day?.targets ?? []).filter((target) =>
+    const secondary = (day?.targets ?? []).filter(
+        (target) =>
             target.nutrientId !== day?.primaryNutrient &&
             target.nutrientCode?.toUpperCase() !== day?.primaryNutrientCode?.toUpperCase(),
-    );
+    )
 
     const secondaryItems = secondary.map((target, index) => ({
         key: String(target.nutrientId ?? target.nutrientCode ?? index),
@@ -150,10 +154,10 @@ export function DiaryHomePage() {
         value: Math.max(target.factAmount ?? 0, 0),
         unit: nutrientDisplayUnit(target),
         color: PALETTE[index % PALETTE.length],
-    }));
+    }))
 
     const sections =
-        day?.sections && day.sections.length > 0 ? day.sections : DEFAULT_SECTIONS;
+        day?.sections && day.sections.length > 0 ? day.sections : DEFAULT_SECTIONS
 
     return (
         <div className="diary-shell">
@@ -175,45 +179,48 @@ export function DiaryHomePage() {
                 {loading && <p className="meal-empty">Загрузка…</p>}
 
                 <div>
-                    <h4 className='mb-3'>Приемы пищи</h4>
-                    <div className='row g-2'>
-                    {!loading &&
-                        sections.map((section, index) => (
-                            <div className = 'col-lg-6 col-md-10 col-12' key={section.mealId}>
-                        <MealSection
-                            mealTypeCode={section.mealTypeCode}
-                            mealTypeId={section.mealTypeId}
-                            date={iso}
-                            records={section.records ?? []}
-                            totalPrimaryNutrient={
-                                'totalPrimaryNutrient' in section
-                                    ? section.totalPrimaryNutrient
-                                    : null
-                            }
-                            primaryUnit={primaryUnit}
-                            templates={pickTemplatesForSection(
-                                day?.pendingTemplates ?? [],
-                                section.mealTypeCode,
-                                index,
-                                sections.length,
-                            )}
-                            applyingTemplateId={applyingTemplateId}
-                            onApplyTemplate={onApplyTemplate}
-                                />
-                            </div>
-                        ))}
+                    <h4 className="mb-3">Приёмы пищи</h4>
+                    <div className="row g-2">
+                        {!loading &&
+                            sections.map((section, index) => (
+                                <div className="col-lg-6 col-md-10 col-12" key={section.mealId}>
+                                    <MealSection
+                                        mealTypeCode={section.mealTypeCode}
+                                        mealTypeId={section.mealTypeId}
+                                        mealId={section.mealId}
+                                        date={iso}
+                                        records={section.records ?? []}
+                                        totalPrimaryNutrient={
+                                            'totalPrimaryNutrient' in section
+                                                ? section.totalPrimaryNutrient
+                                                : null
+                                        }
+                                        primaryUnit={primaryUnit}
+                                        templates={pickTemplatesForSection(
+                                            day?.pendingTemplates ?? [],
+                                            section.mealTypeCode,
+                                            index,
+                                            sections.length,
+                                        )}
+                                        applyingTemplateId={applyingTemplateId}
+                                        onApplyTemplate={onApplyTemplate}
+                                    />
+                                </div>
+                            ))}
                     </div>
                 </div>
 
-                <div className='border-top pt-2'>
-                    <h4 className='mb-3'>Логи</h4>
+                <div className="border-top pt-2">
+                    <h4 className="mb-3">Логи</h4>
 
-                    <div className='row g-2'>
-                        <div className = 'col-lg-6 col-md-10 col-12'>
-                            {!loading && <WeightCard weightKg={day?.latestWeight?.weight ?? null} />}
+                    <div className="row g-2">
+                        <div className="col-lg-6 col-md-10 col-12">
+                            {!loading && (
+                                <WeightCard weightKg={day?.latestWeight?.weight ?? null} />
+                            )}
                         </div>
 
-                        <div className = 'col-lg-6 col-md-10 col-12'>
+                        <div className="col-lg-6 col-md-10 col-12">
                             {!loading && (
                                 <SleepCard
                                     entries={(day?.sleepForDay ?? []).map((s) => ({
