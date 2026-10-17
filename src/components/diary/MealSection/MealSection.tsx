@@ -2,6 +2,8 @@ import { IoAdd } from 'react-icons/io5'
 import type { MealFoodRecordItemDto, MealTemplateListItemDto } from '@/api/diaryProfile/diary.ts'
 import { formatFoodAmount, mealTypeLabel } from '@/api/diaryProfile/diary.ts'
 import { TemplateBlock } from '@/components/diary/TemplateBlock'
+import { DeferredImage } from '@/components/ui/DeferredImage'
+import { photoPathToUrl } from '@/lib/photo'
 import styles from './MealSection.module.css'
 import { Dropdown } from '@/components/ui/Dropdown'
 
@@ -95,7 +97,11 @@ export function MealSection({
                 <ul className={styles.foodList}>
                     {records.map((item) => (
                         <li key={item.recordId} className={styles.foodRow}>
-                            <div className={styles.foodThumb} />
+                            <DeferredImage
+                                src={photoPathToUrl(item.photoPath)}
+                                alt={item.productDescription || 'Еда'}
+                                className={styles.foodThumb}
+                            />
                             <div className={styles.foodMeta}>
                                 <div className={styles.foodName}>{item.productDescription}</div>
                                 <div className={styles.foodAmount}>{formatFoodAmount(item)}</div>
