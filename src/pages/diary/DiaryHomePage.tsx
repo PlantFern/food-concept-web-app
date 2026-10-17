@@ -5,6 +5,7 @@ import {
     nutrientDisplayName,
     nutrientDisplayUnit,
     type DayMealsDto,
+    type MealSectionDto,
     type MealTemplateListItemDto,
 } from '@/api/diaryProfile/diary'
 import { fetchCommentsByType, type DiaryCommentDto } from '@/api/diaryProfile/comments'
@@ -21,13 +22,17 @@ import {
     WeightCard,
 } from '@/components/diary'
 
-const DEFAULT_SECTIONS = [
-    { mealId: -1, mealTypeCode: 'BREAKFAST', mealTypeId: 1, records: [] as never[], photoPath: null as string | null },
-    { mealId: -2, mealTypeCode: 'LUNCH', mealTypeId: 2, records: [] as never[], photoPath: null as string | null },
-    { mealId: -3, mealTypeCode: 'SNACK', mealTypeId: 3, records: [] as never[], photoPath: null as string | null },
-    { mealId: -4, mealTypeCode: 'DINNER', mealTypeId: 4, records: [] as never[], photoPath: null as string | null },
-    { mealId: -5, mealTypeCode: 'OTHERS', mealTypeId: 5, records: [] as never[], photoPath: null as string | null },
-]
+const CANONICAL_ORDER = ['BREAKFAST', 'LUNCH', 'SNACK', 'DINNER', 'OTHERS'] as const
+
+const DEFAULT_SECTIONS: MealSectionDto[] = CANONICAL_ORDER.map((code, i) => ({
+    mealId: -(i + 1),
+    mealTypeCode: code,
+    mealTypeId: i + 1,
+    generatedFromTemplateId: null,
+    records: [],
+    totalPrimaryNutrient: null,
+    photoPath: null,
+}))
 
 const PALETTE = ['#3498db', '#f39c12', '#2ecc71', '#9b59b6', '#e74c3c', '#1abc9c']
 
@@ -38,11 +43,60 @@ function toIsoDate(d: Date): string {
     return `${y}-${m}-${day}`
 }
 
+function normalizeSectionCode(code: string | null | undefined): string {
+    const c = (code ?? '').toUpperCase()
+    if (CANONICAL_ORDER.includes(c as (typeof CANONICAL_ORDER)[number])) return c
+    if (c.includes('SNACK') || c === 'BRUNCH') return 'SNACK'
+    if (c === 'OTHER' || c === 'OTHERS') return 'OTHERS'
+    return 'OTHERS'
+}
+
+/** Keep exactly 5 cards: breakfast → others. Merge extras into snack/others. */
+function normalizeSections(raw: MealSectionDto[] | null | undefined): MealSectionDto[] {
+    if (!raw?.length) return DEFAULT_SECTIONS
+
+    const byCode = new Map<string, MealSectionDto>()
+    for (const code of CANONICAL_ORDER) {
+        const found = raw.find((s) => (s.mealTypeCode ?? '').toUpperCase() === code)
+        byCode.set(
+            code,
+            found
+                ? { ...found, mealTypeCode: code }
+                : {
+                      mealId: -(CANONICAL_ORDER.indexOf(code) + 1),
+                      mealTypeCode: code,
+                      mealTypeId: CANONICAL_ORDER.indexOf(code) + 1,
+                      generatedFromTemplateId: null,
+                      records: [],
+                      totalPrimaryNutrient: null,
+                      photoPath: null,
+                  },
+        )
+    }
+
+    for (const s of raw) {
+        const code = normalizeSectionCode(s.mealTypeCode)
+        if (CANONICAL_ORDER.includes((s.mealTypeCode ?? '').toUpperCase() as (typeof CANONICAL_ORDER)[number])) {
+            continue
+        }
+        const target = byCode.get(code)!
+        const mergedRecords = [...(target.records ?? []), ...(s.records ?? [])]
+        byCode.set(code, {
+            ...target,
+            mealId: target.mealId > 0 ? target.mealId : s.mealId,
+            records: mergedRecords,
+            photoPath: target.photoPath || s.photoPath || null,
+            totalPrimaryNutrient:
+                (target.totalPrimaryNutrient ?? 0) + (s.totalPrimaryNutrient ?? 0) || null,
+        })
+    }
+
+    return CANONICAL_ORDER.map((code) => byCode.get(code)!)
+}
+
 function pickTemplatesForSection(
     templates: MealTemplateListItemDto[],
     mealTypeCode: string,
-    sectionIndex: number,
-    sectionsCount: number,
 ): MealTemplateListItemDto[] {
     if (!templates.length) return []
 
@@ -50,10 +104,7 @@ function pickTemplatesForSection(
     const hourHints: Record<string, [number, number]> = {
         BREAKFAST: [5, 11],
         LUNCH: [11, 16],
-        SNACK: [15, 18],
-        MORNING_SNACK: [9, 12],
-        AFTERNOON_SNACK: [14, 17],
-        LATE_SNACK: [20, 24],
+        SNACK: [9, 18],
         DINNER: [17, 23],
     }
 
@@ -67,7 +118,7 @@ function pickTemplatesForSection(
         if (matched.length) return matched
     }
 
-    if (code === 'OTHERS' || code === 'OTHER' || sectionIndex === sectionsCount - 1) {
+    if (code === 'OTHERS' || code === 'OTHER') {
         return templates.filter((t) => !t.scheduledTime)
     }
     return []
@@ -165,8 +216,7 @@ export function DiaryHomePage() {
         color: PALETTE[index % PALETTE.length],
     }))
 
-    const sections =
-        day?.sections && day.sections.length > 0 ? day.sections : DEFAULT_SECTIONS
+    const sections = useMemo(() => normalizeSections(day?.sections), [day?.sections])
 
     const showWeight = day?.weightEnabled !== false
     const showSleep = day?.sleepEnabled !== false
@@ -194,29 +244,21 @@ export function DiaryHomePage() {
                     <h4 className="mb-3">Приёмы пищи</h4>
                     <div className="row g-2">
                         {!loading &&
-                            sections.map((section, index) => (
-                                <div className="col-lg-6 col-md-10 col-12" key={section.mealId}>
+                            sections.map((section) => (
+                                <div className="col-lg-6 col-md-10 col-12" key={section.mealTypeCode}>
                                     <MealSection
                                         mealTypeCode={section.mealTypeCode}
                                         mealTypeId={section.mealTypeId}
                                         mealId={section.mealId}
                                         date={iso}
                                         records={section.records ?? []}
-                                        totalPrimaryNutrient={
-                                            'totalPrimaryNutrient' in section
-                                                ? section.totalPrimaryNutrient
-                                                : null
-                                        }
-                                        mealPhotoPath={
-                                            'photoPath' in section ? section.photoPath : null
-                                        }
+                                        totalPrimaryNutrient={section.totalPrimaryNutrient}
+                                        mealPhotoPath={section.photoPath}
                                         comments={mealComments}
                                         primaryUnit={primaryUnit}
                                         templates={pickTemplatesForSection(
                                             day?.pendingTemplates ?? [],
                                             section.mealTypeCode,
-                                            index,
-                                            sections.length,
                                         )}
                                         applyingTemplateId={applyingTemplateId}
                                         onApplyTemplate={onApplyTemplate}
