@@ -89,7 +89,7 @@ export function SettingsPage() {
     return (
         <div className="diary-shell">
             <div className={`diary-content ${styles.page}`}>
-                <div className='bg-brand text-invert p-2 rounded-bottom-4'>
+                <div className="bg-brand text-invert p-2 rounded-bottom-4">
                     <h2 className={styles.title}>Profile</h2>
                 </div>
 
@@ -111,7 +111,10 @@ export function SettingsPage() {
                             Дневник питания
                         </Link>
                     ) : (
-                        <Link to="/onboarding/role" className={`${styles.pill} ${styles.pillMuted}`}>
+                        <Link
+                            to="/onboarding/scenario"
+                            className={`${styles.pill} ${styles.pillMuted}`}
+                        >
                             <HiOutlinePlus /> Дневник питания
                         </Link>
                     )}
@@ -120,7 +123,10 @@ export function SettingsPage() {
                             <HiOutlineUserGroup /> Специалист
                         </Link>
                     ) : (
-                        <Link to="/onboarding/role" className={`${styles.pill} ${styles.pillMuted}`}>
+                        <Link
+                            to="/onboarding/role"
+                            className={`${styles.pill} ${styles.pillMuted}`}
+                        >
                             <HiOutlinePlus /> Специалист
                         </Link>
                     )}
