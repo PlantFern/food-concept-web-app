@@ -9,9 +9,11 @@ import {
     fetchProductDetail,
     type FoodServingDto,
     type ProductDetail,
+    type ProductNutrientItem,
 } from '@/api/food'
 import { addTemplateRecord } from '@/api/meals'
 import { photoPathToUrl } from '@/lib/photo'
+import { NUTRIENT_BY_ID } from '@/data/nutrients'
 import styles from './ProductDetailPage.module.css'
 
 const MEAL_TYPES = [
@@ -48,6 +50,18 @@ function servingLabel(s: FoodServingDto): string {
 function formatNutrientAmount(amount: number | null | undefined): string {
     if (amount == null || !Number.isFinite(amount)) return '—'
     return Number.isInteger(amount) ? String(amount) : amount.toFixed(1)
+}
+
+function dedupeNutrients(list: ProductNutrientItem[]): ProductNutrientItem[] {
+    const byId = new Map<number, ProductNutrientItem>()
+    for (const n of list) {
+        if (n.nutrientId == null) continue
+        const prev = byId.get(n.nutrientId)
+        if (!prev || (prev.amountPer100g == null && n.amountPer100g != null)) {
+            byId.set(n.nutrientId, n)
+        }
+    }
+    return [...byId.values()]
 }
 
 export function ProductDetailPage() {
@@ -102,7 +116,10 @@ export function ProductDetailPage() {
         [product?.photoPath],
     )
 
-    const nutrients = product?.nutrients ?? []
+    const nutrients = useMemo(
+        () => dedupeNutrients(product?.nutrients ?? []),
+        [product?.nutrients],
+    )
 
     const backTo = isTemplateMode
         ? `/diary/templates/${templateId}/edit`
@@ -187,17 +204,22 @@ export function ProductDetailPage() {
                                 <p className={styles.meta}>Нет данных о нутриентах</p>
                             ) : (
                                 <ul className={styles.nutrientList}>
-                                    {nutrients.map((n) => (
-                                        <li key={n.nutrientId} className={styles.nutrientRow}>
-                                            <span className={styles.nutrientName}>
-                                                {n.nutrientCode ?? `Nutrient #${n.nutrientId}`}
-                                            </span>
-                                            <span className={styles.nutrientValue}>
-                                                {formatNutrientAmount(n.amountPer100g)}
-                                                {n.unitCode ? ` ${n.unitCode}` : ''}
-                                            </span>
-                                        </li>
-                                    ))}
+                                    {nutrients.map((n) => {
+                                        const def = NUTRIENT_BY_ID[n.nutrientId]
+                                        const label =
+                                            def?.name ??
+                                            n.nutrientCode ??
+                                            `Nutrient #${n.nutrientId}`
+                                        return (
+                                            <li key={n.nutrientId} className={styles.nutrientRow}>
+                                                <span className={styles.nutrientName}>{label}</span>
+                                                <span className={styles.nutrientValue}>
+                                                    {formatNutrientAmount(n.amountPer100g)}
+                                                    {n.unitCode ? ` ${n.unitCode}` : ''}
+                                                </span>
+                                            </li>
+                                        )
+                                    })}
                                 </ul>
                             )}
                         </section>
