@@ -43,6 +43,37 @@
     color: var(--text-muted, #6c757d);
 }
 
+/* Whole-meal photo: fixed height, full width, crop without letterboxing */
+.mealPhotoWrap {
+    width: 100%;
+    height: 200px;
+    max-height: 320px;
+    border-radius: 0.75rem;
+    overflow: hidden;
+    margin-bottom: 0.75rem;
+    background: rgba(0, 0, 0, 0.04);
+}
+
+@media (min-width: 576px) {
+    .mealPhotoWrap {
+        height: 240px;
+    }
+}
+
+@media (min-width: 992px) {
+    .mealPhotoWrap {
+        height: 280px;
+    }
+}
+
+.mealPhoto {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    display: block;
+}
+
 .foodList {
     list-style: none;
     margin: 0;

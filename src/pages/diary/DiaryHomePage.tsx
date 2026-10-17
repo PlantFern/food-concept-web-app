@@ -21,11 +21,11 @@ import {
 } from '@/components/diary'
 
 const DEFAULT_SECTIONS = [
-    { mealId: -1, mealTypeCode: 'BREAKFAST', mealTypeId: 1, records: [] as never[] },
-    { mealId: -2, mealTypeCode: 'LUNCH', mealTypeId: 2, records: [] as never[] },
-    { mealId: -3, mealTypeCode: 'SNACK', mealTypeId: 3, records: [] as never[] },
-    { mealId: -4, mealTypeCode: 'DINNER', mealTypeId: 4, records: [] as never[] },
-    { mealId: -5, mealTypeCode: 'OTHERS', mealTypeId: 5, records: [] as never[] },
+    { mealId: -1, mealTypeCode: 'BREAKFAST', mealTypeId: 1, records: [] as never[], photoPath: null as string | null },
+    { mealId: -2, mealTypeCode: 'LUNCH', mealTypeId: 2, records: [] as never[], photoPath: null as string | null },
+    { mealId: -3, mealTypeCode: 'SNACK', mealTypeId: 3, records: [] as never[], photoPath: null as string | null },
+    { mealId: -4, mealTypeCode: 'DINNER', mealTypeId: 4, records: [] as never[], photoPath: null as string | null },
+    { mealId: -5, mealTypeCode: 'OTHERS', mealTypeId: 5, records: [] as never[], photoPath: null as string | null },
 ]
 
 const PALETTE = ['#3498db', '#f39c12', '#2ecc71', '#9b59b6', '#e74c3c', '#1abc9c']
@@ -198,6 +198,9 @@ export function DiaryHomePage() {
                                             'totalPrimaryNutrient' in section
                                                 ? section.totalPrimaryNutrient
                                                 : null
+                                        }
+                                        mealPhotoPath={
+                                            'photoPath' in section ? section.photoPath : null
                                         }
                                         primaryUnit={primaryUnit}
                                         templates={pickTemplatesForSection(
