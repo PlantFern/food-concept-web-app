@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
     applyMealTemplate,
     fetchDayMeals,
@@ -132,10 +132,10 @@ export function DiaryHomePage() {
     const [loading, setLoading] = useState(true)
     const [applyingTemplateId, setApplyingTemplateId] = useState<number | null>(null)
 
-    const iso = useMemo(() => toIsoDate(date), [date])
+    const iso = toIsoDate(date)
     const profileId = getDiaryProfileId()
 
-    const load = useCallback(async () => {
+    async function load() {
         if (profileId == null) {
             setDay(null)
             setMealComments([])
@@ -159,11 +159,12 @@ export function DiaryHomePage() {
         } finally {
             setLoading(false)
         }
-    }, [iso, profileId, showAlert])
+    }
 
     useEffect(() => {
         void load()
-    }, [load])
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [iso, profileId])
 
     function shiftDay(delta: number) {
         setDate((prev) => {
@@ -216,7 +217,7 @@ export function DiaryHomePage() {
         color: PALETTE[index % PALETTE.length],
     }))
 
-    const sections = useMemo(() => normalizeSections(day?.sections), [day?.sections])
+    const sections = normalizeSections(day?.sections)
 
     const showWeight = day?.weightEnabled !== false
     const showSleep = day?.sleepEnabled !== false
