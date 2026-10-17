@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { BottomNav } from '@/components/diary'
 import {
@@ -22,7 +22,7 @@ export function MySpecialistRelationsPage() {
     const [error, setError] = useState('')
     const [tab, setTab] = useState<Tab>('pending')
 
-    const load = useCallback(async () => {
+    async function load() {
         const profileId = getDiaryProfileId()
         if (profileId == null) {
             setError('Нет профиля дневника')
@@ -41,11 +41,12 @@ export function MySpecialistRelationsPage() {
         } finally {
             setLoading(false)
         }
-    }, [])
+    }
 
     useEffect(() => {
         void load()
-    }, [load])
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [])
 
     const pending = relations.filter(isPendingRelation)
     const active = relations.filter(isActiveRelation)
