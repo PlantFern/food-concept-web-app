@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import {Link, useSearchParams} from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { BottomNav } from '@/components/diary'
 import { DeferredImage } from '@/components/ui/DeferredImage'
 import {
@@ -20,12 +20,11 @@ import { FaPlus } from 'react-icons/fa6'
 type TabKey = 'products' | 'recipes' | 'templates' | 'recent'
 const TAB_KEYS: TabKey[] = ['products', 'recipes', 'templates', 'recent']
 
-const PAGE_SIZE = 12;
+const PAGE_SIZE = 12
 
 function parseTab(raw: string | null): TabKey {
-    if(raw && TAB_KEYS.includes(raw as TabKey))
-        return raw as TabKey;
-    return 'products';
+    if (raw && TAB_KEYS.includes(raw as TabKey)) return raw as TabKey
+    return 'products'
 }
 
 function formatDayLabel(iso: string): string {
@@ -58,11 +57,12 @@ export function ProductsPage() {
     function setTab(next: TabKey) {
         setSearchParams(
             (prev) => {
-                const param = new URLSearchParams(prev);
-                if (next === 'products') param.delete('tab');
-                else param.set('tab', next);
-                return param;
-            }, {replace:true},
+                const param = new URLSearchParams(prev)
+                if (next === 'products') param.delete('tab')
+                else param.set('tab', next)
+                return param
+            },
+            { replace: true },
         )
     }
 
@@ -230,17 +230,19 @@ export function ProductsPage() {
                                 </div>
                             )}
                             {recipes.map((r) => (
-                                <li
-                                    key={r.id}
-                                    className="list-group-item d-flex align-items-center gap-2"
-                                >
-                                    <DeferredImage src={r.imageUrl} alt={r.name} />
-                                    <div>
-                                        <div className="fw-semibold">{r.name}</div>
-                                        {r.description && (
-                                            <div className="small text-muted">{r.description}</div>
-                                        )}
-                                    </div>
+                                <li key={r.id} className="list-group-item p-0">
+                                    <Link
+                                        to={`/diary/recipes/${r.id}`}
+                                        className="d-flex align-items-center gap-2 text-decoration-none text-reset p-3"
+                                    >
+                                        <DeferredImage src={r.imageUrl} alt={r.name} />
+                                        <div>
+                                            <div className="fw-semibold">{r.name}</div>
+                                            {r.description && (
+                                                <div className="small text-muted">{r.description}</div>
+                                            )}
+                                        </div>
+                                    </Link>
                                 </li>
                             ))}
                         </ul>
