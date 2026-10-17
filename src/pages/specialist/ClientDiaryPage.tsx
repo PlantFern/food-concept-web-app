@@ -3,7 +3,7 @@ import { Link, useParams, useSearchParams } from 'react-router-dom'
 import { SpecialistBottomNav } from '@/components/specialist/SpecialistBottomNav'
 import { fetchSpecialistClients, getMySpecialist, isActiveRelation } from '@/api/specialist'
 import { fetchDayMeals } from '@/api/meals/queries'
-import type { DayMealsDto, WeightLogDto } from '@/api/diaryProfile/diary'
+import type { DayMealsDto, SleepLogDto, WeightLogDto } from '@/api/diaryProfile/diary'
 import {
     createClientComment,
     getClientLatestGoal,
@@ -11,6 +11,7 @@ import {
     getClientProfile,
     getClientCommentsByType,
     getClientWeights,
+    getClientSleepByDay,
     createClientGoal,
     updateClientGoal,
     saveClientSettings,
@@ -43,6 +44,7 @@ export function ClientDiaryPage() {
     const [profile, setProfile] = useState<DiaryProfileDto | null>(null)
     const [day, setDay] = useState<DayMealsDto | null>(null)
     const [weights, setWeights] = useState<WeightLogDto[]>([])
+    const [sleepLogs, setSleepLogs] = useState<SleepLogDto[]>([])
     const [comments, setComments] = useState<DiaryCommentDto[]>([])
     const [goal, setGoal] = useState<GoalDto | null>(null)
     const [settings, setSettings] = useState<ProfileFeatureSettingsDto | null>(null)
@@ -77,10 +79,11 @@ export function ClientDiaryPage() {
                 params.set('tab', 'diary')
                 setSearchParams(params, { replace: true })
             }
-            const [p, d, w, mealComments, sleepComments, weightComments, latestGoal, latestSettings] = await Promise.all([
+            const [p, d, w, sleepForDate, mealComments, sleepComments, weightComments, latestGoal, latestSettings] = await Promise.all([
                 getClientProfile(profileId),
                 fetchDayMeals(date, profileId),
                 getClientWeights(profileId),
+                getClientSleepByDay(profileId, date),
                 getClientCommentsByType(profileId, 'MEAL'),
                 getClientCommentsByType(profileId, 'SLEEP_LOG'),
                 getClientCommentsByType(profileId, 'WEIGHT_LOG'),
@@ -90,6 +93,7 @@ export function ClientDiaryPage() {
             setProfile(p)
             setDay(d)
             setWeights(w)
+            setSleepLogs(sleepForDate)
             setComments([...mealComments, ...sleepComments, ...weightComments])
             setGoal(latestGoal)
             setSettings(latestSettings)
@@ -218,13 +222,13 @@ export function ClientDiaryPage() {
                                         <div className="fw-semibold">{section.mealTypeCode || 'Приём пищи'} <span className="text-muted small">· {section.records.length} записей</span></div>
                                         {section.photoPath && <DeferredImage src={photoPathToUrl(section.photoPath)} alt={`Фото приёма: ${section.mealTypeCode || 'приём пищи'}`} className="w-100 rounded-3 mt-2" />}
                                         <ul className="list-group list-group-flush mt-2">{section.records.map((record) => <li key={record.recordId} className="list-group-item px-0"><div className="d-flex align-items-center gap-2">
-                                            {record.photoPath && <DeferredImage src={photoPathToUrl(record.photoPath)} alt={record.productDescription || 'Продукт'} className="rounded-2 flex-shrink-0" style={{ width: 56, height: 56, objectFit: 'cover' }} />}
+                                            {record.photoPath && <div className="rounded-2 flex-shrink-0 overflow-hidden" style={{ width: 56, height: 56 }}><DeferredImage src={photoPathToUrl(record.photoPath)} alt={record.productDescription || 'Продукт'} className="w-100 h-100 object-fit-cover" /></div>}
                                             <div className="d-flex justify-content-between align-items-start gap-2 flex-grow-1"><span>{record.productDescription}</span><span className="text-muted small text-nowrap">{record.gramWeight != null ? record.gramWeight + ' г' : record.amount ?? ''}</span></div>
                                         </div></li>)}</ul>
                                         {renderCommentBox('MEAL', section.mealId)}
                                     </div></section>
                                 )) : <p className="text-muted">За эту дату нет записей о приёмах пищи.</p>}
-                                {day?.sleepForDay?.map((log) => <section key={'sleep-' + log.id} className="card border-0 shadow-sm mb-2"><div className="card-body"><div className="fw-semibold">Сон</div><div className="small text-muted">{log.beganAt} — {log.endedAt || 'не завершён'}</div>{renderCommentBox('SLEEP_LOG', log.id)}</div></section>)}
+                                {sleepLogs.map((log) => <section key={'sleep-' + log.id} className="card border-0 shadow-sm mb-2"><div className="card-body"><div className="fw-semibold">Сон</div><div className="small text-muted">{log.beganAt} — {log.endedAt || 'не завершён'}</div>{renderCommentBox('SLEEP_LOG', log.id)}</div></section>)}
                                 {day?.latestWeight && <section className="card border-0 shadow-sm mb-2"><div className="card-body"><div className="fw-semibold">Вес</div><div>{day.latestWeight.weight} кг</div>{renderCommentBox('WEIGHT_LOG', day.latestWeight.id)}</div></section>}
                                 {weights.length > 0 && <section className="card border-0 shadow-sm mt-3"><div className="card-body"><div className="fw-semibold mb-2">История веса</div>{weights.map((w) => <div key={w.id} className="border-bottom py-2"><div className="d-flex justify-content-between"><span>Запись #{w.id}</span><span>{w.weight} кг</span></div>{renderCommentBox('WEIGHT_LOG', w.id)}</div>)}</div></section>}
                             </>
