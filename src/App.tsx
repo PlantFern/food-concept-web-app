@@ -13,7 +13,10 @@ import { GoalAutoPage } from '@/pages/onboarding/diaryProfile/GoalAutoPage'
 import { DiaryHomePage } from '@/pages/diary/DiaryHomePage'
 import { ProductsPage } from '@/pages/diary/ProductsPage'
 import { ProductDetailPage } from '@/pages/diary/ProductDetailPage'
+import { ProductCreateFormPage } from '@/pages/diary/ProductCreateFormPage'
 import { RecipeDetailPage } from '@/pages/diary/RecipeDetailPage'
+import { RecipeCreateFormPage } from '@/pages/diary/RecipeCreateFormPage'
+import { MealPhotoFormPage } from '@/pages/diary/MealPhotoFormPage'
 import { SettingsPage } from '@/pages/diary/SettingsPage'
 import { DiarySettingsPage } from '@/pages/diary/DiarySettingsPage'
 import { GoalsPage } from '@/pages/diary/GoalsPage'
@@ -57,8 +60,12 @@ function App() {
                             <Route path="/diary/stats" element={<StatsPage />} />
 
                             <Route path="/diary/products" element={<ProductsPage />} />
+                            <Route path="/diary/products/create" element={<ProductCreateFormPage />} />
                             <Route path="/diary/products/:productId" element={<ProductDetailPage />} />
+                            <Route path="/diary/recipes/create" element={<RecipeCreateFormPage />} />
                             <Route path="/diary/recipes/:recipeId" element={<RecipeDetailPage />} />
+
+                            <Route path="/diary/meals/photo" element={<MealPhotoFormPage />} />
 
                             <Route path="/diary/settings" element={<SettingsPage />} />
                             <Route path="/diary/settings/diary" element={<DiarySettingsPage />} />
