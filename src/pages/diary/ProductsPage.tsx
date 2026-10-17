@@ -69,6 +69,14 @@ export function ProductsPage() {
         return qs ? `/diary/products/${productId}?${qs}` : `/diary/products/${productId}`
     }
 
+    function recipeHref(recipeId: number): string {
+        const q = new URLSearchParams()
+        if (mealTypeId) q.set('mealTypeId', mealTypeId)
+        if (date) q.set('date', date)
+        const qs = q.toString()
+        return qs ? `/diary/recipes/${recipeId}?${qs}` : `/diary/recipes/${recipeId}`
+    }
+
     async function loadProducts(q: string, pageNum: number, append: boolean) {
         if (append) setLoadingMore(true)
         else setLoading(true)
@@ -239,7 +247,7 @@ export function ProductsPage() {
                                 {recipes.map((r) => (
                                     <li key={r.id} className="border-bottom py-2">
                                         <Link
-                                            to={`/diary/recipes/${r.id}`}
+                                            to={recipeHref(r.id)}
                                             className="d-flex align-items-center gap-2 text-decoration-none text-body"
                                         >
                                             <DeferredImage
