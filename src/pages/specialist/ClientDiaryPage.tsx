@@ -152,7 +152,11 @@ export function ClientDiaryPage() {
     async function saveGoal(e: React.FormEvent) {
         e.preventDefault()
         const nutrientGoals = toNutrientGoals(goalForm.amounts)
-        if (nutrientGoals.some((n) => !Number.isFinite(n.amount) || n.amount <= 0)) {
+        if (!goalForm.startDate) {
+            showAlert('Укажите дату начала цели', 'warning')
+            return
+        }
+        if (nutrientGoals.length === 0 || nutrientGoals.some((n) => !Number.isFinite(n.amount) || n.amount <= 0)) {
             showAlert('Цели нутриентов должны быть положительными числами', 'warning')
             return
         }
