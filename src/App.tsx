@@ -13,6 +13,7 @@ import { GoalAutoPage } from '@/pages/onboarding/diaryProfile/GoalAutoPage'
 import { DiaryHomePage } from '@/pages/diary/DiaryHomePage'
 import { ProductsPage } from '@/pages/diary/ProductsPage'
 import { ProductDetailPage } from '@/pages/diary/ProductDetailPage'
+import { RecipeDetailPage } from '@/pages/diary/RecipeDetailPage'
 import { SettingsPage } from '@/pages/diary/SettingsPage'
 import { DiarySettingsPage } from '@/pages/diary/DiarySettingsPage'
 import { GoalsPage } from '@/pages/diary/GoalsPage'
@@ -24,6 +25,7 @@ import { CommentFormPage } from '@/pages/diary/CommentFormPage'
 import { QuickProductFormPage } from '@/pages/diary/QuickProductFormPage'
 import { StatsPage } from '@/pages/diary/StatsPage'
 import { ClientsPage } from '@/pages/specialist/ClientsPage'
+import { MySpecialistsPage } from '@/pages/diary/MySpecialistsPage'
 import { SpecialistSettingsPage } from '@/pages/specialist/SpecialistSettingsPage'
 import { RequireAuth } from '@/routes/RequireAuth'
 import { RequireDiary } from '@/routes/RequireDiary'
@@ -55,10 +57,12 @@ function App() {
 
                             <Route path="/diary/products" element={<ProductsPage />} />
                             <Route path="/diary/products/:productId" element={<ProductDetailPage />} />
+                            <Route path="/diary/recipes/:recipeId" element={<RecipeDetailPage />} />
 
                             <Route path="/diary/settings" element={<SettingsPage />} />
                             <Route path="/diary/settings/diary" element={<DiarySettingsPage />} />
                             <Route path="/diary/settings/goals" element={<GoalsPage />} />
+                            <Route path="/diary/settings/specialists" element={<MySpecialistsPage />} />
 
                             <Route path="/diary/sleep-log/add" element={<SleepLogFormPage />} />
                             <Route path="/diary/sleep-log/:sleepLogId/edit" element={<SleepLogFormPage />} />
