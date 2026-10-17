@@ -12,7 +12,9 @@ import {
     type TemplateFoodRecordItem,
 } from '@/api/meals'
 import { useAlert } from '@/components/ui/Alert'
+import { DeferredImage } from '@/components/ui/DeferredImage'
 import { getErrorMessage } from '@/lib/errors'
+import { photoPathToUrl } from '@/lib/photo'
 import { getDiaryProfileId } from '@/api/onboarding.ts'
 import mealStyles from '@/components/diary/MealSection/MealSection.module.css'
 
@@ -273,7 +275,11 @@ export function MealTemplateFormPage() {
                                         <ul className={mealStyles.foodList}>
                                             {records.map((item) => (
                                                 <li key={item.id} className={mealStyles.foodRow}>
-                                                    <div className={mealStyles.foodThumb} />
+                                                    <DeferredImage
+                                                        src={photoPathToUrl(item.photoPath)}
+                                                        alt={item.productDescription || 'Еда'}
+                                                        className={mealStyles.foodThumb}
+                                                    />
                                                     <div className={mealStyles.foodMeta}>
                                                         <div className={mealStyles.foodName}>
                                                             {item.productDescription ||
