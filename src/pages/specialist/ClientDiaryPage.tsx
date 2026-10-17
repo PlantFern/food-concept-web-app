@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
 import { SpecialistBottomNav } from '@/components/specialist/SpecialistBottomNav'
+import { fetchSpecialistClients, getMySpecialist, isActiveRelation } from '@/api/specialist'
 import { fetchDayMeals } from '@/api/meals/queries'
 import type { DayMealsDto, WeightLogDto } from '@/api/diaryProfile/diary'
 import {
@@ -43,6 +44,7 @@ export function ClientDiaryPage() {
     const [comments, setComments] = useState<DiaryCommentDto[]>([])
     const [goal, setGoal] = useState<GoalDto | null>(null)
     const [settings, setSettings] = useState<ProfileFeatureSettingsDto | null>(null)
+    const [relationType, setRelationType] = useState('SPECIALIST')
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState('')
     const [commentDrafts, setCommentDrafts] = useState<Record<string, string>>({})
@@ -52,7 +54,7 @@ export function ClientDiaryPage() {
     const [goalEnd, setGoalEnd] = useState('')
     const [goalAmounts, setGoalAmounts] = useState<Record<number, string>>({})
     const [settingsValues, setSettingsValues] = useState({ showSleep: true, showSleepLogs: true, showWeight: true, showWeightLogs: true, showAllergensWarning: true, hiddenNutrients: [] as number[] })
-    const isObserver = searchParams.get('relationType') === 'OBSERVER'
+    const isObserver = relationType === 'OBSERVER'
 
     const load = useCallback(async () => {
         if (!Number.isFinite(profileId) || profileId <= 0) {
@@ -63,6 +65,19 @@ export function ClientDiaryPage() {
         setLoading(true)
         setError('')
         try {
+            const specialist = await getMySpecialist()
+            if (!specialist) throw new Error('Профиль специалиста не найден')
+            const relations = await fetchSpecialistClients(specialist.id)
+            const activeRelation = relations.find((r) => r.diaryProfileId === profileId && isActiveRelation(r))
+            if (!activeRelation) throw new Error('Нет действующей связи с этим пользователем')
+            const currentRelationType = String(activeRelation.relationType || 'SPECIALIST').toUpperCase()
+            setRelationType(currentRelationType)
+            if (currentRelationType === 'OBSERVER' && tab !== 'diary') {
+                setTab('diary')
+                const params = new URLSearchParams(searchParams)
+                params.set('tab', 'diary')
+                setSearchParams(params, { replace: true })
+            }
             const [p, d, w, mealComments, sleepComments, weightComments, latestGoal, latestSettings] = await Promise.all([
                 getClientProfile(profileId),
                 fetchDayMeals(date, profileId),
@@ -101,7 +116,7 @@ export function ClientDiaryPage() {
         } finally {
             setLoading(false)
         }
-    }, [profileId, date])
+    }, [profileId, date, tab, searchParams, setSearchParams])
 
     useEffect(() => { void load() }, [load])
 
