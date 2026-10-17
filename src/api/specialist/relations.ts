@@ -12,6 +12,10 @@ function statusCode(r: UserRelationDto): string {
     return String(r.relationStatusCode ?? '').toUpperCase()
 }
 
+function relationType(r: UserRelationDto): string {
+    return String(r.relationType ?? '').toUpperCase()
+}
+
 export function isPendingRelation(r: UserRelationDto): boolean {
     const code = statusCode(r)
     return code === 'PENDING' || code.includes('PENDING')
@@ -20,6 +24,20 @@ export function isPendingRelation(r: UserRelationDto): boolean {
 export function isActiveRelation(r: UserRelationDto): boolean {
     const code = statusCode(r)
     return code === 'ACTIVE' || code.includes('ACTIVE')
+}
+
+/** Active relation of type SPECIALIST — client cannot edit goals/settings */
+export function isSpecialistControlRelation(r: UserRelationDto): boolean {
+    return isActiveRelation(r) && relationType(r) === 'SPECIALIST'
+}
+
+export async function hasActiveSpecialistControl(diaryProfileId: number): Promise<boolean> {
+    try {
+        const list = await fetchDiarySpecialistRelations(diaryProfileId)
+        return list.some(isSpecialistControlRelation)
+    } catch {
+        return false
+    }
 }
 
 export async function fetchSpecialistClients(specialistId: number): Promise<UserRelationDto[]> {
