@@ -138,6 +138,11 @@ export function SettingsPage() {
                                 label="Цели"
                                 to="/diary/settings/goals"
                             />
+                            <SettingsRow
+                                icon={<HiOutlineUserGroup />}
+                                label="Мои специалисты"
+                                to="/diary/settings/specialists"
+                            />
                         </div>
                     </section>
                 )}
