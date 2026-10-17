@@ -13,7 +13,6 @@ import {
     completeGoal,
     createGoal,
     fetchActiveGoal,
-    updateGoal,
     type GoalDto,
 } from '@/api/diaryProfile/goals'
 import { NUTRIENT_BY_ID, unitLabel } from '@/data/nutrients'
@@ -32,7 +31,7 @@ export function GoalsPage() {
         setLoading(true)
         const active = await fetchActiveGoal()
         setGoal(active)
-        setForm(formValuesFromGoal(active))
+        setForm(emptyGoalForm(true))
         setLoading(false)
     }
 
@@ -60,12 +59,15 @@ export function GoalsPage() {
                 plannedEndDate: form.plannedEndDate || null,
                 nutrientGoals: nutrients,
             }
-            const saved = goal?.id
-                ? await updateGoal(goal.id, payload)
-                : await createGoal(payload)
+            // Always create a new goal (previous active is superseded on backend / by complete)
+            if (goal?.id) {
+                await completeGoal(goal.id).catch(() => undefined)
+            }
+            const saved = await createGoal(payload)
             setGoal(saved)
-            setForm(formValuesFromGoal(saved))
-            showAlert(goal?.id ? 'Цель обновлена' : 'Цель добавлена', 'success')
+            setForm(emptyGoalForm(true))
+            showAlert('Новая цель создана', 'success')
+            await reload()
         } catch (err: unknown) {
             setError(getErrorMessage(err, 'Не удалось сохранить цель'))
         } finally {
@@ -139,7 +141,7 @@ export function GoalsPage() {
                 {!loading && (
                     <div className="card border-0 shadow-sm mb-3">
                         <div className="card-body">
-                            <h2 className="h6 mb-3">{goal ? 'Изменить цель' : 'Новая цель'}</h2>
+                            <h2 className="h6 mb-3">Новая цель</h2>
                             {error && <p className="text-danger small">{error}</p>}
                             <GoalNutrientForm
                                 values={form}
@@ -166,7 +168,7 @@ export function GoalsPage() {
                     disabled={loading || saving}
                     onClick={() => void onSave()}
                 >
-                    {saving ? 'Сохранение…' : goal ? 'Обновить' : 'Добавить'}
+                    {saving ? 'Сохранение…' : 'Создать цель'}
                 </button>
             </div>
 
