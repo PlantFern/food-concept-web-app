@@ -20,6 +20,7 @@ type Props = {
     showMetaFields?: boolean
     showAllNutrients?: boolean
     openGroupsByDefault?: boolean
+    disabled?: boolean
 }
 
 function todayIso(): string {
@@ -78,10 +79,12 @@ function NutrientInput({
     nutrient,
     value,
     onChange,
+    disabled,
 }: {
     nutrient: NutrientDef
     value: string
     onChange: (v: string) => void
+    disabled?: boolean
 }) {
     return (
         <div className="mb-2">
@@ -95,6 +98,7 @@ function NutrientInput({
                 step="any"
                 className="form-control form-control-sm"
                 value={value}
+                disabled={disabled}
                 onChange={(e) => onChange(e.target.value)}
                 placeholder="0"
             />
@@ -108,12 +112,15 @@ export function GoalNutrientForm({
     showMetaFields = true,
     showAllNutrients = true,
     openGroupsByDefault = false,
+    disabled = false,
 }: Props) {
     function setField<K extends keyof GoalNutrientFormValues>(key: K, value: GoalNutrientFormValues[K]) {
+        if (disabled) return
         onChange({ ...values, [key]: value })
     }
 
     function setAmount(id: number, value: string) {
+        if (disabled) return
         onChange({
             ...values,
             amounts: { ...values.amounts, [id]: value },
@@ -137,6 +144,7 @@ export function GoalNutrientForm({
                             step="any"
                             className="form-control"
                             value={values.plannedWeight}
+                            disabled={disabled}
                             onChange={(e) => setField('plannedWeight', e.target.value)}
                         />
                     </div>
@@ -150,6 +158,7 @@ export function GoalNutrientForm({
                                 type="date"
                                 className="form-control"
                                 value={values.startDate}
+                                disabled={disabled}
                                 onChange={(e) => setField('startDate', e.target.value)}
                             />
                         </div>
@@ -162,6 +171,7 @@ export function GoalNutrientForm({
                                 type="date"
                                 className="form-control"
                                 value={values.plannedEndDate}
+                                disabled={disabled}
                                 onChange={(e) => setField('plannedEndDate', e.target.value)}
                             />
                         </div>
@@ -176,6 +186,7 @@ export function GoalNutrientForm({
                         nutrient={n}
                         value={values.amounts[n.id] ?? ''}
                         onChange={(v) => setAmount(n.id, v)}
+                        disabled={disabled}
                     />
                 ))}
 
@@ -192,6 +203,7 @@ export function GoalNutrientForm({
                                     nutrient={n}
                                     value={values.amounts[n.id] ?? ''}
                                     onChange={(v) => setAmount(n.id, v)}
+                                    disabled={disabled}
                                 />
                             ))}
                         </div>
