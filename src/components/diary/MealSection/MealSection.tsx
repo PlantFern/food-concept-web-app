@@ -16,6 +16,8 @@ type MealSectionProps = {
     records: MealFoodRecordItemDto[]
     totalPrimaryNutrient?: number | null
     primaryUnit?: string
+    /** Whole-meal photo (meals.photo_path) */
+    mealPhotoPath?: string | null
     templates?: MealTemplateListItemDto[]
     applyingTemplateId?: number | null
     onApplyTemplate?: (templateId: number, mealTypeId: number) => void
@@ -29,6 +31,7 @@ export function MealSection({
     records,
     totalPrimaryNutrient,
     primaryUnit = 'kcal',
+    mealPhotoPath,
     templates = [],
     applyingTemplateId = null,
     onApplyTemplate,
@@ -38,6 +41,8 @@ export function MealSection({
     if (date) q.set('date', date)
     if (mealId != null && mealId > 0) q.set('mealId', String(mealId))
     const mealQs = q.toString()
+
+    const mealPhotoUrl = photoPathToUrl(mealPhotoPath)
 
     return (
         <section className={styles.mealSection}>
@@ -91,6 +96,16 @@ export function MealSection({
                     )}
                 </div>
             </div>
+
+            {mealPhotoUrl && (
+                <div className={styles.mealPhotoWrap}>
+                    <DeferredImage
+                        src={mealPhotoUrl}
+                        alt={`Фото: ${mealTypeLabel(mealTypeCode)}`}
+                        className={styles.mealPhoto}
+                    />
+                </div>
+            )}
 
             {records.length === 0 ? (
                 <p className={styles.mealEmpty}>Пока пусто</p>
