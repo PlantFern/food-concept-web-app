@@ -10,6 +10,7 @@ import {
     type FoodServingDto,
     type ProductDetail,
 } from '@/api/food'
+import { addTemplateRecord } from '@/api/meals'
 import { photoPathToUrl } from '@/lib/photo'
 import styles from './ProductDetailPage.module.css'
 
@@ -55,6 +56,13 @@ export function ProductDetailPage() {
     const navigate = useNavigate()
     const { showAlert } = useAlert()
 
+    const templateIdRaw = searchParams.get('templateId')
+    const templateId =
+        templateIdRaw != null && Number.isFinite(Number(templateIdRaw)) && Number(templateIdRaw) > 0
+            ? Number(templateIdRaw)
+            : null
+    const isTemplateMode = templateId != null
+
     const [product, setProduct] = useState<ProductDetail | null>(null)
     const [loading, setLoading] = useState(true)
     const [saving, setSaving] = useState(false)
@@ -96,6 +104,10 @@ export function ProductDetailPage() {
 
     const nutrients = product?.nutrients ?? []
 
+    const backTo = isTemplateMode
+        ? `/diary/templates/${templateId}/edit`
+        : '/diary/products'
+
     async function onSubmit(e: SyntheticEvent) {
         e.preventDefault()
         setFormError('')
@@ -108,18 +120,31 @@ export function ProductDetailPage() {
 
         setSaving(true)
         try {
-            await addFoodRecord({
-                mealId: null,
-                mealTypeId,
-                servingId: Number(servingId),
-                amount: amountNum,
-                date,
-                eatenAt,
-            })
-            showAlert('Запись добавлена в дневник', 'success')
-            navigate('/diary', { replace: true })
+            if (isTemplateMode && templateId != null) {
+                await addTemplateRecord(templateId, Number(servingId), amountNum)
+                showAlert('Продукт добавлен в шаблон', 'success')
+                navigate(`/diary/templates/${templateId}/edit`, { replace: true })
+            } else {
+                await addFoodRecord({
+                    mealId: null,
+                    mealTypeId,
+                    servingId: Number(servingId),
+                    amount: amountNum,
+                    date,
+                    eatenAt,
+                })
+                showAlert('Запись добавлена в дневник', 'success')
+                navigate('/diary', { replace: true })
+            }
         } catch (err: unknown) {
-            setFormError(getErrorMessage(err, 'Не удалось добавить запись'))
+            setFormError(
+                getErrorMessage(
+                    err,
+                    isTemplateMode
+                        ? 'Не удалось добавить в шаблон'
+                        : 'Не удалось добавить запись',
+                ),
+            )
         } finally {
             setSaving(false)
         }
@@ -129,8 +154,8 @@ export function ProductDetailPage() {
         <div className="diary-shell">
             <div className={`diary-content ${styles.page}`}>
                 <div className="bg-brand text-invert p-2 rounded-bottom-4">
-                    <Link to="/diary/products" className={styles.back}>
-                        ← Продукты
+                    <Link to={backTo} className={styles.back}>
+                        ← {isTemplateMode ? 'К шаблону' : 'Продукты'}
                     </Link>
                 </div>
 
@@ -178,24 +203,30 @@ export function ProductDetailPage() {
                         </section>
 
                         <form className={styles.form} onSubmit={onSubmit}>
-                            <h2 className={styles.formTitle}>Добавить в приём пищи</h2>
+                            <h2 className={styles.formTitle}>
+                                {isTemplateMode
+                                    ? 'Добавить в шаблон'
+                                    : 'Добавить в приём пищи'}
+                            </h2>
 
                             {formError && <p className={styles.error}>{formError}</p>}
 
-                            <label className={styles.label}>
-                                Тип приёма
-                                <select
-                                    className="form-select"
-                                    value={mealTypeId}
-                                    onChange={(e) => setMealTypeId(Number(e.target.value))}
-                                >
-                                    {MEAL_TYPES.map((t) => (
-                                        <option key={t.id} value={t.id}>
-                                            {t.label}
-                                        </option>
-                                    ))}
-                                </select>
-                            </label>
+                            {!isTemplateMode && (
+                                <label className={styles.label}>
+                                    Тип приёма
+                                    <select
+                                        className="form-select"
+                                        value={mealTypeId}
+                                        onChange={(e) => setMealTypeId(Number(e.target.value))}
+                                    >
+                                        {MEAL_TYPES.map((t) => (
+                                            <option key={t.id} value={t.id}>
+                                                {t.label}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </label>
+                            )}
 
                             <label className={styles.label}>
                                 Порция
@@ -233,35 +264,41 @@ export function ProductDetailPage() {
                                 />
                             </label>
 
-                            <div className={styles.row2}>
-                                <label className={styles.label}>
-                                    Дата
-                                    <input
-                                        type="date"
-                                        className="form-control"
-                                        value={date}
-                                        onChange={(e) => setDate(e.target.value)}
-                                        required
-                                    />
-                                </label>
-                                <label className={styles.label}>
-                                    Время
-                                    <input
-                                        type="time"
-                                        className="form-control"
-                                        value={eatenAt}
-                                        onChange={(e) => setEatenAt(e.target.value)}
-                                        required
-                                    />
-                                </label>
-                            </div>
+                            {!isTemplateMode && (
+                                <div className={styles.row2}>
+                                    <label className={styles.label}>
+                                        Дата
+                                        <input
+                                            type="date"
+                                            className="form-control"
+                                            value={date}
+                                            onChange={(e) => setDate(e.target.value)}
+                                            required
+                                        />
+                                    </label>
+                                    <label className={styles.label}>
+                                        Время
+                                        <input
+                                            type="time"
+                                            className="form-control"
+                                            value={eatenAt}
+                                            onChange={(e) => setEatenAt(e.target.value)}
+                                            required
+                                        />
+                                    </label>
+                                </div>
+                            )}
 
                             <button
                                 type="submit"
                                 className={`btn btn-success w-100 ${styles.submit}`}
                                 disabled={saving}
                             >
-                                {saving ? 'Сохранение…' : 'Добавить в дневник'}
+                                {saving
+                                    ? 'Сохранение…'
+                                    : isTemplateMode
+                                      ? 'Добавить в шаблон'
+                                      : 'Добавить в дневник'}
                             </button>
                         </form>
                     </>
