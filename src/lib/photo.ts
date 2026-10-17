@@ -27,3 +27,5 @@ export function photoPathToUrl(value: string | number | null | undefined): strin
 }
 
 export const resolvePhotoUrl = photoPathToUrl;
+/** Backward-compatible alias used by the food API modules. */
+export const photoUrl = photoPathToUrl;
