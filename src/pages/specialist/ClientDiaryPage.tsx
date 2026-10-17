@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
 import { SpecialistBottomNav } from '@/components/specialist/SpecialistBottomNav'
-import { fetchDayMeals, type DayMealsDto } from '@/api/meals/queries'
+import { fetchDayMeals } from '@/api/meals/queries'
+import type { DayMealsDto, WeightLogDto } from '@/api/diaryProfile/diary'
 import {
     createClientComment,
-    getClientActiveGoal,
     getClientLatestGoal,
     getClientLatestSettings,
     getClientProfile,
@@ -18,7 +18,6 @@ import type { DiaryProfileDto } from '@/api/diaryProfile/diary'
 import type { DiaryCommentDto, CommentType } from '@/api/diaryProfile/comments'
 import type { GoalDto } from '@/api/diaryProfile/goals'
 import type { ProfileFeatureSettingsDto } from '@/api/diaryProfile/settings'
-import type { WeightLogDto } from '@/api/diaryProfile/diary'
 import { NUTRIENTS } from '@/data/nutrients'
 import { useAlert } from '@/components/ui/Alert'
 import { getErrorMessage } from '@/lib/errors'
