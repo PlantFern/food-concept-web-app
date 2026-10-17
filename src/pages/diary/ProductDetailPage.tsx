@@ -198,32 +198,6 @@ export function ProductDetailPage() {
                             </div>
                         </div>
 
-                        <section className={styles.nutrients}>
-                            <h2 className={styles.formTitle}>Нутриенты (на 100 г)</h2>
-                            {nutrients.length === 0 ? (
-                                <p className={styles.meta}>Нет данных о нутриентах</p>
-                            ) : (
-                                <ul className={styles.nutrientList}>
-                                    {nutrients.map((n) => {
-                                        const def = NUTRIENT_BY_ID[n.nutrientId]
-                                        const label =
-                                            def?.name ??
-                                            n.nutrientCode ??
-                                            `Nutrient #${n.nutrientId}`
-                                        return (
-                                            <li key={n.nutrientId} className={styles.nutrientRow}>
-                                                <span className={styles.nutrientName}>{label}</span>
-                                                <span className={styles.nutrientValue}>
-                                                    {formatNutrientAmount(n.amountPer100g)}
-                                                    {n.unitCode ? ` ${n.unitCode}` : ''}
-                                                </span>
-                                            </li>
-                                        )
-                                    })}
-                                </ul>
-                            )}
-                        </section>
-
                         <form className={styles.form} onSubmit={onSubmit}>
                             <h2 className={styles.formTitle}>
                                 {isTemplateMode
@@ -323,6 +297,32 @@ export function ProductDetailPage() {
                                       : 'Добавить в дневник'}
                             </button>
                         </form>
+
+                        <section className={styles.nutrients}>
+                            <h2 className={styles.formTitle}>Нутриенты (на 100 г)</h2>
+                            {nutrients.length === 0 ? (
+                                <p className={styles.meta}>Нет данных о нутриентах</p>
+                            ) : (
+                                <ul className={styles.nutrientList}>
+                                    {nutrients.map((n) => {
+                                        const def = NUTRIENT_BY_ID[n.nutrientId]
+                                        const label =
+                                            def?.name ??
+                                            n.nutrientCode ??
+                                            `Nutrient #${n.nutrientId}`
+                                        return (
+                                            <li key={n.nutrientId} className={styles.nutrientRow}>
+                                                <span className={styles.nutrientName}>{label}</span>
+                                                <span className={styles.nutrientValue}>
+                                                    {formatNutrientAmount(n.amountPer100g)}
+                                                    {n.unitCode ? ` ${n.unitCode}` : ''}
+                                                </span>
+                                            </li>
+                                        )
+                                    })}
+                                </ul>
+                            )}
+                        </section>
                     </>
                 )}
             </div>
