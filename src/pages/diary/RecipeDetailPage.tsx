@@ -34,7 +34,7 @@ function recipeInstructionLines(value: string): string[] {
     } catch {
         // recipeText is usually plain text; continue with line-based parsing
     }
-    return raw.split(/\r?\n/).map((line) => line.trim()).filter(Boolean)
+    return raw.replace(/\\r\\n/g, '\n').replace(/\\n/g, '\n').split(/\r?\n/).map((line) => line.trim()).filter(Boolean)
 }
 
 export function RecipeDetailPage() {
