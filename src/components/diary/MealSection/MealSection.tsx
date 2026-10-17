@@ -1,4 +1,5 @@
-import { IoAdd } from 'react-icons/io5'
+import { Link } from 'react-router-dom'
+import { IoAdd, IoCreateOutline, IoTrashOutline } from 'react-icons/io5'
 import type { MealFoodRecordItemDto, MealTemplateListItemDto } from '@/api/diaryProfile/diary.ts'
 import { formatFoodAmount, mealTypeLabel } from '@/api/diaryProfile/diary.ts'
 import { TemplateBlock } from '@/components/diary/TemplateBlock'
@@ -106,21 +107,28 @@ export function MealSection({
                                 <div className={styles.foodName}>{item.productDescription}</div>
                                 <div className={styles.foodAmount}>{formatFoodAmount(item)}</div>
                             </div>
-                            <Dropdown
-                                trigger={{
-                                    label: `${item.nutrient != null ? Math.round(item.nutrient) : '—'} ${primaryUnit}`,
-                                }}
-                                items={[
-                                    {
-                                        label: 'Изменить',
-                                        to: `/diary/food-records/${item.recordId}/edit`,
-                                    },
-                                    {
-                                        label: 'Удалить',
-                                        to: `/diary/food-records/${item.recordId}/edit?delete=1`,
-                                    },
-                                ]}
-                            />
+                            <div className={styles.foodActions}>
+                                <span className={styles.foodKcalInline}>
+                                    {item.nutrient != null ? Math.round(item.nutrient) : '—'}
+                                    {primaryUnit ? ` ${primaryUnit}` : ''}
+                                </span>
+                                <Link
+                                    to={`/diary/food-records/${item.recordId}/edit`}
+                                    className={styles.iconBtn}
+                                    aria-label="Изменить"
+                                    title="Изменить"
+                                >
+                                    <IoCreateOutline size={18} />
+                                </Link>
+                                <Link
+                                    to={`/diary/food-records/${item.recordId}/edit?delete=1`}
+                                    className={`${styles.iconBtn} ${styles.iconBtnDanger}`}
+                                    aria-label="Удалить"
+                                    title="Удалить"
+                                >
+                                    <IoTrashOutline size={18} />
+                                </Link>
+                            </div>
                         </li>
                     ))}
                 </ul>
