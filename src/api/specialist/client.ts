@@ -70,7 +70,7 @@ export async function updateClientGoal(
         plannedWeight?: number | null
         startDate: string
         plannedEndDate?: string | null
-        nutrientGoals: Array<{ nutrientId: number; targetAmount: number }>
+        nutrientGoals: Array<{ nutrientId: number; amount: number }>
     },
 ): Promise<GoalDto> {
     const { data } = await http.put<GoalDto>(`/api/specialist/goal/goals/${goalId}`, payload)
