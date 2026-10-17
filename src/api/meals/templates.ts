@@ -16,6 +16,27 @@ export type TemplateListItem = {
     totalKcal?: number | null
 }
 
+export type TemplateFoodRecordItem = {
+    id: number
+    servingId: number
+    productDescription?: string | null
+    amount?: number | null
+    servingAmount?: number | null
+    gramWeight?: number | null
+    servingUnitCode?: string | null
+    nutrient?: number | null
+}
+
+export type MealTemplateDetail = {
+    id: number
+    diaryProfileId: number
+    name: string
+    scheduledTime?: string | null
+    frequency?: number | null
+    startedAt?: string | null
+    records: TemplateFoodRecordItem[]
+}
+
 export async function fetchTemplates(diaryProfileId?: number): Promise<TemplateListItem[]> {
     const profileId = diaryProfileId ?? getDiaryProfileId()
     if (profileId == null) return []
@@ -29,19 +50,22 @@ export async function fetchTemplates(diaryProfileId?: number): Promise<TemplateL
     }
 }
 
-export async function getMealTemplate(templateId: number): Promise<TemplateListItem> {
+export async function getMealTemplate(templateId: number): Promise<MealTemplateDetail> {
     const profileId = requireProfileId()
-    const { data } = await http.get<TemplateListItem>(
+    const { data } = await http.get<MealTemplateDetail>(
         `/api/diary-profile/${profileId}/meal-templates/${templateId}`,
     )
-    return data
+    return {
+        ...data,
+        records: Array.isArray(data.records) ? data.records : [],
+    }
 }
 
 export async function createMealTemplate(
     name: string,
     scheduledTime: string,
     frequency: number,
-    startedAt: number,
+    startedAt: number | string,
     diaryProfileId?: number,
 ): Promise<number> {
     const profileId = diaryProfileId ?? requireProfileId()
@@ -58,7 +82,7 @@ export async function updateMealTemplate(
     name: string,
     scheduledTime: string,
     frequency: number,
-    startedAt: number,
+    startedAt: number | string,
     diaryProfileId?: number,
 ): Promise<void> {
     const profileId = diaryProfileId ?? requireProfileId()
@@ -111,4 +135,13 @@ export async function deleteTemplateRecord(
     await http.delete(
         `/api/diary-profile/${profileId}/meal-templates/records/${templateRecordId}`,
     )
+}
+
+export function formatTemplateAmount(item: TemplateFoodRecordItem): string {
+    const parts: string[] = []
+    if (item.amount != null && item.amount !== 1) parts.push(String(item.amount))
+    if (item.servingAmount != null) parts.push(String(item.servingAmount))
+    if (item.gramWeight != null) parts.push(`${item.gramWeight}г`)
+    else if (item.servingUnitCode) parts.push(item.servingUnitCode)
+    return parts.length ? parts.join(' × ') : '—'
 }
