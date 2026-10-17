@@ -32,6 +32,8 @@ export type MealSectionDto = {
     generatedFromTemplateId: number | null
     records: MealFoodRecordItemDto[]
     totalPrimaryNutrient: number | null
+    /** Photo of the whole meal (not product thumb) */
+    photoPath?: string | null
 }
 
 export type MealTemplateListItemDto = {
