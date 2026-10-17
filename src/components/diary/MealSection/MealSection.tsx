@@ -9,6 +9,7 @@ type MealSectionProps = {
     mealTypeCode: string
     mealTypeId: number
     date?: string
+    mealId?: number | null
     records: MealFoodRecordItemDto[]
     totalPrimaryNutrient?: number | null
     primaryUnit?: string
@@ -21,6 +22,7 @@ export function MealSection({
     mealTypeCode,
     mealTypeId,
     date,
+    mealId,
     records,
     totalPrimaryNutrient,
     primaryUnit = 'kcal',
@@ -31,10 +33,11 @@ export function MealSection({
     const q = new URLSearchParams()
     q.set('mealTypeId', String(mealTypeId))
     if (date) q.set('date', date)
+    if (mealId != null && mealId > 0) q.set('mealId', String(mealId))
     const mealQs = q.toString()
 
     return (
-        <section className={`${styles.mealSection}`}>
+        <section className={styles.mealSection}>
             <div className={styles.mealSectionHead}>
                 <Dropdown
                     trigger={{
@@ -55,22 +58,30 @@ export function MealSection({
                             to: `/diary/food-records/quick?${mealQs}`,
                         },
                         {
-                            label: 'Создать шаблон',
-                            to: `/diary/templates/add?${mealQs}`,
-                        },
-                        {
                             label: 'Создать продукт',
                             to: `/diary/products?tab=products&create=1&${mealQs}`,
                         },
                         {
-                            label: 'Комментарий к приёму',
+                            label: 'Создать рецепт',
+                            to: `/diary/products?tab=recipes&create=1&${mealQs}`,
+                        },
+                        {
+                            label: 'Создать шаблон',
+                            to: `/diary/templates/add?${mealQs}`,
+                        },
+                        {
+                            label: 'Добавить комментарий',
                             to: `/diary/comments/add?commentableType=MEAL&${mealQs}`,
+                        },
+                        {
+                            label: 'Добавить фото',
+                            to: `/diary/comments/add?commentableType=MEAL&withPhoto=1&${mealQs}`,
                         },
                     ]}
                 />
 
                 <div className="d-flex align-items-center gap-2">
-                    {totalPrimaryNutrient != null && (
+                    {totalPrimaryNutrient != null && Number(totalPrimaryNutrient) > 0 && (
                         <span className={styles.mealSectionTotal}>
                             {Math.round(totalPrimaryNutrient)} {primaryUnit}
                         </span>
