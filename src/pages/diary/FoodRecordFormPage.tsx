@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
-import { Link, useParams, useNavigate } from 'react-router-dom'
+import { Link, useParams, useNavigate, useSearchParams } from 'react-router-dom'
+import { IoTrashOutline } from 'react-icons/io5'
 import { BottomNav } from '@/components/diary'
 import {
     getFoodRecord,
@@ -29,6 +30,7 @@ export function FoodRecordFormPage() {
     const [error, setError] = useState('')
     const [deleting, setDeleting] = useState(false)
     const navigate = useNavigate()
+    const [searchParams] = useSearchParams()
 
     const { recordId } = useParams()
     const id = Number(recordId)
@@ -51,6 +53,25 @@ export function FoodRecordFormPage() {
         if (!Number.isFinite(id) || id <= 0) {
             showAlert('Некорректный id записи', 'warning')
             navigate(-1)
+            return
+        }
+
+        // Quick delete from list icon
+        if (searchParams.get('delete') === '1') {
+            ;(async () => {
+                if (!window.confirm('Удалить запись из дневника?')) {
+                    navigate(`/diary/food-records/${id}/edit`, { replace: true })
+                    return
+                }
+                try {
+                    await deleteFoodRecord(id)
+                    showAlert('Запись удалена', 'success')
+                    navigate('/diary', { replace: true })
+                } catch (err: unknown) {
+                    showAlert(getErrorMessage(err, 'Не удалось удалить'), 'danger')
+                    navigate(`/diary/food-records/${id}/edit`, { replace: true })
+                }
+            })()
             return
         }
 
@@ -77,7 +98,7 @@ export function FoodRecordFormPage() {
         return () => {
             cancelled = true
         }
-    }, [id, reset, navigate, showAlert])
+    }, [id, reset, navigate, showAlert, searchParams])
 
     const onSubmit = async (formData: FoodRecordFormValues) => {
         setError('')
@@ -190,10 +211,13 @@ export function FoodRecordFormPage() {
                             <button
                                 type="button"
                                 disabled={isSubmitting || deleting}
-                                className="btn btn-outline-danger w-100"
+                                className="btn btn-outline-danger w-100 d-inline-flex align-items-center justify-content-center gap-2"
                                 onClick={() => void onDelete()}
+                                aria-label="Удалить"
+                                title="Удалить"
                             >
-                                {deleting ? 'Удаление...' : 'Удалить'}
+                                <IoTrashOutline size={18} />
+                                {deleting ? 'Удаление...' : null}
                             </button>
                         </form>
                     )}
