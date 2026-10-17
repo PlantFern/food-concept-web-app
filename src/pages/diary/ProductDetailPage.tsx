@@ -1,4 +1,4 @@
-import { type SyntheticEvent, useEffect, useMemo, useState } from 'react'
+import { type SyntheticEvent, useEffect, useState } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { BottomNav } from '@/components/diary'
 import { DeferredImage } from '@/components/ui/DeferredImage'
@@ -111,15 +111,9 @@ export function ProductDetailPage() {
         }
     }, [id])
 
-    const image = useMemo(
-        () => photoPathToUrl(product?.photoPath) ?? null,
-        [product?.photoPath],
-    )
+    const image = photoPathToUrl(product?.photoPath) ?? null
 
-    const nutrients = useMemo(
-        () => dedupeNutrients(product?.nutrients ?? []),
-        [product?.nutrients],
-    )
+    const nutrients = dedupeNutrients(product?.nutrients ?? [])
 
     const backTo = isTemplateMode
         ? `/diary/templates/${templateId}/edit`

@@ -1,4 +1,4 @@
-import { type SyntheticEvent, useMemo, useState } from 'react'
+import { type SyntheticEvent, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
     createDiaryWithCalculatedGoal,
@@ -25,7 +25,7 @@ const GOAL_TYPE_OPTIONS: { value: GoalType; label: string }[] = [
 
 export function GoalAutoPage() {
     const navigate = useNavigate()
-    const profile = useMemo(() => readOnboardingProfile(), [])
+    const profile = readOnboardingProfile()
 
     const [weight, setWeight] = useState('')
     const [plannedWeight, setPlannedWeight] = useState('')

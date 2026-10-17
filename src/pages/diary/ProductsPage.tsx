@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
+import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { BottomNav } from '@/components/diary'
 import { DeferredImage } from '@/components/ui/DeferredImage'
@@ -8,87 +8,64 @@ import {
     type ProductListItem,
     type RecipeListItem,
 } from '@/api/food'
-import {
-    fetchRecentWeekFoods,
-    fetchTemplates,
-    type RecentDayGroup,
-    type TemplateListItem,
-} from '@/api/meals'
-import { ImFileEmpty } from 'react-icons/im'
-import { FaPlus } from 'react-icons/fa6'
+import { fetchTemplates, type TemplateListItem } from '@/api/meals'
+import { fetchRecentWeekFoods, type RecentDayFoodGroupDto } from '@/api/diaryProfile/recent'
+import styles from './ProductDetailPage.module.css'
 
 type TabKey = 'products' | 'recipes' | 'templates' | 'recent'
-const TAB_KEYS: TabKey[] = ['products', 'recipes', 'templates', 'recent']
 
 const PAGE_SIZE = 12
 
-const thumbWrap: CSSProperties = {
+const TABS: { key: TabKey; label: string }[] = [
+    { key: 'products', label: 'Продукты' },
+    { key: 'recipes', label: 'Рецепты' },
+    { key: 'templates', label: 'Шаблоны' },
+    { key: 'recent', label: 'Недавнее' },
+]
+
+const thumbStyle: CSSProperties = {
     width: 45,
     height: 45,
-    flexShrink: 0,
     borderRadius: 8,
-    overflow: 'hidden',
-}
-
-const thumbImg = 'product-list-thumb'
-
-function parseTab(raw: string | null): TabKey {
-    if (raw && TAB_KEYS.includes(raw as TabKey)) return raw as TabKey
-    return 'products'
-}
-
-function formatDayLabel(iso: string): string {
-    const d = new Date(iso + 'T00:00:00')
-    if (Number.isNaN(d.getTime())) return iso
-    return d.toLocaleDateString('ru-RU', {
-        weekday: 'short',
-        day: 'numeric',
-        month: 'short',
-    })
+    objectFit: 'cover',
+    flexShrink: 0,
 }
 
 export function ProductsPage() {
     const [searchParams, setSearchParams] = useSearchParams()
-    const tab = parseTab(searchParams.get('tab'))
-    const templateId = searchParams.get('templateId')
-
+    const tab = (searchParams.get('tab') as TabKey) || 'products'
     const [query, setQuery] = useState('')
+    const [showSearch, setShowSearch] = useState(false)
+
     const [products, setProducts] = useState<ProductListItem[]>([])
-    const [page, setPage] = useState(0)
-    const [last, setLast] = useState(true)
     const [recipes, setRecipes] = useState<RecipeListItem[]>([])
     const [templates, setTemplates] = useState<TemplateListItem[]>([])
-    const [recent, setRecent] = useState<RecentDayGroup[]>([])
+    const [recent, setRecent] = useState<RecentDayFoodGroupDto[]>([])
+
+    const [page, setPage] = useState(0)
+    const [last, setLast] = useState(true)
     const [loading, setLoading] = useState(false)
     const [loadingMore, setLoadingMore] = useState(false)
     const sentinelRef = useRef<HTMLDivElement | null>(null)
 
-    const showSearch = tab === 'products' || tab === 'recipes'
+    const mealTypeId = searchParams.get('mealTypeId')
+    const date = searchParams.get('date')
 
-    function setTab(next: TabKey) {
-        setSearchParams(
-            (prev) => {
-                const param = new URLSearchParams(prev)
-                if (next === 'products') param.delete('tab')
-                else param.set('tab', next)
-                return param
-            },
-            { replace: true },
-        )
+    function setTab(key: TabKey) {
+        const next = new URLSearchParams(searchParams)
+        next.set('tab', key)
+        setSearchParams(next, { replace: true })
     }
 
     function productHref(productId: number): string {
         const q = new URLSearchParams()
-        if (templateId) q.set('templateId', templateId)
-        const mealTypeId = searchParams.get('mealTypeId')
-        const date = searchParams.get('date')
         if (mealTypeId) q.set('mealTypeId', mealTypeId)
         if (date) q.set('date', date)
         const qs = q.toString()
         return qs ? `/diary/products/${productId}?${qs}` : `/diary/products/${productId}`
     }
 
-    const loadProducts = useCallback(async (q: string, pageNum: number, append: boolean) => {
+    async function loadProducts(q: string, pageNum: number, append: boolean) {
         if (append) setLoadingMore(true)
         else setLoading(true)
         try {
@@ -100,41 +77,40 @@ export function ProductsPage() {
             setLoading(false)
             setLoadingMore(false)
         }
-    }, [])
+    }
 
-    const loadTab = useCallback(
-        async (key: TabKey, q: string) => {
-            if (key === 'products') {
-                await loadProducts(q, 0, false)
-                return
+    async function loadTab(key: TabKey, q: string) {
+        if (key === 'products') {
+            await loadProducts(q, 0, false)
+            return
+        }
+        setLoading(true)
+        try {
+            if (key === 'recipes') {
+                setRecipes(await searchRecipes(q.trim()))
+            } else if (key === 'templates') {
+                setTemplates(await fetchTemplates())
+            } else {
+                setRecent(await fetchRecentWeekFoods())
             }
-            setLoading(true)
-            try {
-                if (key === 'recipes') {
-                    setRecipes(await searchRecipes(q.trim()))
-                } else if (key === 'templates') {
-                    setTemplates(await fetchTemplates())
-                } else {
-                    setRecent(await fetchRecentWeekFoods())
-                }
-            } finally {
-                setLoading(false)
-            }
-        },
-        [loadProducts],
-    )
+        } finally {
+            setLoading(false)
+        }
+    }
 
     useEffect(() => {
         void loadTab(tab, query)
-    }, [tab, loadTab])
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [tab])
 
     useEffect(() => {
         if (!showSearch) return
-        const t = window.setTimeout(() => {
+        const timer = window.setTimeout(() => {
             void loadTab(tab, query)
         }, 300)
-        return () => window.clearTimeout(t)
-    }, [query, showSearch, tab, loadTab])
+        return () => window.clearTimeout(timer)
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [query, showSearch, tab])
 
     useEffect(() => {
         if (tab !== 'products' || last || loading || loadingMore) return
@@ -151,15 +127,14 @@ export function ProductsPage() {
         )
         obs.observe(el)
         return () => obs.disconnect()
-    }, [tab, last, loading, loadingMore, page, query, loadProducts])
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [tab, last, loading, loadingMore, page, query])
 
-    const emptyHint = useMemo(() => {
-        if (loading) return 'Загрузка…'
-        if (tab === 'products') return 'Продукты не найдены'
-        if (tab === 'recipes') return 'Рецепты не найдены'
-        if (tab === 'templates') return 'Шаблонов пока нет'
-        return 'За последние 7 дней записей нет'
-    }, [loading, tab])
+    let emptyHint = 'За последние 7 дней записей нет'
+    if (loading) emptyHint = 'Загрузка…'
+    else if (tab === 'products') emptyHint = 'Продукты не найдены'
+    else if (tab === 'recipes') emptyHint = 'Рецепты не найдены'
+    else if (tab === 'templates') emptyHint = 'Шаблонов пока нет'
 
     return (
         <div className="diary-shell">
@@ -168,197 +143,156 @@ export function ProductsPage() {
                 .product-list-thumb img {
                     width: 45px !important;
                     height: 45px !important;
-                    object-fit: cover !important;
                     border-radius: 8px;
-                    display: block;
+                    object-fit: cover;
+                    flex-shrink: 0;
                 }
             `}</style>
-            <div>
-                <div className="bg-brand text-invert p-2 rounded-bottom-4">
-                    <h2 className="page-title text-center p-2 bg-text-on-brand">
-                        {templateId ? 'Продукт в шаблон' : 'Продукты'}
-                    </h2>
+            <div className="bg-brand text-invert p-2 rounded-bottom-4">
+                <h2 className="page-title text-center p-2 bg-text-on-brand mb-0">Каталог</h2>
+            </div>
 
-                    <div className="tab-container">
-                        <ul className="tab-nav nav nav-pills mb-3" role="tablist">
-                            {(
-                                [
-                                    ['products', 'Продукты'],
-                                    ['recipes', 'Рецепты'],
-                                    ['templates', 'Шаблоны'],
-                                    ['recent', 'За неделю'],
-                                ] as const
-                            ).map(([key, label]) => (
-                                <li className="nav-item" key={key}>
-                                    <button
-                                        type="button"
-                                        role="tab"
-                                        className={`nav-link ${tab === key ? 'active' : ''}`}
-                                        aria-selected={tab === key}
-                                        onClick={() => setTab(key)}
-                                    >
-                                        {label}
-                                    </button>
-                                </li>
-                            ))}
-                        </ul>
-                    </div>
-
-                    {showSearch && (
-                        <div className="mb-3">
-                            <input
-                                type="search"
-                                className="form-control"
-                                placeholder={
-                                    tab === 'products'
-                                        ? 'Поиск продуктов…'
-                                        : 'Поиск рецептов…'
-                                }
-                                value={query}
-                                onChange={(e) => setQuery(e.target.value)}
-                            />
-                        </div>
-                    )}
+            <div className="diary-content container pb-5">
+                <div className="d-flex gap-2 mb-3 flex-wrap">
+                    {TABS.map((t) => (
+                        <button
+                            key={t.key}
+                            type="button"
+                            className={`btn btn-sm ${tab === t.key ? 'btn-primary' : 'btn-outline-secondary'}`}
+                            onClick={() => setTab(t.key)}
+                        >
+                            {t.label}
+                        </button>
+                    ))}
+                    <button
+                        type="button"
+                        className="btn btn-sm btn-outline-secondary ms-auto"
+                        onClick={() => setShowSearch((v) => !v)}
+                    >
+                        {showSearch ? 'Скрыть поиск' : 'Поиск'}
+                    </button>
                 </div>
 
-                <div className="diary-content">
-                    {tab === 'products' && (
-                        <>
-                            <ul className="list-group list-group-flush rounded-4">
-                                {products.length === 0 && (
-                                    <div className="no-content-placeholder">
-                                        <div>{emptyHint}</div>
-                                        <ImFileEmpty size={24} />
-                                    </div>
-                                )}
+                {showSearch && tab !== 'recent' && (
+                    <input
+                        className="form-control mb-3"
+                        placeholder="Поиск…"
+                        value={query}
+                        onChange={(e) => setQuery(e.target.value)}
+                    />
+                )}
+
+                {tab === 'products' && (
+                    <>
+                        <div className="d-flex justify-content-end mb-2">
+                            <Link to="/diary/products/create" className="btn btn-sm btn-primary">
+                                + Продукт
+                            </Link>
+                        </div>
+                        {products.length === 0 ? (
+                            <p className="text-muted">{emptyHint}</p>
+                        ) : (
+                            <ul className="list-unstyled mb-0">
                                 {products.map((p) => (
-                                    <li key={p.id} className="list-group-item p-0">
+                                    <li key={p.id} className="border-bottom py-2">
                                         <Link
                                             to={productHref(p.id)}
-                                            className="d-flex align-items-center gap-2 text-decoration-none text-reset p-3"
+                                            className="d-flex align-items-center gap-2 text-decoration-none text-body"
                                         >
-                                            <div style={thumbWrap}>
-                                                <DeferredImage
-                                                    src={p.imageUrl}
-                                                    alt={p.name}
-                                                    className={thumbImg}
-                                                />
-                                            </div>
-                                            <div>
-                                                <div className="fw-semibold">{p.name}</div>
-                                                {p.categoryCode && (
-                                                    <div className="small text-muted">{p.categoryCode}</div>
-                                                )}
-                                            </div>
+                                            <DeferredImage
+                                                src={p.imageUrl}
+                                                alt={p.name}
+                                                className="product-list-thumb"
+                                                style={thumbStyle}
+                                            />
+                                            <span className="fw-semibold">{p.name}</span>
                                         </Link>
                                     </li>
                                 ))}
                             </ul>
-                            {!last && <div ref={sentinelRef} style={{ height: 24 }} />}
-                            {loadingMore && (
-                                <p className="text-muted small text-center mt-2 mb-0">Ещё…</p>
-                            )}
-                        </>
-                    )}
+                        )}
+                        <div ref={sentinelRef} className="py-2 text-center small text-muted">
+                            {loadingMore ? 'Загрузка…' : !last ? '…' : ''}
+                        </div>
+                    </>
+                )}
 
-                    {tab === 'recipes' && (
-                        <ul className="list-group list-group-flush">
-                            {recipes.length === 0 && (
-                                <div className="no-content-placeholder">
-                                    <div>{emptyHint}</div>
-                                    <ImFileEmpty size={24} />
-                                </div>
-                            )}
-                            {recipes.map((r) => (
-                                <li key={r.id} className="list-group-item p-0">
-                                    <Link
-                                        to={`/diary/recipes/${r.id}`}
-                                        className="d-flex align-items-center gap-2 text-decoration-none text-reset p-3"
-                                    >
-                                        <div style={thumbWrap}>
+                {tab === 'recipes' && (
+                    <>
+                        <div className="d-flex justify-content-end mb-2">
+                            <Link to="/diary/recipes/create" className="btn btn-sm btn-primary">
+                                + Рецепт
+                            </Link>
+                        </div>
+                        {recipes.length === 0 ? (
+                            <p className="text-muted">{emptyHint}</p>
+                        ) : (
+                            <ul className="list-unstyled mb-0">
+                                {recipes.map((r) => (
+                                    <li key={r.id} className="border-bottom py-2">
+                                        <Link
+                                            to={`/diary/recipes/${r.id}`}
+                                            className="d-flex align-items-center gap-2 text-decoration-none text-body"
+                                        >
                                             <DeferredImage
                                                 src={r.imageUrl}
                                                 alt={r.name}
-                                                className={thumbImg}
+                                                className="product-list-thumb"
+                                                style={thumbStyle}
                                             />
-                                        </div>
-                                        <div>
-                                            <div className="fw-semibold">{r.name}</div>
-                                            {r.description && (
-                                                <div className="small text-muted">{r.description}</div>
-                                            )}
-                                        </div>
-                                    </Link>
-                                </li>
-                            ))}
-                        </ul>
-                    )}
-
-                    {tab === 'templates' && (
-                        <>
-                            <div className="d-flex justify-content-end mb-2 px-2">
-                                <Link to="/diary/templates/add" className="btn btn-primary btn-sm">
-                                    Добавить шаблон
-                                    <FaPlus className="ms-2 mb-1" />
-                                </Link>
-                            </div>
-                            <ul className="list-group list-group-flush">
-                                {templates.length === 0 && (
-                                    <div className="no-content-placeholder">
-                                        <div>{emptyHint}</div>
-                                        <Link to="/diary/templates/add" className="btn btn-primary">
-                                            Добавить шаблон
-                                            <FaPlus className="ms-3 mb-1" />
-                                        </Link>
-                                    </div>
-                                )}
-                                {templates.map((t) => (
-                                    <li key={t.id} className="list-group-item p-0">
-                                        <Link
-                                            to={`/diary/templates/${t.id}/edit`}
-                                            className="d-block text-decoration-none text-reset p-3"
-                                        >
-                                            <div className="fw-semibold">{t.name}</div>
-                                            {t.scheduledTime && (
-                                                <div className="small text-muted">{t.scheduledTime}</div>
-                                            )}
+                                            <span className="fw-semibold">{r.name}</span>
                                         </Link>
                                     </li>
                                 ))}
                             </ul>
-                        </>
-                    )}
+                        )}
+                    </>
+                )}
 
-                    {tab === 'recent' && (
-                        <div>
-                            {recent.length === 0 && (
-                                <div className="no-content-placeholder">
-                                    <div>{emptyHint}</div>
-                                    <ImFileEmpty size={24} />
-                                </div>
-                            )}
-                            {recent.map((day) => (
-                                <div key={day.date} className="mb-3">
-                                    <div className="small text-muted mb-1">
-                                        {formatDayLabel(day.date)}
-                                    </div>
-                                    <ul className="list-group list-group-flush">
-                                        {day.items.map((item) => (
-                                            <li key={`${day.date}-${item.id}`} className="list-group-item">
-                                                {item.name}
-                                                {item.mealTypeCode && (
-                                                    <span className="small text-muted ms-2">
-                                                        {item.mealTypeCode}
-                                                    </span>
-                                                )}
-                                            </li>
-                                        ))}
-                                    </ul>
-                                </div>
-                            ))}
+                {tab === 'templates' && (
+                    <>
+                        <div className="d-flex justify-content-end mb-2">
+                            <Link to="/diary/templates/add" className="btn btn-sm btn-primary">
+                                + Шаблон
+                            </Link>
                         </div>
-                    )}
-                </div>
+                        {templates.length === 0 ? (
+                            <p className="text-muted">{emptyHint}</p>
+                        ) : (
+                            <ul className="list-unstyled mb-0">
+                                {templates.map((t) => (
+                                    <li key={t.id} className="border-bottom py-2">
+                                        <Link
+                                            to={`/diary/templates/${t.id}/edit`}
+                                            className="text-decoration-none text-body fw-semibold"
+                                        >
+                                            {t.name}
+                                        </Link>
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
+                    </>
+                )}
+
+                {tab === 'recent' &&
+                    (recent.length === 0 ? (
+                        <p className="text-muted">{emptyHint}</p>
+                    ) : (
+                        recent.map((group) => (
+                            <div key={group.date} className="mb-3">
+                                <div className="small text-muted mb-1">{group.date}</div>
+                                <ul className="list-unstyled mb-0">
+                                    {group.items.map((item) => (
+                                        <li key={item.recordId} className="border-bottom py-1 small">
+                                            {item.name}
+                                            {item.mealTypeCode ? ` · ${item.mealTypeCode}` : ''}
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                        ))
+                    ))}
             </div>
             <BottomNav />
         </div>

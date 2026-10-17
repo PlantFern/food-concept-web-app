@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { BottomNav } from '@/components/diary'
 import { DeferredImage } from '@/components/ui/DeferredImage'
@@ -36,10 +36,7 @@ export function RecipeDetailPage() {
         }
     }, [id])
 
-    const image = useMemo(
-        () => photoPathToUrl(recipe?.photoPath) ?? null,
-        [recipe?.photoPath],
-    )
+    const image = photoPathToUrl(recipe?.photoPath) ?? null
 
     return (
         <div className="diary-shell">

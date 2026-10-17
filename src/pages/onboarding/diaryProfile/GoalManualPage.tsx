@@ -1,4 +1,4 @@
-import { type SyntheticEvent, useMemo, useState } from 'react'
+import { type SyntheticEvent, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { createDiaryWithGoal, readOnboardingProfile } from '@/api/onboarding'
 import {
@@ -11,7 +11,7 @@ import { NavigateBackButton } from '@/components/ui/NavigateBackButton'
 
 export function GoalManualPage() {
     const navigate = useNavigate()
-    const profile = useMemo(() => readOnboardingProfile(), [])
+    const profile = readOnboardingProfile()
 
     const [weight, setWeight] = useState('')
     const [form, setForm] = useState<GoalNutrientFormValues>(() => emptyGoalForm(true))
