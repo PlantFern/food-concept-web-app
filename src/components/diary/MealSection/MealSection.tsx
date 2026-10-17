@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import { IoAdd, IoCreateOutline, IoTrashOutline } from 'react-icons/io5'
 import type { MealFoodRecordItemDto, MealTemplateListItemDto } from '@/api/diaryProfile/diary.ts'
 import { formatFoodAmount, mealTypeLabel } from '@/api/diaryProfile/diary.ts'
+import type { DiaryCommentDto } from '@/api/diaryProfile/comments'
 import { TemplateBlock } from '@/components/diary/TemplateBlock'
 import { DeferredImage } from '@/components/ui/DeferredImage'
 import { photoPathToUrl } from '@/lib/photo'
@@ -16,8 +17,8 @@ type MealSectionProps = {
     records: MealFoodRecordItemDto[]
     totalPrimaryNutrient?: number | null
     primaryUnit?: string
-    /** Whole-meal photo (meals.photo_path) */
     mealPhotoPath?: string | null
+    comments?: DiaryCommentDto[]
     templates?: MealTemplateListItemDto[]
     applyingTemplateId?: number | null
     onApplyTemplate?: (templateId: number, mealTypeId: number) => void
@@ -32,6 +33,7 @@ export function MealSection({
     totalPrimaryNutrient,
     primaryUnit = 'kcal',
     mealPhotoPath,
+    comments = [],
     templates = [],
     applyingTemplateId = null,
     onApplyTemplate,
@@ -43,6 +45,10 @@ export function MealSection({
     const mealQs = q.toString()
 
     const mealPhotoUrl = photoPathToUrl(mealPhotoPath)
+    const mealComments =
+        mealId != null && mealId > 0
+            ? comments.filter((c) => Number(c.commentableId) === Number(mealId))
+            : []
 
     return (
         <section className={styles.mealSection}>
@@ -144,6 +150,24 @@ export function MealSection({
                                     <IoTrashOutline size={18} />
                                 </Link>
                             </div>
+                        </li>
+                    ))}
+                </ul>
+            )}
+
+            {mealComments.length > 0 && (
+                <ul className={styles.commentList}>
+                    {mealComments.map((c) => (
+                        <li key={c.id} className={styles.commentRow}>
+                            <span className={styles.commentBody}>{c.body}</span>
+                            <Link
+                                to={`/diary/comments/${c.id}/edit?commentableType=MEAL&mealId=${mealId}`}
+                                className={styles.iconBtn}
+                                aria-label="Изменить комментарий"
+                                title="Изменить"
+                            >
+                                <IoCreateOutline size={16} />
+                            </Link>
                         </li>
                     ))}
                 </ul>
