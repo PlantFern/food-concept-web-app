@@ -1,16 +1,28 @@
 import { API_BASE_URE } from '@/config/apiBases'
 
 /**
- * Builds a full URL for a photo path or file id.
- * Accepts absolute URLs, /api/... paths, bare paths, or numeric file ids.
+ * Builds a browser-usable URL for a photo value from the API.
+ *
+ * Supported:
+ * - absolute http(s) URLs — returned as-is (seed/CDN photos)
+ * - protocol-relative //cdn... — upgraded to https:
+ * - /api/files/... or other /api/... paths — prefixed with API base
+ * - pure numeric id — /api/files/{id}
+ * - bare filename / relative path — /api/files/{path}
  */
 export function photoUrl(path?: string | null): string | null {
     if (!path) return null
-    if (path.startsWith('http://') || path.startsWith('https://')) return path
-    if (path.startsWith('/api/')) return `${API_BASE_URE}${path}`
-    if (path.startsWith('/')) return `${API_BASE_URE}${path}`
-    if (/^\d+$/.test(path)) return `${API_BASE_URE}/api/files/${path}`
-    return `${API_BASE_URE}/api/files/${path}`
+    const v = path.trim()
+    if (!v) return null
+
+    if (v.startsWith('http://') || v.startsWith('https://')) return v
+    // protocol-relative CDN URLs
+    if (v.startsWith('//')) return `https:${v}`
+
+    if (v.startsWith('/api/')) return `${API_BASE_URE}${v}`
+    if (v.startsWith('/')) return `${API_BASE_URE}${v}`
+    if (/^\d+$/.test(v)) return `${API_BASE_URE}/api/files/${v}`
+    return `${API_BASE_URE}/api/files/${v}`
 }
 
 /** Alias used by pages */
