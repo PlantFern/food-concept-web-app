@@ -119,8 +119,9 @@ export function DiaryHomePage() {
         try {
             await applyMealTemplate(templateId, mealTypeId, iso)
             await load()
-        } catch {
-            showAlert('Не удалось отметить шаблон', 'danger')
+            showAlert('Шаблон отмечен', 'success')
+        } catch (err: unknown) {
+            showAlert(getErrorMessage(err, 'Не удалось отметить шаблон'), 'danger')
         } finally {
             setApplyingTemplateId(null)
         }
@@ -158,6 +159,9 @@ export function DiaryHomePage() {
 
     const sections =
         day?.sections && day.sections.length > 0 ? day.sections : DEFAULT_SECTIONS
+
+    const showWeight = day?.weightEnabled !== false
+    const showSleep = day?.sleepEnabled !== false
 
     return (
         <div className="diary-shell">
@@ -210,29 +214,31 @@ export function DiaryHomePage() {
                     </div>
                 </div>
 
-                <div className="border-top pt-2">
-                    <h4 className="mb-3">Логи</h4>
+                {!loading && (showWeight || showSleep) && (
+                    <div className="border-top pt-2">
+                        <h4 className="mb-3">Логи</h4>
 
-                    <div className="row g-2">
-                        <div className="col-lg-6 col-md-10 col-12">
-                            {!loading && (
-                                <WeightCard weightKg={day?.latestWeight?.weight ?? null} />
+                        <div className="row g-2">
+                            {showWeight && (
+                                <div className="col-lg-6 col-md-10 col-12">
+                                    <WeightCard weightKg={day?.latestWeight?.weight ?? null} />
+                                </div>
                             )}
-                        </div>
 
-                        <div className="col-lg-6 col-md-10 col-12">
-                            {!loading && (
-                                <SleepCard
-                                    entries={(day?.sleepForDay ?? []).map((s) => ({
-                                        id: s.id,
-                                        start: s.beganAt,
-                                        end: s.endedAt ?? '',
-                                    }))}
-                                />
+                            {showSleep && (
+                                <div className="col-lg-6 col-md-10 col-12">
+                                    <SleepCard
+                                        entries={(day?.sleepForDay ?? []).map((s) => ({
+                                            id: s.id,
+                                            start: s.beganAt,
+                                            end: s.endedAt ?? '',
+                                        }))}
+                                    />
+                                </div>
                             )}
                         </div>
                     </div>
-                </div>
+                )}
             </div>
 
             <BottomNav />
