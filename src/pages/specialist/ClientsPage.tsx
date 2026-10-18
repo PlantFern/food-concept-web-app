@@ -31,7 +31,10 @@ function RelationCard(props: {
                     Тип: {r.relationType} · Статус: {r.relationStatusCode}
                 </div>
                 {isActiveRelation(r) && (
-                    <Link className="btn btn-outline-primary btn-sm mb-2 me-2" to={`/specialist/clients/${r.diaryProfileId}?relationType=${encodeURIComponent(r.relationType)}`}>
+                    <Link
+                        className="btn btn-outline-primary btn-sm mb-2 me-2"
+                        to={`/specialist/clients/${r.diaryProfileId}/diary`}
+                    >
                         Открыть дневник и профиль
                     </Link>
                 )}
