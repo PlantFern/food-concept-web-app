@@ -78,3 +78,46 @@
     color: #6c757d;
     margin: -0.4rem 0 0.75rem;
 }
+
+.nutrients {
+    margin-top: 1.5rem;
+    background: #fff;
+    border-radius: 1rem;
+    padding: 1rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.nutrientList {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.nutrientRow {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 1rem;
+    width: 100%;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #f1f3f5;
+    font-size: 0.9rem;
+}
+
+.nutrientRow:last-child {
+    border-bottom: none;
+}
+
+.nutrientName {
+    flex: 1 1 auto;
+    min-width: 0;
+    color: #212529;
+}
+
+.nutrientValue {
+    flex: 0 0 auto;
+    font-variant-numeric: tabular-nums;
+    color: #495057;
+    text-align: right;
+    white-space: nowrap;
+}
