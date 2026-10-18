@@ -66,6 +66,7 @@ function App() {
                             <Route path="/diary/settings/goals" element={<GoalsPage />} />
                             <Route path="/diary/settings/specialists" element={<MySpecialistsPage />} />
                             <Route path="/diary/specialists/search" element={<SpecialistSearchPage />} />
+                            <Route path="/diary/specialists/relations" element={<MySpecialistsPage />} />
 
                             <Route path="/diary/sleep-log/add" element={<SleepLogFormPage />} />
                             <Route path="/diary/sleep-log/:sleepLogId/edit" element={<SleepLogFormPage />} />

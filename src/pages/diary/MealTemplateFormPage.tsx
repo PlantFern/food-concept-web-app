@@ -118,16 +118,17 @@ export function MealTemplateFormPage() {
                     startedAt,
                 )
                 showAlert('Шаблон обновлён', 'success')
+                navigate('/diary/products?tab=templates', { replace: true })
             } else {
-                await createMealTemplate(
+                const newId = await createMealTemplate(
                     formData.name.trim(),
                     formData.scheduledTime,
                     frequency,
                     startedAt,
                 )
-                showAlert('Шаблон создан', 'success')
+                showAlert('Шаблон создан — добавьте продукты', 'success')
+                navigate(`/diary/templates/${newId}/edit`, { replace: true })
             }
-            navigate('/diary/products?tab=templates', { replace: true })
         } catch (err: unknown) {
             setError(getErrorMessage(err, 'Не удалось сохранить шаблон'))
         }

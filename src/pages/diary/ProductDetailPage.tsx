@@ -13,7 +13,7 @@ import {
 } from '@/api/food'
 import { addTemplateRecord } from '@/api/meals'
 import { photoPathToUrl } from '@/lib/photo'
-import { NUTRIENT_BY_ID } from '@/data/nutrients'
+import { NUTRIENT_BY_ID, unitLabel } from '@/data/nutrients'
 import styles from './ProductDetailPage.module.css'
 
 const MEAL_TYPES = [
@@ -113,7 +113,9 @@ export function ProductDetailPage() {
 
     const image = photoPathToUrl(product?.photoPath) ?? null
 
-    const nutrients = dedupeNutrients(product?.nutrients ?? [])
+    const nutrients = dedupeNutrients(product?.nutrients ?? []).filter(
+        (n) => n.amountPer100g != null && Number.isFinite(Number(n.amountPer100g)),
+    )
 
     const backTo = isTemplateMode
         ? `/diary/templates/${templateId}/edit`
@@ -304,12 +306,18 @@ export function ProductDetailPage() {
                                             def?.name ??
                                             n.nutrientCode ??
                                             `Nutrient #${n.nutrientId}`
+                                        const unit =
+                                            def?.unit != null
+                                                ? unitLabel(def.unit)
+                                                : n.unitCode
+                                                  ? String(n.unitCode).toLowerCase()
+                                                  : ''
                                         return (
                                             <li key={n.nutrientId} className={styles.nutrientRow}>
                                                 <span className={styles.nutrientName}>{label}</span>
                                                 <span className={styles.nutrientValue}>
                                                     {formatNutrientAmount(n.amountPer100g)}
-                                                    {n.unitCode ? ` ${n.unitCode}` : ''}
+                                                    {unit ? ` ${unit}` : ''}
                                                 </span>
                                             </li>
                                         )
