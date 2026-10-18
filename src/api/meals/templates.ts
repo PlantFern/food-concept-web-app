@@ -16,7 +16,7 @@ export type TemplateListItem = {
     totalKcal?: number | null
 }
 
-export type TemplateFoodRecordItem = {
+export type TemplateRecordItem = {
     id: number
     servingId: number
     productDescription?: string | null
@@ -30,12 +30,12 @@ export type TemplateFoodRecordItem = {
 
 export type MealTemplateDetail = {
     id: number
-    diaryProfileId: number
+    diaryProfileId?: number
     name: string
     scheduledTime?: string | null
     frequency?: number | null
     startedAt?: string | null
-    records: TemplateFoodRecordItem[]
+    records?: TemplateRecordItem[] | null
 }
 
 export async function fetchTemplates(diaryProfileId?: number): Promise<TemplateListItem[]> {
@@ -56,17 +56,14 @@ export async function getMealTemplate(templateId: number): Promise<MealTemplateD
     const { data } = await http.get<MealTemplateDetail>(
         `/api/diary-profile/${profileId}/meal-templates/${templateId}`,
     )
-    return {
-        ...data,
-        records: Array.isArray(data.records) ? data.records : [],
-    }
+    return data
 }
 
 export async function createMealTemplate(
     name: string,
     scheduledTime: string,
     frequency: number,
-    startedAt: number | string,
+    startedAt: string,
     diaryProfileId?: number,
 ): Promise<number> {
     const profileId = diaryProfileId ?? requireProfileId()
@@ -83,7 +80,7 @@ export async function updateMealTemplate(
     name: string,
     scheduledTime: string,
     frequency: number,
-    startedAt: number | string,
+    startedAt: string,
     diaryProfileId?: number,
 ): Promise<void> {
     const profileId = diaryProfileId ?? requireProfileId()
@@ -136,13 +133,4 @@ export async function deleteTemplateRecord(
     await http.delete(
         `/api/diary-profile/${profileId}/meal-templates/records/${templateRecordId}`,
     )
-}
-
-export function formatTemplateAmount(item: TemplateFoodRecordItem): string {
-    const parts: string[] = []
-    if (item.amount != null && item.amount !== 1) parts.push(String(item.amount))
-    if (item.servingAmount != null) parts.push(String(item.servingAmount))
-    if (item.gramWeight != null) parts.push(`${item.gramWeight}г`)
-    else if (item.servingUnitCode) parts.push(item.servingUnitCode)
-    return parts.length ? parts.join(' × ') : '—'
 }

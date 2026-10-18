@@ -29,14 +29,9 @@ export async function getSpecialistById(id: number): Promise<SpecialistDto> {
     return data
 }
 
-export async function searchSpecialists(query: string): Promise<SpecialistSearchItemDto[]> {
+export async function searchSpecialists(query: string = ''): Promise<SpecialistSearchItemDto[]> {
     const { data } = await http.get<SpecialistSearchItemDto[]>('/api/specialists/search', {
         params: { query },
     })
-    return Array.isArray(data) ? data : []
-}
-
-export async function listSpecialists(): Promise<SpecialistDto[]> {
-    const { data } = await http.get<SpecialistDto[]>('/api/specialists')
     return Array.isArray(data) ? data : []
 }
