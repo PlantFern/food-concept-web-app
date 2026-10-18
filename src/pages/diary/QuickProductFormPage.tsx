@@ -6,7 +6,7 @@ import { addQuickProductRecord } from '@/api/food'
 import { useAlert } from '@/components/ui/Alert'
 import { getErrorMessage } from '@/lib/errors'
 import { getDiaryProfileId } from '@/api/onboarding.ts'
-import { CORE_GOAL_NUTRIENT_IDS, NUTRIENT_BY_ID, unitLabel } from '@/data/nutrients'
+import { NUTRIENTS, unitLabel } from '@/data/nutrients'
 
 const MEAL_TYPES = [
     { id: 1, label: 'Завтрак' },
@@ -23,10 +23,7 @@ type QuickProductFormValues = {
     amount: string
     description: string
     gramWeight: string
-    energy: string
-    protein: string
-    fat: string
-    carbs: string
+    [key: string]: string
 }
 
 function todayIso(): string {
@@ -42,12 +39,20 @@ function nowTime(): string {
     return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
 }
 
+function nutrientField(id: number): string {
+    return `n_${id}`
+}
+
 export function QuickProductFormPage() {
     const { showAlert } = useAlert()
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState('')
     const navigate = useNavigate()
     const [searchParams] = useSearchParams()
+
+    const defaultNutrients = Object.fromEntries(
+        NUTRIENTS.map((n) => [nutrientField(n.id), '']),
+    )
 
     const {
         register,
@@ -62,10 +67,7 @@ export function QuickProductFormPage() {
             amount: '1',
             description: '',
             gramWeight: '100',
-            energy: '',
-            protein: '',
-            fat: '',
-            carbs: '',
+            ...defaultNutrients,
         },
     })
 
@@ -83,23 +85,18 @@ export function QuickProductFormPage() {
     const onSubmit = async (formData: QuickProductFormValues) => {
         setError('')
         const nutrients: Record<string, number> = {}
-        const pairs: Array<[string, string]> = [
-            ['1', formData.energy],
-            ['2', formData.protein],
-            ['3', formData.fat],
-            ['4', formData.carbs],
-        ]
-        for (const [id, raw] of pairs) {
-            if (raw.trim() === '') continue
+        for (const def of NUTRIENTS) {
+            const raw = formData[nutrientField(def.id)] ?? ''
+            if (String(raw).trim() === '') continue
             const n = Number(raw)
             if (!Number.isFinite(n) || n < 0) {
-                setError('Нутриенты — неотрицательные числа')
+                setError(`Нутриент «${def.name}» — неотрицательное число`)
                 return
             }
-            nutrients[id] = n
+            nutrients[String(def.id)] = n
         }
         if (Object.keys(nutrients).length === 0) {
-            setError('Укажите хотя бы один нутриент (ккал / Б / Ж / У)')
+            setError('Укажите хотя бы один нутриент')
             return
         }
 
@@ -243,19 +240,11 @@ export function QuickProductFormPage() {
                             <div>
                                 <p className="label mb-2">Нутриенты (на указанный вес)</p>
                                 <div className="d-flex flex-column gap-2">
-                                    {CORE_GOAL_NUTRIENT_IDS.map((id) => {
-                                        const def = NUTRIENT_BY_ID[id]
-                                        const field =
-                                            id === 1
-                                                ? 'energy'
-                                                : id === 2
-                                                  ? 'protein'
-                                                  : id === 3
-                                                    ? 'fat'
-                                                    : 'carbs'
+                                    {NUTRIENTS.map((def) => {
+                                        const field = nutrientField(def.id)
                                         return (
                                             <div
-                                                key={id}
+                                                key={def.id}
                                                 className="d-flex gap-2 align-items-center justify-content-between"
                                             >
                                                 <label className="small mb-0" htmlFor={field}>
