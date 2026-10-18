@@ -28,6 +28,9 @@ export type TemplateRecordItem = {
     photoPath?: string | null
 }
 
+/** Alias used by template form pages */
+export type TemplateFoodRecordItem = TemplateRecordItem
+
 export type MealTemplateDetail = {
     id: number
     diaryProfileId?: number
@@ -133,4 +136,21 @@ export async function deleteTemplateRecord(
     await http.delete(
         `/api/diary-profile/${profileId}/meal-templates/records/${templateRecordId}`,
     )
+}
+
+/** Human-readable amount for a template line item */
+export function formatTemplateAmount(item: TemplateRecordItem): string {
+    if (item.amount != null && item.servingUnitCode) {
+        return `${item.amount} ${item.servingUnitCode}`
+    }
+    if (item.servingAmount != null && item.servingUnitCode) {
+        return `${item.servingAmount} ${item.servingUnitCode}`
+    }
+    if (item.gramWeight != null) {
+        return `${item.gramWeight} г`
+    }
+    if (item.amount != null) {
+        return String(item.amount)
+    }
+    return '—'
 }
