@@ -14,6 +14,7 @@ import { DiaryHomePage } from '@/pages/diary/DiaryHomePage'
 import { ProductsPage } from '@/pages/diary/ProductsPage'
 import { ProductDetailPage } from '@/pages/diary/ProductDetailPage'
 import { RecipeDetailPage } from '@/pages/diary/RecipeDetailPage'
+import { RecipeCreateFormPage } from '@/pages/diary/RecipeCreateFormPage'
 import { SettingsPage } from '@/pages/diary/SettingsPage'
 import { DiarySettingsPage } from '@/pages/diary/DiarySettingsPage'
 import { GoalsPage } from '@/pages/diary/GoalsPage'
@@ -21,6 +22,7 @@ import { SleepLogFormPage } from '@/pages/diary/SleepLogFormPage'
 import { WeightLogFormPage } from '@/pages/diary/WeightLogFormPage'
 import { FoodRecordFormPage } from '@/pages/diary/FoodRecordFormPage'
 import { MealTemplateFormPage } from '@/pages/diary/MealTemplateFormPage'
+import { MealPhotoFormPage } from '@/pages/diary/MealPhotoFormPage'
 import { CommentFormPage } from '@/pages/diary/CommentFormPage'
 import { QuickProductFormPage } from '@/pages/diary/QuickProductFormPage'
 import { StatsPage } from '@/pages/diary/StatsPage'
@@ -59,6 +61,7 @@ function App() {
 
                             <Route path="/diary/products" element={<ProductsPage />} />
                             <Route path="/diary/products/:productId" element={<ProductDetailPage />} />
+                            <Route path="/diary/recipes/create" element={<RecipeCreateFormPage />} />
                             <Route path="/diary/recipes/:recipeId" element={<RecipeDetailPage />} />
 
                             <Route path="/diary/settings" element={<SettingsPage />} />
@@ -76,6 +79,8 @@ function App() {
 
                             <Route path="/diary/food-records/:recordId/edit" element={<FoodRecordFormPage />} />
                             <Route path="/diary/food-records/quick" element={<QuickProductFormPage />} />
+
+                            <Route path="/diary/meals/photo" element={<MealPhotoFormPage />} />
 
                             <Route path="/diary/templates/add" element={<MealTemplateFormPage />} />
                             <Route path="/diary/templates/:templateId/edit" element={<MealTemplateFormPage />} />
