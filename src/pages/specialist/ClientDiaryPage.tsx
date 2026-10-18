@@ -3,7 +3,7 @@ import { Link, useParams, useSearchParams } from 'react-router-dom'
 import { SpecialistBottomNav } from '@/components/specialist/SpecialistBottomNav'
 import { fetchSpecialistClients, getMySpecialist, isActiveRelation } from '@/api/specialist'
 import { fetchDayMeals } from '@/api/meals/queries'
-import type { DayMealsDto, WeightLogDto } from '@/api/diaryProfile/diary'
+import type { DayMealsDto, SleepLogDto, WeightLogDto } from '@/api/diaryProfile/diary'
 import {
     createClientComment,
     getClientLatestGoal,
@@ -11,20 +11,23 @@ import {
     getClientProfile,
     getClientCommentsByType,
     getClientWeights,
+    getClientSleepByDay,
     createClientGoal,
     updateClientGoal,
     saveClientSettings,
 } from '@/api/specialist/client'
 import type { DiaryProfileDto } from '@/api/diaryProfile/diary'
 import type { DiaryCommentDto, CommentType } from '@/api/diaryProfile/comments'
+import { DeferredImage } from '@/components/ui/DeferredImage'
+import { photoPathToUrl } from '@/lib/photo'
+import { GoalNutrientForm, emptyGoalForm, formValuesFromGoal, toNutrientGoals, type GoalNutrientFormValues } from '@/components/goals'
 import type { GoalDto } from '@/api/diaryProfile/goals'
 import type { ProfileFeatureSettingsDto } from '@/api/diaryProfile/settings'
-import { NUTRIENTS } from '@/data/nutrients'
+import { NUTRIENT_GROUPS, nutrientsByGroup, unitLabel } from '@/data/nutrients'
 import { useAlert } from '@/components/ui/Alert'
 import { getErrorMessage } from '@/lib/errors'
 
 type Tab = 'diary' | 'goals' | 'settings'
-const MAIN_NUTRIENTS = NUTRIENTS.filter((n) => [1, 2, 3, 4, 5].includes(n.id))
 
 function todayLocal() {
     const d = new Date()
@@ -41,6 +44,7 @@ export function ClientDiaryPage() {
     const [profile, setProfile] = useState<DiaryProfileDto | null>(null)
     const [day, setDay] = useState<DayMealsDto | null>(null)
     const [weights, setWeights] = useState<WeightLogDto[]>([])
+    const [sleepLogs, setSleepLogs] = useState<SleepLogDto[]>([])
     const [comments, setComments] = useState<DiaryCommentDto[]>([])
     const [goal, setGoal] = useState<GoalDto | null>(null)
     const [settings, setSettings] = useState<ProfileFeatureSettingsDto | null>(null)
@@ -49,10 +53,7 @@ export function ClientDiaryPage() {
     const [error, setError] = useState('')
     const [commentDrafts, setCommentDrafts] = useState<Record<string, string>>({})
     const [busyComment, setBusyComment] = useState<string | null>(null)
-    const [goalWeight, setGoalWeight] = useState('')
-    const [goalStart, setGoalStart] = useState(todayLocal())
-    const [goalEnd, setGoalEnd] = useState('')
-    const [goalAmounts, setGoalAmounts] = useState<Record<number, string>>({})
+    const [goalForm, setGoalForm] = useState<GoalNutrientFormValues>(() => emptyGoalForm(true))
     const [settingsValues, setSettingsValues] = useState({ showSleep: true, showSleepLogs: true, showWeight: true, showWeightLogs: true, showAllergensWarning: true, hiddenNutrients: [] as number[] })
     const isObserver = relationType === 'OBSERVER'
 
@@ -78,10 +79,11 @@ export function ClientDiaryPage() {
                 params.set('tab', 'diary')
                 setSearchParams(params, { replace: true })
             }
-            const [p, d, w, mealComments, sleepComments, weightComments, latestGoal, latestSettings] = await Promise.all([
+            const [p, d, w, sleepForDate, mealComments, sleepComments, weightComments, latestGoal, latestSettings] = await Promise.all([
                 getClientProfile(profileId),
                 fetchDayMeals(date, profileId),
                 getClientWeights(profileId),
+                getClientSleepByDay(profileId, date),
                 getClientCommentsByType(profileId, 'MEAL'),
                 getClientCommentsByType(profileId, 'SLEEP_LOG'),
                 getClientCommentsByType(profileId, 'WEIGHT_LOG'),
@@ -91,18 +93,12 @@ export function ClientDiaryPage() {
             setProfile(p)
             setDay(d)
             setWeights(w)
+            setSleepLogs(sleepForDate)
             setComments([...mealComments, ...sleepComments, ...weightComments])
             setGoal(latestGoal)
             setSettings(latestSettings)
-            setGoalWeight(latestGoal?.plannedWeight == null ? '' : String(latestGoal.plannedWeight))
-            setGoalStart(latestGoal?.startDate || todayLocal())
-            setGoalEnd(latestGoal?.plannedEndDate || '')
-            const amounts: Record<number, string> = {}
-            for (const n of MAIN_NUTRIENTS) {
-                const saved = latestGoal?.nutrientSet?.find((x) => x.nutrientId === n.id)
-                amounts[n.id] = saved?.amount == null ? '' : String(saved.amount)
-            }
-            setGoalAmounts(amounts)
+            const nextGoalForm = formValuesFromGoal(latestGoal)
+            setGoalForm(nextGoalForm)
             setSettingsValues({
                 showSleep: latestSettings?.showSleep ?? true,
                 showSleepLogs: latestSettings?.showSleepLogs ?? true,
@@ -155,20 +151,17 @@ export function ClientDiaryPage() {
 
     async function saveGoal(e: React.FormEvent) {
         e.preventDefault()
-        const nutrientGoals = [
-            ...(goal?.nutrientSet ?? [])
-                .filter((saved) => !MAIN_NUTRIENTS.some((n) => n.id === saved.nutrientId))
-                .map((saved) => ({ nutrientId: saved.nutrientId, amount: saved.amount })),
-            ...MAIN_NUTRIENTS
-                .filter((n) => goalAmounts[n.id].trim() !== '')
-                .map((n) => ({ nutrientId: n.id, amount: Number(goalAmounts[n.id]) })),
-        ]
-        if (nutrientGoals.some((n) => !Number.isFinite(n.amount) || n.amount <= 0)) {
+        const nutrientGoals = toNutrientGoals(goalForm.amounts)
+        if (!goalForm.startDate) {
+            showAlert('Укажите дату начала цели', 'warning')
+            return
+        }
+        if (nutrientGoals.length === 0 || nutrientGoals.some((n) => !Number.isFinite(n.amount) || n.amount <= 0)) {
             showAlert('Цели нутриентов должны быть положительными числами', 'warning')
             return
         }
         try {
-            const payload = { plannedWeight: goalWeight.trim() ? Number(goalWeight) : null, startDate: goalStart, plannedEndDate: goalEnd || null, nutrientGoals }
+            const payload = { plannedWeight: goalForm.plannedWeight.trim() ? Number(goalForm.plannedWeight) : null, startDate: goalForm.startDate, plannedEndDate: goalForm.plannedEndDate || null, nutrientGoals }
             const saved = goal?.id ? await updateClientGoal(goal.id, payload) : await createClientGoal(profileId, payload)
             setGoal(saved)
             showAlert('Цель сохранена', 'success')
@@ -193,7 +186,7 @@ export function ClientDiaryPage() {
         const existing = commentMap.get(key) ?? []
         return (
             <div className="mt-2">
-                {existing.map((c) => <div key={c.id} className="border-start border-3 ps-2 py-1 small mb-1"><span className="fw-semibold">Комментарий специалиста:</span> {c.body}</div>)}
+                {existing.map((c) => <div key={c.id} className="border-start border-3 ps-2 py-1 small mb-1"><span className="fw-semibold">{c.createdById != null && profile?.userId != null && Number(c.createdById) === Number(profile.userId) ? "Комментарий пользователя:" : "Комментарий специалиста:"}</span> {c.body}</div>)}
                 {!isObserver && (
                     <form className="d-flex gap-2 mt-2" onSubmit={(e) => { e.preventDefault(); void submitComment(type, id) }}>
                         <input className="form-control form-control-sm" value={commentDrafts[key] ?? ''} onChange={(e) => setCommentDrafts((prev) => ({ ...prev, [key]: e.target.value }))} placeholder="Комментарий к записи…" />
@@ -231,11 +224,15 @@ export function ClientDiaryPage() {
                                 {day?.sections?.length ? day.sections.map((section) => (
                                     <section key={section.mealId} className="card border-0 shadow-sm mb-3"><div className="card-body">
                                         <div className="fw-semibold">{section.mealTypeCode || 'Приём пищи'} <span className="text-muted small">· {section.records.length} записей</span></div>
-                                        <ul className="list-group list-group-flush mt-2">{section.records.map((record) => <li key={record.recordId} className="list-group-item px-0"><div className="d-flex justify-content-between gap-2"><span>{record.productDescription}</span><span className="text-muted small">{record.gramWeight != null ? record.gramWeight + ' г' : record.amount ?? ''}</span></div></li>)}</ul>
+                                        {section.photoPath && <DeferredImage src={photoPathToUrl(section.photoPath)} alt={`Фото приёма: ${section.mealTypeCode || 'приём пищи'}`} className="w-100 rounded-3 mt-2" />}
+                                        <ul className="list-group list-group-flush mt-2">{section.records.map((record) => <li key={record.recordId} className="list-group-item px-0"><div className="d-flex align-items-center gap-2">
+                                            {record.photoPath && <div className="rounded-2 flex-shrink-0 overflow-hidden" style={{ width: 56, height: 56 }}><DeferredImage src={photoPathToUrl(record.photoPath)} alt={record.productDescription || 'Продукт'} className="w-100 h-100 object-fit-cover" /></div>}
+                                            <div className="d-flex justify-content-between align-items-start gap-2 flex-grow-1"><span>{record.productDescription}</span><span className="text-muted small text-nowrap">{record.gramWeight != null ? record.gramWeight + ' г' : record.amount ?? ''}</span></div>
+                                        </div></li>)}</ul>
                                         {renderCommentBox('MEAL', section.mealId)}
                                     </div></section>
                                 )) : <p className="text-muted">За эту дату нет записей о приёмах пищи.</p>}
-                                {day?.sleepForDay?.map((log) => <section key={'sleep-' + log.id} className="card border-0 shadow-sm mb-2"><div className="card-body"><div className="fw-semibold">Сон</div><div className="small text-muted">{log.beganAt} — {log.endedAt || 'не завершён'}</div>{renderCommentBox('SLEEP_LOG', log.id)}</div></section>)}
+                                {sleepLogs.map((log) => <section key={'sleep-' + log.id} className="card border-0 shadow-sm mb-2"><div className="card-body"><div className="fw-semibold">Сон</div><div className="small text-muted">{log.beganAt} — {log.endedAt || 'не завершён'}</div>{renderCommentBox('SLEEP_LOG', log.id)}</div></section>)}
                                 {day?.latestWeight && <section className="card border-0 shadow-sm mb-2"><div className="card-body"><div className="fw-semibold">Вес</div><div>{day.latestWeight.weight} кг</div>{renderCommentBox('WEIGHT_LOG', day.latestWeight.id)}</div></section>}
                                 {weights.length > 0 && <section className="card border-0 shadow-sm mt-3"><div className="card-body"><div className="fw-semibold mb-2">История веса</div>{weights.map((w) => <div key={w.id} className="border-bottom py-2"><div className="d-flex justify-content-between"><span>Запись #{w.id}</span><span>{w.weight} кг</span></div>{renderCommentBox('WEIGHT_LOG', w.id)}</div>)}</div></section>}
                             </>
@@ -243,13 +240,7 @@ export function ClientDiaryPage() {
                         {tab === 'goals' && !isObserver && (
                             <form className="card border-0 shadow-sm" onSubmit={(e) => void saveGoal(e)}><div className="card-body">
                                 <h5>Цель пользователя</h5>
-                                <div className="row g-2">
-                                    <div className="col-12"><label className="form-label" htmlFor="goal-weight">Плановый вес, кг</label><input id="goal-weight" type="number" min="20" max="300" step="0.1" className="form-control" value={goalWeight} onChange={(e) => setGoalWeight(e.target.value)} /></div>
-                                    <div className="col-6"><label className="form-label" htmlFor="goal-start">Дата начала</label><input id="goal-start" type="date" required className="form-control" value={goalStart} onChange={(e) => setGoalStart(e.target.value)} /></div>
-                                    <div className="col-6"><label className="form-label" htmlFor="goal-end">Плановое завершение</label><input id="goal-end" type="date" className="form-control" value={goalEnd} onChange={(e) => setGoalEnd(e.target.value)} /></div>
-                                </div>
-                                <h6 className="mt-3">Цели нутриентов</h6>
-                                {MAIN_NUTRIENTS.map((n) => <div className="row align-items-center g-2 mb-2" key={n.id}><label className="col-7 small" htmlFor={'nutrient-' + n.id}>{n.name} ({n.unit})</label><div className="col-5"><input id={'nutrient-' + n.id} type="number" min="0.01" step="any" className="form-control form-control-sm" value={goalAmounts[n.id] ?? ''} onChange={(e) => setGoalAmounts((prev) => ({ ...prev, [n.id]: e.target.value }))} /></div></div>)}
+                                <GoalNutrientForm values={goalForm} onChange={setGoalForm} showMetaFields showAllNutrients openGroupsByDefault />
                                 <button className="btn btn-primary w-100 mt-2" type="submit">Сохранить цель</button>
                             </div></form>
                         )}
@@ -263,8 +254,17 @@ export function ClientDiaryPage() {
                                     ['showWeightLogs', 'Показывать записи веса'],
                                     ['showAllergensWarning', 'Предупреждать об аллергенах'],
                                 ] as const).map(([key, label]) => <label className="form-check d-flex gap-2 mb-2" key={key}><input className="form-check-input" type="checkbox" checked={settingsValues[key]} onChange={(e) => setSettingsValues((prev) => ({ ...prev, [key]: e.target.checked }))} /><span>{label}</span></label>)}
-                                <h6 className="mt-3">Скрыть нутриенты</h6>
-                                {MAIN_NUTRIENTS.map((n) => <label className="form-check d-flex gap-2 mb-2" key={n.id}><input className="form-check-input" type="checkbox" checked={settingsValues.hiddenNutrients.includes(n.id)} onChange={(e) => setSettingsValues((prev) => ({ ...prev, hiddenNutrients: e.target.checked ? [...prev.hiddenNutrients, n.id] : prev.hiddenNutrients.filter((id) => id !== n.id) }))} /><span>{n.name}</span></label>)}
+                                <h6 className="mt-3">Нутриенты</h6>
+                                <p className="text-muted small">Отметьте нутриенты, которые нужно скрыть в дневнике пользователя.</p>
+                                {NUTRIENT_GROUPS.map((group) => <details key={group.id} className="mb-2" open={group.id === 'macro'}>
+                                    <summary className="fw-semibold user-select-none" style={{ cursor: 'pointer' }}>{group.title}</summary>
+                                    <div className="pt-2 ps-1">
+                                        {nutrientsByGroup(group.id).map((n) => <label className="form-check d-flex gap-2 mb-1" key={n.id}>
+                                            <input className="form-check-input" type="checkbox" checked={settingsValues.hiddenNutrients.includes(n.id)} onChange={(e) => setSettingsValues((prev) => ({ ...prev, hiddenNutrients: e.target.checked ? [...prev.hiddenNutrients, n.id] : prev.hiddenNutrients.filter((id) => id !== n.id) }))} />
+                                            <span>{n.name} <small className="text-muted">({unitLabel(n.unit)})</small></span>
+                                        </label>)}
+                                    </div>
+                                </details>)}
                                 <button className="btn btn-primary w-100 mt-2" type="submit">Сохранить настройки</button>
                             </div></form>
                         )}

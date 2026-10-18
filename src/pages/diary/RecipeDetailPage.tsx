@@ -14,6 +14,29 @@ import { getErrorMessage } from '@/lib/errors'
 import mealStyles from '@/components/diary/MealSection/MealSection.module.css'
 import styles from './ProductDetailPage.module.css'
 
+function recipeInstructionLines(value: string): string[] {
+    const raw = value.trim()
+    if (!raw) return []
+    try {
+        const parsed: unknown = JSON.parse(raw)
+        if (Array.isArray(parsed)) {
+            const lines = parsed.map((step) => typeof step === 'string' ? step.trim() : '').filter(Boolean)
+            if (lines.length) return lines
+        }
+        if (parsed && typeof parsed === 'object') {
+            const candidate = (parsed as { steps?: unknown; instructions?: unknown }).steps
+                ?? (parsed as { instructions?: unknown }).instructions
+            if (Array.isArray(candidate)) {
+                const lines = candidate.map((step) => typeof step === 'string' ? step.trim() : '').filter(Boolean)
+                if (lines.length) return lines
+            }
+        }
+    } catch {
+        // recipeText is usually plain text; continue with line-based parsing
+    }
+    return raw.replace(/\\r\\n/g, '\n').replace(/\\n/g, '\n').split(/\r?\n/).map((line) => line.trim()).filter(Boolean)
+}
+
 export function RecipeDetailPage() {
     const { recipeId } = useParams()
     const [searchParams] = useSearchParams()
@@ -51,6 +74,7 @@ export function RecipeDetailPage() {
     }, [id])
 
     const image = photoPathToUrl(recipe?.photoPath) ?? null
+    const instructionLines = recipe?.recipeText ? recipeInstructionLines(recipe.recipeText) : []
 
     async function onAddToMeal(e: React.FormEvent) {
         e.preventDefault()
@@ -183,12 +207,18 @@ export function RecipeDetailPage() {
                             )}
                         </section>
 
-                        {recipe.recipeText && (
+                        {instructionLines.length > 0 && (
                             <section className={styles.nutrients}>
                                 <h2 className={styles.formTitle}>Приготовление</h2>
-                                <p className="mb-0" style={{ whiteSpace: 'pre-wrap' }}>
-                                    {recipe.recipeText}
-                                </p>
+                                {instructionLines.length > 1 ? (
+                                    <ol className="mb-0 ps-4">
+                                        {instructionLines.map((step, index) => (
+                                            <li key={index} className="mb-2">{step}</li>
+                                        ))}
+                                    </ol>
+                                ) : (
+                                    <p className="mb-0" style={{ whiteSpace: 'pre-wrap' }}>{instructionLines[0]}</p>
+                                )}
                             </section>
                         )}
                     </>
