@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { BottomNav } from '@/components/diary'
 import { DeferredImage } from '@/components/ui/DeferredImage'
 import {
@@ -32,7 +32,11 @@ function formatDayLabel(iso: string): string {
 }
 
 export function ProductsPage() {
-    const [tab, setTab] = useState<TabKey>('products')
+    const [searchParams] = useSearchParams()
+    const templateId = searchParams.get('templateId')
+    const isTemplatePick = Boolean(templateId)
+
+    const [tab, setTab] = useState<TabKey>(isTemplatePick ? 'products' : 'products')
     const [query, setQuery] = useState('')
     const [products, setProducts] = useState<ProductListItem[]>([])
     const [page, setPage] = useState(0)
@@ -45,6 +49,11 @@ export function ProductsPage() {
     const sentinelRef = useRef<HTMLDivElement | null>(null)
 
     const showSearch = tab === 'products' || tab === 'recipes'
+
+    const productLink = (id: number) =>
+        templateId
+            ? `/diary/products/${id}?templateId=${encodeURIComponent(templateId)}`
+            : `/diary/products/${id}`
 
     async function loadProducts(q: string, pageNum: number, append: boolean) {
         if (append) setLoadingMore(true)
@@ -121,32 +130,47 @@ export function ProductsPage() {
         <div className="diary-shell">
             <div>
                 <div className="bg-brand text-invert p-2 rounded-bottom-4">
-                    <h2 className="page-title text-center p-2 bg-text-on-brand">Продукты</h2>
+                    <h2 className="page-title text-center p-2 bg-text-on-brand">
+                        {isTemplatePick ? 'Выбор продукта для шаблона' : 'Продукты'}
+                    </h2>
 
-                    <div className="tab-container">
-                        <ul className="tab-nav nav nav-pills mb-3" role="tablist">
-                            {(
-                                [
-                                    ['products', 'Продукты'],
-                                    ['recipes', 'Рецепты'],
-                                    ['templates', 'Шаблоны'],
-                                    ['recent', 'За неделю'],
-                                ] as const
-                            ).map(([key, label]) => (
-                                <li className="nav-item" key={key}>
-                                    <button
-                                        type="button"
-                                        role="tab"
-                                        className={`nav-link ${tab === key ? 'active' : ''}`}
-                                        aria-selected={tab === key}
-                                        onClick={() => setTab(key)}
-                                    >
-                                        {label}
-                                    </button>
-                                </li>
-                            ))}
-                        </ul>
-                    </div>
+                    {isTemplatePick && (
+                        <div className="px-2 mb-2">
+                            <Link
+                                to={`/diary/templates/${templateId}/edit`}
+                                className="btn btn-sm btn-outline-light"
+                            >
+                                ← Назад к шаблону
+                            </Link>
+                        </div>
+                    )}
+
+                    {!isTemplatePick && (
+                        <div className="tab-container">
+                            <ul className="tab-nav nav nav-pills mb-3" role="tablist">
+                                {(
+                                    [
+                                        ['products', 'Продукты'],
+                                        ['recipes', 'Рецепты'],
+                                        ['templates', 'Шаблоны'],
+                                        ['recent', 'За неделю'],
+                                    ] as const
+                                ).map(([key, label]) => (
+                                    <li className="nav-item" key={key}>
+                                        <button
+                                            type="button"
+                                            role="tab"
+                                            className={`nav-link ${tab === key ? 'active' : ''}`}
+                                            aria-selected={tab === key}
+                                            onClick={() => setTab(key)}
+                                        >
+                                            {label}
+                                        </button>
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                    )}
 
                     {showSearch && (
                         <div className="mb-3">
@@ -166,7 +190,7 @@ export function ProductsPage() {
                 </div>
 
                 <div className="diary-content">
-                    {tab === 'products' && (
+                    {(tab === 'products' || isTemplatePick) && (
                         <>
                             <ul className="list-group list-group-flush rounded-4">
                                 {products.length === 0 && (
@@ -178,14 +202,16 @@ export function ProductsPage() {
                                 {products.map((p) => (
                                     <li key={p.id} className="list-group-item p-0">
                                         <Link
-                                            to={`/diary/products/${p.id}`}
+                                            to={productLink(p.id)}
                                             className="d-flex align-items-center gap-2 text-decoration-none text-reset p-3"
                                         >
                                             <DeferredImage src={p.imageUrl} alt={p.name} />
                                             <div>
                                                 <div className="fw-semibold">{p.name}</div>
                                                 {p.categoryCode && (
-                                                    <div className="small text-muted">{p.categoryCode}</div>
+                                                    <div className="small text-muted">
+                                                        {p.categoryCode}
+                                                    </div>
                                                 )}
                                             </div>
                                         </Link>
@@ -199,7 +225,7 @@ export function ProductsPage() {
                         </>
                     )}
 
-                    {tab === 'recipes' && (
+                    {!isTemplatePick && tab === 'recipes' && (
                         <ul className="list-group list-group-flush">
                             {recipes.length === 0 && (
                                 <div className="no-content-placeholder">
@@ -226,7 +252,7 @@ export function ProductsPage() {
                         </ul>
                     )}
 
-                    {tab === 'templates' && (
+                    {!isTemplatePick && tab === 'templates' && (
                         <>
                             <div className="d-flex justify-content-end mb-2 px-2">
                                 <Link to="/diary/templates/add" className="btn btn-primary btn-sm">
@@ -252,7 +278,9 @@ export function ProductsPage() {
                                         >
                                             <div className="fw-semibold">{t.name}</div>
                                             {t.scheduledTime && (
-                                                <div className="small text-muted">{t.scheduledTime}</div>
+                                                <div className="small text-muted">
+                                                    {t.scheduledTime}
+                                                </div>
                                             )}
                                         </Link>
                                     </li>
@@ -261,7 +289,7 @@ export function ProductsPage() {
                         </>
                     )}
 
-                    {tab === 'recent' && (
+                    {!isTemplatePick && tab === 'recent' && (
                         <div>
                             {recent.length === 0 && (
                                 <div className="no-content-placeholder">
@@ -276,7 +304,10 @@ export function ProductsPage() {
                                     </div>
                                     <ul className="list-group list-group-flush">
                                         {day.items.map((item) => (
-                                            <li key={`${day.date}-${item.id}`} className="list-group-item">
+                                            <li
+                                                key={`${day.date}-${item.id}`}
+                                                className="list-group-item"
+                                            >
                                                 {item.name}
                                                 {item.mealTypeCode && (
                                                     <span className="small text-muted ms-2">
