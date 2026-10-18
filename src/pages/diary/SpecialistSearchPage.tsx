@@ -1,66 +1,90 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { BottomNav } from '@/components/diary';
+import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
+import { BottomNav } from '@/components/diary'
 import {
+    hasActiveSpecialistControl,
     initiateSpecialistRelation,
     searchSpecialists,
     type SpecialistSearchItemDto,
-} from '@/api/specialist';
-import { getDiaryProfileId } from '@/api/onboarding';
-import { getMyUserProfile } from '@/api/profiles';
-import { useAlert } from '@/components/ui/Alert';
-import { getErrorMessage } from '@/lib/errors';
+} from '@/api/specialist'
+import { getDiaryProfileId } from '@/api/onboarding'
+import { getMyUserProfile } from '@/api/profiles'
+import { useAlert } from '@/components/ui/Alert'
+import { getErrorMessage } from '@/lib/errors'
 
 export function SpecialistSearchPage() {
-    const { showAlert } = useAlert();
+    const { showAlert } = useAlert()
 
-    const [query, setQuery] = useState('');
-    const [results, setResults] = useState<SpecialistSearchItemDto[]>([]);
-    const [loading, setLoading] = useState(false);
-    const [busyId, setBusyId] = useState<number | null>(null);
-    const [searched, setSearched] = useState(false);
-    const [relationType, setRelationType] = useState<'SPECIALIST' | 'OBSERVER'>('SPECIALIST');
+    const [query, setQuery] = useState('')
+    const [results, setResults] = useState<SpecialistSearchItemDto[]>([])
+    const [loading, setLoading] = useState(false)
+    const [busyId, setBusyId] = useState<number | null>(null)
+    const [searched, setSearched] = useState(false)
+    const [relationType, setRelationType] = useState<'SPECIALIST' | 'OBSERVER'>('SPECIALIST')
+    const [hasSpecialistControl, setHasSpecialistControl] = useState(false)
+
+    useEffect(() => {
+        const profileId = getDiaryProfileId()
+        if (profileId == null) return
+        void hasActiveSpecialistControl(profileId).then((active) => {
+            setHasSpecialistControl(active)
+            if (active) setRelationType('OBSERVER')
+        })
+    }, [])
 
     async function onSearch(e?: React.FormEvent) {
-        e?.preventDefault();
-        setLoading(true);
-        setSearched(true);
+        e?.preventDefault()
+        setLoading(true)
+        setSearched(true)
 
         try {
-            const me = await getMyUserProfile();
-            const list = await searchSpecialists(query.trim());
+            const me = await getMyUserProfile()
+            const list = await searchSpecialists(query.trim())
 
             const filtered = list.filter((s) => {
-                if (me == null) return true;
-                return s.userId !== me.id;
-            });
+                if (me == null) return true
+                return s.userId !== me.id
+            })
 
-            setResults(filtered);
+            setResults(filtered)
         } catch (err: unknown) {
-            showAlert(getErrorMessage(err, 'Не удалось выполнить поиск'), 'danger');
-            setResults([]);
+            showAlert(getErrorMessage(err, 'Не удалось выполнить поиск'), 'danger')
+            setResults([])
         } finally {
-            setLoading(false);
+            setLoading(false)
         }
     }
 
     async function onInitiate(specialistId: number) {
-        const profileId = getDiaryProfileId();
+        const profileId = getDiaryProfileId()
 
         if (profileId == null) {
-            showAlert('Нет профиля дневника', 'warning');
-            return;
+            showAlert('Нет профиля дневника', 'warning')
+            return
         }
 
-        setBusyId(specialistId);
+        if (relationType === 'SPECIALIST' && hasSpecialistControl) {
+            showAlert(
+                'Уже есть активная связь типа «Специалист». Завершите её, прежде чем подключать другого.',
+                'warning',
+            )
+            return
+        }
+
+        setBusyId(specialistId)
 
         try {
-            await initiateSpecialistRelation(profileId, specialistId, relationType);
-            showAlert(`Заявка отправлена. Тип связи: ${relationType === 'SPECIALIST' ? 'Специалист' : 'Наблюдатель'}`, 'success');
+            await initiateSpecialistRelation(profileId, specialistId, relationType)
+            showAlert(
+                `Заявка отправлена. Тип связи: ${
+                    relationType === 'SPECIALIST' ? 'Специалист' : 'Наблюдатель'
+                }`,
+                'success',
+            )
         } catch (err: unknown) {
-            showAlert(getErrorMessage(err, 'Не удалось отправить заявку'), 'danger');
+            showAlert(getErrorMessage(err, 'Не удалось отправить заявку'), 'danger')
         } finally {
-            setBusyId(null);
+            setBusyId(null)
         }
     }
 
@@ -78,7 +102,7 @@ export function SpecialistSearchPage() {
                     <label htmlFor="q" className="form-label">
                         Email или логин
                     </label>
-                    <div className="d-flex gap-2">
+                    <div className="input-group">
                         <input
                             id="q"
                             className="form-control"
@@ -92,14 +116,13 @@ export function SpecialistSearchPage() {
                     </div>
                 </form>
 
-                <div className="mb-3">
-                    <label htmlFor="relationType" className="form-label">Тип связи</label>
-                    <select id="relationType" className="form-select" value={relationType} onChange={(e) => setRelationType(e.target.value as 'SPECIALIST' | 'OBSERVER')}>
-                        <option value="SPECIALIST">Специалист — работа с дневником и целями</option>
-                        <option value="OBSERVER">Наблюдатель — просмотр дневника</option>
-                    </select>
-                    <div className="form-text">Выбранный тип будет передан вместе с заявкой.</div>
-                </div>
+                {hasSpecialistControl && (
+                    <div className="alert alert-warning py-2 small" role="status">
+                        У вас уже есть активная связь типа «Специалист». Можно отправить заявку только
+                        как наблюдатель. Чтобы подключить другого специалиста — сначала завершите
+                        текущую связь в «Мои специалисты».
+                    </div>
+                )}
 
                 {searched && !loading && results.length === 0 && (
                     <p className="text-muted mb-0">Ничего не найдено</p>
@@ -107,24 +130,58 @@ export function SpecialistSearchPage() {
 
                 {results.map((s) => (
                     <div key={s.id} className="card mb-2 shadow-sm border-0">
-                        <div className="card-body d-flex justify-content-between align-items-center gap-2 py-3">
-                            <div>
-                                <div className="fw-semibold">
-                                    {s.login || s.email || `Специалист #${s.id}`}
-                                </div>
-                                <div className="small text-muted">
-                                    {s.email ?? ''}
-                                    {s.isActive === false ? ' · неактивен' : ''}
+                        <div className="card-body py-3">
+                            <div className="d-flex justify-content-between align-items-start gap-2 mb-2">
+                                <div>
+                                    <div className="fw-semibold">
+                                        {s.login || s.email || `Специалист #${s.id}`}
+                                    </div>
+                                    <div className="small text-muted">
+                                        {s.email ?? ''}
+                                        {s.isActive === false ? ' · неактивен' : ''}
+                                    </div>
                                 </div>
                             </div>
-                            <button
-                                type="button"
-                                className="btn btn-primary btn-sm"
-                                disabled={busyId === s.id || s.isActive === false}
-                                onClick={() => void onInitiate(s.id)}
-                            >
-                                Связаться
-                            </button>
+                            <div className="d-flex flex-wrap align-items-end gap-2">
+                                <div className="flex-grow-1" style={{ minWidth: '10rem' }}>
+                                    <label
+                                        htmlFor={`relationType-${s.id}`}
+                                        className="form-label small mb-1"
+                                    >
+                                        Тип связи
+                                    </label>
+                                    <select
+                                        id={`relationType-${s.id}`}
+                                        className="form-select form-select-sm"
+                                        value={relationType}
+                                        onChange={(e) =>
+                                            setRelationType(e.target.value as 'SPECIALIST' | 'OBSERVER')
+                                        }
+                                    >
+                                        <option
+                                            value="SPECIALIST"
+                                            disabled={hasSpecialistControl}
+                                        >
+                                            Специалист — дневник и цели
+                                        </option>
+                                        <option value="OBSERVER">
+                                            Наблюдатель — только просмотр
+                                        </option>
+                                    </select>
+                                </div>
+                                <button
+                                    type="button"
+                                    className="btn btn-primary btn-sm"
+                                    disabled={
+                                        busyId === s.id ||
+                                        s.isActive === false ||
+                                        (relationType === 'SPECIALIST' && hasSpecialistControl)
+                                    }
+                                    onClick={() => void onInitiate(s.id)}
+                                >
+                                    {busyId === s.id ? '…' : 'Отправить заявку'}
+                                </button>
+                            </div>
                         </div>
                     </div>
                 ))}
@@ -132,5 +189,5 @@ export function SpecialistSearchPage() {
 
             <BottomNav />
         </div>
-    );
+    )
 }
