@@ -14,7 +14,6 @@ import {
     type TemplateListItem,
     type RecentDayGroup,
 } from '@/api/meals'
-import styles from './ProductDetailPage.module.css'
 
 type TabKey = 'products' | 'recipes' | 'templates' | 'recent'
 
@@ -54,6 +53,8 @@ export function ProductsPage() {
 
     const mealTypeId = searchParams.get('mealTypeId')
     const date = searchParams.get('date')
+    const templateId = searchParams.get('templateId')
+    const isTemplatePick = Boolean(templateId)
 
     function setTab(key: TabKey) {
         const next = new URLSearchParams(searchParams)
@@ -63,6 +64,7 @@ export function ProductsPage() {
 
     function productHref(productId: number): string {
         const q = new URLSearchParams()
+        if (templateId) q.set('templateId', templateId)
         if (mealTypeId) q.set('mealTypeId', mealTypeId)
         if (date) q.set('date', date)
         const qs = q.toString()
@@ -71,6 +73,7 @@ export function ProductsPage() {
 
     function recipeHref(recipeId: number): string {
         const q = new URLSearchParams()
+        if (templateId) q.set('templateId', templateId)
         if (mealTypeId) q.set('mealTypeId', mealTypeId)
         if (date) q.set('date', date)
         const qs = q.toString()
@@ -151,34 +154,51 @@ export function ProductsPage() {
     return (
         <div className="diary-shell">
             <div className="bg-brand text-invert p-2 rounded-bottom-4">
-                <h2 className="page-title text-center p-2 bg-text-on-brand">Продукты</h2>
+                <h2 className="page-title text-center p-2 bg-text-on-brand">
+                    {isTemplatePick ? 'Выбор продукта для шаблона' : 'Продукты'}
+                </h2>
 
-                <div className="tab-container">
-                    <ul className="tab-nav nav nav-pills mb-3" role="tablist">
-                        {TABS.map(({ key, label }) => (
-                            <li className="nav-item" key={key}>
-                                <button
-                                    type="button"
-                                    role="tab"
-                                    className={`nav-link ${tab === key ? 'active' : ''}`}
-                                    aria-selected={tab === key}
-                                    onClick={() => setTab(key)}
-                                >
-                                    {label}
-                                </button>
-                            </li>
-                        ))}
-                    </ul>
-                </div>
+                {isTemplatePick && (
+                    <div className="mb-2 text-center">
+                        <Link
+                            to={`/diary/templates/${templateId}/edit`}
+                            className="btn btn-sm btn-outline-light"
+                        >
+                            ← Назад к шаблону
+                        </Link>
+                    </div>
+                )}
 
-                {(tab === 'products' || tab === 'recipes') && (
+                {!isTemplatePick && (
+                    <div className="tab-container">
+                        <ul className="tab-nav nav nav-pills mb-3" role="tablist">
+                            {TABS.map(({ key, label }) => (
+                                <li className="nav-item" key={key}>
+                                    <button
+                                        type="button"
+                                        role="tab"
+                                        className={`nav-link ${tab === key ? 'active' : ''}`}
+                                        aria-selected={tab === key}
+                                        onClick={() => setTab(key)}
+                                    >
+                                        {label}
+                                    </button>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+                )}
+
+                {(tab === 'products' || tab === 'recipes' || isTemplatePick) && (
                     <div className="mb-2 d-flex gap-2">
                         {showSearch ? (
                             <input
                                 type="search"
                                 className="form-control"
                                 placeholder={
-                                    tab === 'products' ? 'Поиск продуктов…' : 'Поиск рецептов…'
+                                    tab === 'recipes' && !isTemplatePick
+                                        ? 'Поиск рецептов…'
+                                        : 'Поиск продуктов…'
                                 }
                                 value={query}
                                 onChange={(e) => setQuery(e.target.value)}
@@ -198,7 +218,7 @@ export function ProductsPage() {
             </div>
 
             <div className="diary-content p-3">
-                {tab === 'products' && (
+                {(tab === 'products' || isTemplatePick) && (
                     <>
                         {products.length === 0 ? (
                             <p className="text-muted">{emptyHint}</p>
@@ -233,7 +253,7 @@ export function ProductsPage() {
                     </>
                 )}
 
-                {tab === 'recipes' && (
+                {!isTemplatePick && tab === 'recipes' && (
                     <>
                         <div className="d-flex justify-content-end mb-2">
                             <Link to="/diary/recipes/create" className="btn btn-sm btn-primary">
@@ -269,7 +289,7 @@ export function ProductsPage() {
                     </>
                 )}
 
-                {tab === 'templates' && (
+                {!isTemplatePick && tab === 'templates' && (
                     <>
                         <div className="d-flex justify-content-end mb-2">
                             <Link to="/diary/templates/add" className="btn btn-sm btn-primary">
@@ -295,7 +315,8 @@ export function ProductsPage() {
                     </>
                 )}
 
-                {tab === 'recent' &&
+                {!isTemplatePick &&
+                    tab === 'recent' &&
                     (recent.length === 0 ? (
                         <p className="text-muted">{emptyHint}</p>
                     ) : (
