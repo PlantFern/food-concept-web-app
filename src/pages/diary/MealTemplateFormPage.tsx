@@ -1,29 +1,46 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { Link, useParams, useNavigate } from 'react-router-dom'
-import { IoTrashOutline } from 'react-icons/io5'
+import { IoChevronDown, IoTrashOutline } from 'react-icons/io5'
 import { BottomNav } from '@/components/diary'
 import {
     getMealTemplate,
     createMealTemplate,
     updateMealTemplate,
     deleteMealTemplate,
+    addTemplateRecord,
     deleteTemplateRecord,
     formatTemplateAmount,
     type TemplateFoodRecordItem,
 } from '@/api/meals'
+import {
+    searchProductsPage,
+    fetchProductDetail,
+    type ProductListItem,
+    type FoodServingDto,
+} from '@/api/food'
 import { useAlert } from '@/components/ui/Alert'
-import { DeferredImage } from '@/components/ui/DeferredImage'
 import { getErrorMessage } from '@/lib/errors'
-import { photoPathToUrl } from '@/lib/photo'
 import { getDiaryProfileId } from '@/api/onboarding.ts'
-import mealStyles from '@/components/diary/MealSection/MealSection.module.css'
+import styles from './RecipeCreateFormPage.module.css'
 
 type TemplateFormValues = {
     name: string
     scheduledTime: string
     frequency: string
 }
+
+type DraftItem = {
+    key: string
+    /** existing backend record id when editing */
+    recordId?: number
+    productName: string
+    servingId: number
+    servingLabel: string
+    amount: number
+}
+
+const PAGE_SIZE = 20
 
 function toTimeInput(value?: string | null): string {
     if (!value) return ''
@@ -36,16 +53,44 @@ function todayIso(): string {
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 }
 
+function servingLabel(s: FoodServingDto): string {
+    const unit = s.servingUnit?.code || s.servingUnit?.name || ''
+    const parts = [
+        s.description,
+        s.amount != null ? String(s.amount) : null,
+        unit,
+        s.gramWeight != null ? `${s.gramWeight} г` : null,
+    ].filter(Boolean)
+    return parts.join(' · ') || `Serving #${s.id}`
+}
+
 export function MealTemplateFormPage() {
     const { showAlert } = useAlert()
+    const navigate = useNavigate()
+    const { templateId } = useParams()
+    const isEdit = Boolean(templateId)
+    const id = Number(templateId)
+
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState('')
     const [deleting, setDeleting] = useState(false)
-    const [records, setRecords] = useState<TemplateFoodRecordItem[]>([])
-    const navigate = useNavigate()
+    const [items, setItems] = useState<DraftItem[]>([])
 
-    const { templateId } = useParams()
-    const isEdit = Boolean(templateId)
+    const [dropdownOpen, setDropdownOpen] = useState(false)
+    const [productQuery, setProductQuery] = useState('')
+    const [productResults, setProductResults] = useState<ProductListItem[]>([])
+    const [page, setPage] = useState(0)
+    const [hasMore, setHasMore] = useState(true)
+    const [searching, setSearching] = useState(false)
+    const [loadingMore, setLoadingMore] = useState(false)
+
+    const [selectedProduct, setSelectedProduct] = useState<ProductListItem | null>(null)
+    const [servings, setServings] = useState<FoodServingDto[]>([])
+    const [selectedServingId, setSelectedServingId] = useState<number | ''>('')
+    const [componentAmount, setComponentAmount] = useState('1')
+
+    const listRef = useRef<HTMLUListElement>(null)
+    const dropdownRef = useRef<HTMLDivElement>(null)
 
     const {
         register,
@@ -54,12 +99,44 @@ export function MealTemplateFormPage() {
         formState: { errors, isSubmitting },
     } = useForm<TemplateFormValues>({
         mode: 'onTouched',
-        defaultValues: {
-            name: '',
-            scheduledTime: '',
-            frequency: '1',
-        },
+        defaultValues: { name: '', scheduledTime: '', frequency: '1' },
     })
+
+    const loadProducts = useCallback(
+        async (query: string, pageNum: number, append: boolean) => {
+            if (append) setLoadingMore(true)
+            else setSearching(true)
+            try {
+                const res = await searchProductsPage(query, pageNum, PAGE_SIZE)
+                setProductResults((prev) => (append ? [...prev, ...res.items] : res.items))
+                setPage(res.page)
+                setHasMore(!res.last)
+            } finally {
+                setSearching(false)
+                setLoadingMore(false)
+            }
+        },
+        [],
+    )
+
+    useEffect(() => {
+        if (!dropdownOpen) return
+        const t = window.setTimeout(() => {
+            void loadProducts(productQuery.trim(), 0, false)
+        }, 250)
+        return () => window.clearTimeout(t)
+    }, [productQuery, dropdownOpen, loadProducts])
+
+    useEffect(() => {
+        if (!dropdownOpen) return
+        const onDoc = (e: MouseEvent) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+                setDropdownOpen(false)
+            }
+        }
+        document.addEventListener('mousedown', onDoc)
+        return () => document.removeEventListener('mousedown', onDoc)
+    }, [dropdownOpen])
 
     useEffect(() => {
         let cancelled = false
@@ -71,7 +148,7 @@ export function MealTemplateFormPage() {
                 navigate(-1)
                 return
             }
-            setRecords([])
+            setItems([])
             setLoading(false)
             return
         }
@@ -80,14 +157,24 @@ export function MealTemplateFormPage() {
             setLoading(true)
             setError('')
             try {
-                const data = await getMealTemplate(Number(templateId))
+                const data = await getMealTemplate(id)
                 if (cancelled) return
                 reset({
                     name: data.name ?? '',
                     scheduledTime: toTimeInput(data.scheduledTime),
                     frequency: data.frequency != null ? String(data.frequency) : '1',
                 })
-                setRecords(data.records ?? [])
+                const records = (data.records ?? []) as TemplateFoodRecordItem[]
+                setItems(
+                    records.map((r) => ({
+                        key: `rec-${r.id}`,
+                        recordId: r.id,
+                        productName: r.productDescription || `Serving #${r.servingId}`,
+                        servingId: r.servingId,
+                        servingLabel: formatTemplateAmount(r),
+                        amount: r.amount ?? r.servingAmount ?? 1,
+                    })),
+                )
             } catch (err: unknown) {
                 if (!cancelled) {
                     showAlert(getErrorMessage(err, 'Не удалось загрузить шаблон'), 'danger')
@@ -101,7 +188,68 @@ export function MealTemplateFormPage() {
         return () => {
             cancelled = true
         }
-    }, [templateId, isEdit, reset, navigate, showAlert])
+    }, [templateId, isEdit, id, reset, navigate, showAlert])
+
+    function onListScroll() {
+        const el = listRef.current
+        if (!el || !hasMore || loadingMore || searching) return
+        if (el.scrollTop + el.clientHeight >= el.scrollHeight - 40) {
+            void loadProducts(productQuery.trim(), page + 1, true)
+        }
+    }
+
+    async function onPickProduct(p: ProductListItem) {
+        setSelectedProduct(p)
+        setDropdownOpen(false)
+        setError('')
+        const detail = await fetchProductDetail(p.id)
+        const list = detail?.servings ?? []
+        setServings(list)
+        setSelectedServingId(list[0]?.id ?? '')
+    }
+
+    function onAddItem() {
+        if (selectedProduct == null || !selectedServingId) {
+            setError('Выберите продукт и порцию')
+            return
+        }
+        const amount = Number(componentAmount)
+        if (!Number.isFinite(amount) || amount <= 0) {
+            setError('Количество должно быть больше 0')
+            return
+        }
+        const serving = servings.find((s) => s.id === Number(selectedServingId))
+        if (!serving) {
+            setError('Порция не найдена')
+            return
+        }
+        setItems((prev) => [
+            ...prev,
+            {
+                key: `new-${selectedProduct.id}-${selectedServingId}-${Date.now()}`,
+                productName: selectedProduct.name,
+                servingId: Number(selectedServingId),
+                servingLabel: servingLabel(serving),
+                amount,
+            },
+        ])
+        setComponentAmount('1')
+        setError('')
+    }
+
+    async function onRemoveItem(item: DraftItem) {
+        if (item.recordId != null) {
+            if (!window.confirm('Убрать продукт из шаблона?')) return
+            try {
+                await deleteTemplateRecord(item.recordId)
+                showAlert('Продукт убран', 'success')
+            } catch (err: unknown) {
+                showAlert(getErrorMessage(err, 'Не удалось удалить'), 'danger')
+                return
+            }
+        }
+        setItems((prev) => prev.filter((x) => x.key !== item.key))
+    }
 
     const onSubmit = async (formData: TemplateFormValues) => {
         setError('')
@@ -111,13 +259,18 @@ export function MealTemplateFormPage() {
         try {
             if (isEdit) {
                 await updateMealTemplate(
-                    Number(templateId),
+                    id,
                     formData.name.trim(),
                     formData.scheduledTime,
                     frequency,
                     startedAt,
                 )
-                showAlert('Шаблон обновлён', 'success')
+                // add only new draft rows (without recordId)
+                for (const item of items) {
+                    if (item.recordId != null) continue
+                    await addTemplateRecord(id, item.servingId, item.amount)
+                }
+                showAlert('Шаблон сохранён', 'success')
                 navigate('/diary/products?tab=templates', { replace: true })
             } else {
                 const newId = await createMealTemplate(
@@ -126,7 +279,15 @@ export function MealTemplateFormPage() {
                     frequency,
                     startedAt,
                 )
-                showAlert('Шаблон создан — добавьте продукты', 'success')
+                for (const item of items) {
+                    await addTemplateRecord(newId, item.servingId, item.amount)
+                }
+                showAlert(
+                    items.length
+                        ? 'Шаблон создан с продуктами'
+                        : 'Шаблон создан',
+                    'success',
+                )
                 navigate(`/diary/templates/${newId}/edit`, { replace: true })
             }
         } catch (err: unknown) {
@@ -140,24 +301,13 @@ export function MealTemplateFormPage() {
         setDeleting(true)
         setError('')
         try {
-            await deleteMealTemplate(Number(templateId))
+            await deleteMealTemplate(id)
             showAlert('Шаблон удалён', 'success')
             navigate('/diary/products?tab=templates', { replace: true })
         } catch (err: unknown) {
             setError(getErrorMessage(err, 'Не удалось удалить'))
         } finally {
             setDeleting(false)
-        }
-    }
-
-    const onDeleteRecord = async (recordId: number) => {
-        if (!window.confirm('Удалить позицию из шаблона?')) return
-        try {
-            await deleteTemplateRecord(recordId)
-            setRecords((prev) => prev.filter((r) => r.id !== recordId))
-            showAlert('Позиция удалена', 'success')
-        } catch (err: unknown) {
-            showAlert(getErrorMessage(err, 'Не удалось удалить позицию'), 'danger')
         }
     }
 
@@ -185,43 +335,34 @@ export function MealTemplateFormPage() {
                             {error && <p className="text-danger small mb-0">{error}</p>}
 
                             <div className="d-flex flex-column gap-1">
-                                <div className="d-flex gap-2 justify-content-between align-items-center w-100">
-                                    <label htmlFor="name" className="label text-wrap align-self-center">
-                                        Название
-                                    </label>
-                                    <input
-                                        className="input rounded-3"
-                                        id="name"
-                                        type="text"
-                                        {...register('name', {
-                                            required: 'Укажите название',
-                                            validate: (v) =>
-                                                v.trim().length > 0 || 'Укажите название',
-                                        })}
-                                    />
-                                </div>
+                                <label htmlFor="name" className="label">
+                                    Название
+                                </label>
+                                <input
+                                    className="input rounded-3"
+                                    id="name"
+                                    type="text"
+                                    {...register('name', {
+                                        required: 'Укажите название',
+                                        validate: (v) =>
+                                            v.trim().length > 0 || 'Укажите название',
+                                    })}
+                                />
                                 {errors.name && (
                                     <span className="input-error-text">{errors.name.message}</span>
                                 )}
                             </div>
 
                             <div className="d-flex flex-column gap-1">
-                                <div className="d-flex gap-2 justify-content-between align-items-center w-100">
-                                    <label
-                                        htmlFor="scheduledTime"
-                                        className="label text-wrap align-self-center"
-                                    >
-                                        Время
-                                    </label>
-                                    <input
-                                        className="input rounded-3"
-                                        id="scheduledTime"
-                                        type="time"
-                                        {...register('scheduledTime', {
-                                            required: 'Укажите время',
-                                        })}
-                                    />
-                                </div>
+                                <label htmlFor="scheduledTime" className="label">
+                                    Время
+                                </label>
+                                <input
+                                    className="input rounded-3"
+                                    id="scheduledTime"
+                                    type="time"
+                                    {...register('scheduledTime', { required: 'Укажите время' })}
+                                />
                                 {errors.scheduledTime && (
                                     <span className="input-error-text">
                                         {errors.scheduledTime.message}
@@ -230,90 +371,163 @@ export function MealTemplateFormPage() {
                             </div>
 
                             <div className="d-flex flex-column gap-1">
-                                <div className="d-flex gap-2 justify-content-between align-items-center w-100">
-                                    <label
-                                        htmlFor="frequency"
-                                        className="label text-wrap align-self-center"
-                                    >
-                                        Частота (дней)
-                                    </label>
-                                    <input
-                                        className="input rounded-3"
-                                        id="frequency"
-                                        type="number"
-                                        min={1}
-                                        step={1}
-                                        {...register('frequency', {
-                                            required: 'Укажите частоту',
-                                            validate: (value) => {
-                                                const n = Number(value)
-                                                if (!Number.isFinite(n) || n < 1) {
-                                                    return 'Частота — целое число ≥ 1'
-                                                }
-                                                return true
-                                            },
-                                        })}
-                                    />
-                                </div>
+                                <label htmlFor="frequency" className="label">
+                                    Частота (дней)
+                                </label>
+                                <input
+                                    className="input rounded-3"
+                                    id="frequency"
+                                    type="number"
+                                    min={1}
+                                    step={1}
+                                    {...register('frequency', {
+                                        required: 'Укажите частоту',
+                                        validate: (value) => {
+                                            const n = Number(value)
+                                            if (!Number.isFinite(n) || n < 1) {
+                                                return 'Частота — целое число ≥ 1'
+                                            }
+                                            return true
+                                        },
+                                    })}
+                                />
                                 {errors.frequency && (
                                     <span className="input-error-text">{errors.frequency.message}</span>
                                 )}
                             </div>
 
-                            {isEdit && (
-                                <section className={mealStyles.mealSection}>
-                                    <div className={mealStyles.mealSectionHead}>
-                                        <strong>Продукты в шаблоне</strong>
-                                        <Link
-                                            to={`/diary/products?tab=products&templateId=${templateId}`}
-                                            className="btn btn-sm btn-outline-primary"
-                                        >
-                                            + Добавить
-                                        </Link>
-                                    </div>
-                                    {records.length === 0 ? (
-                                        <p className={mealStyles.mealEmpty}>Пока пусто</p>
-                                    ) : (
-                                        <ul className={mealStyles.foodList}>
-                                            {records.map((item) => (
-                                                <li key={item.id} className={mealStyles.foodRow}>
-                                                    <DeferredImage
-                                                        src={photoPathToUrl(item.photoPath)}
-                                                        alt={item.productDescription || 'Еда'}
-                                                        className={mealStyles.foodThumb}
-                                                    />
-                                                    <div className={mealStyles.foodMeta}>
-                                                        <div className={mealStyles.foodName}>
-                                                            {item.productDescription ||
-                                                                `Serving #${item.servingId}`}
-                                                        </div>
-                                                        <div className={mealStyles.foodAmount}>
-                                                            {formatTemplateAmount(item)}
-                                                        </div>
-                                                    </div>
-                                                    <div className={mealStyles.foodActions}>
-                                                        <span className={mealStyles.foodKcalInline}>
-                                                            {item.nutrient != null
-                                                                ? Math.round(item.nutrient)
-                                                                : '—'}
-                                                            {' kcal'}
-                                                        </span>
+                            <div className={styles.componentsBlock}>
+                                <strong className="d-block mb-2">Продукты в шаблоне</strong>
+
+                                <div className={styles.dropdown} ref={dropdownRef}>
+                                    <button
+                                        type="button"
+                                        className={styles.dropdownTrigger}
+                                        onClick={() => setDropdownOpen((o) => !o)}
+                                        aria-expanded={dropdownOpen}
+                                    >
+                                        <span className={styles.triggerLabel}>
+                                            {selectedProduct?.name ?? 'Выберите продукт'}
+                                        </span>
+                                        <IoChevronDown size={16} />
+                                    </button>
+
+                                    {dropdownOpen && (
+                                        <div className={styles.dropdownPanel}>
+                                            <input
+                                                className={styles.searchInput}
+                                                type="search"
+                                                placeholder="Поиск…"
+                                                value={productQuery}
+                                                onChange={(e) => setProductQuery(e.target.value)}
+                                                autoFocus
+                                            />
+                                            <ul
+                                                className={styles.dropdownList}
+                                                ref={listRef}
+                                                onScroll={onListScroll}
+                                            >
+                                                {searching && productResults.length === 0 && (
+                                                    <li className={styles.listHint}>Поиск…</li>
+                                                )}
+                                                {!searching && productResults.length === 0 && (
+                                                    <li className={styles.listHint}>Ничего не найдено</li>
+                                                )}
+                                                {productResults.map((p) => (
+                                                    <li key={p.id} className={styles.listItem}>
                                                         <button
                                                             type="button"
-                                                            className={`${mealStyles.iconBtn} ${mealStyles.iconBtnDanger}`}
-                                                            onClick={() => void onDeleteRecord(item.id)}
-                                                            aria-label="Удалить"
-                                                            title="Удалить"
+                                                            className={`${styles.listBtn} ${
+                                                                selectedProduct?.id === p.id
+                                                                    ? styles.listBtnActive
+                                                                    : ''
+                                                            }`}
+                                                            onClick={() => void onPickProduct(p)}
                                                         >
-                                                            <IoTrashOutline size={18} />
+                                                            {p.name}
                                                         </button>
-                                                    </div>
-                                                </li>
-                                            ))}
-                                        </ul>
+                                                    </li>
+                                                ))}
+                                                {loadingMore && (
+                                                    <li className={styles.listHint}>Ещё…</li>
+                                                )}
+                                            </ul>
+                                        </div>
                                     )}
-                                </section>
-                            )}
+                                </div>
+
+                                {selectedProduct != null && servings.length > 0 && (
+                                    <div className={styles.servingRow}>
+                                        <div className="flex-grow-1">
+                                            <label className="small mb-1 d-block" htmlFor="tpl-serving">
+                                                Порция
+                                            </label>
+                                            <select
+                                                id="tpl-serving"
+                                                className="form-select form-select-sm"
+                                                value={selectedServingId}
+                                                onChange={(e) =>
+                                                    setSelectedServingId(
+                                                        e.target.value ? Number(e.target.value) : '',
+                                                    )
+                                                }
+                                            >
+                                                {servings.map((s) => (
+                                                    <option key={s.id} value={s.id}>
+                                                        {servingLabel(s)}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                        <div style={{ width: 88 }}>
+                                            <label className="small mb-1 d-block" htmlFor="tpl-amount">
+                                                Кол-во
+                                            </label>
+                                            <input
+                                                id="tpl-amount"
+                                                type="number"
+                                                className="form-control form-control-sm"
+                                                min={0.01}
+                                                step="any"
+                                                value={componentAmount}
+                                                onChange={(e) => setComponentAmount(e.target.value)}
+                                            />
+                                        </div>
+                                        <button
+                                            type="button"
+                                            className="btn btn-sm btn-outline-primary"
+                                            onClick={onAddItem}
+                                        >
+                                            +
+                                        </button>
+                                    </div>
+                                )}
+
+                                {items.length === 0 ? (
+                                    <p className="text-muted small mt-2 mb-0">Пока пусто — добавьте продукты выше</p>
+                                ) : (
+                                    <ul className={styles.componentList}>
+                                        {items.map((item) => (
+                                            <li key={item.key} className={styles.componentItem}>
+                                                <div>
+                                                    <div className="fw-semibold small">{item.productName}</div>
+                                                    <div className="text-muted small">
+                                                        {item.servingLabel} × {item.amount}
+                                                    </div>
+                                                </div>
+                                                <button
+                                                    type="button"
+                                                    className="btn btn-sm btn-outline-danger"
+                                                    onClick={() => void onRemoveItem(item)}
+                                                    aria-label="Удалить"
+                                                >
+                                                    <IoTrashOutline size={16} />
+                                                </button>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                )}
+                            </div>
 
                             <button
                                 type="submit"
@@ -333,11 +547,9 @@ export function MealTemplateFormPage() {
                                     disabled={isSubmitting || deleting}
                                     className="btn btn-outline-danger w-100 d-inline-flex align-items-center justify-content-center gap-2"
                                     onClick={() => void onDelete()}
-                                    aria-label="Удалить шаблон"
-                                    title="Удалить шаблон"
                                 >
                                     <IoTrashOutline size={18} />
-                                    {deleting ? 'Удаление...' : null}
+                                    {deleting ? 'Удаление...' : 'Удалить шаблон'}
                                 </button>
                             )}
                         </form>
