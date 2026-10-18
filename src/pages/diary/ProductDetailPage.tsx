@@ -65,7 +65,8 @@ export function ProductDetailPage() {
     )
 
     const id = Number(productId)
-    const mealTypeLocked = isTemplateMode || (lockedMealType != null && Number.isFinite(lockedMealType))
+    const mealTypeLocked =
+        isTemplateMode || (lockedMealType != null && Number.isFinite(lockedMealType))
 
     useEffect(() => {
         if (!Number.isFinite(id) || id <= 0) {
@@ -88,7 +89,6 @@ export function ProductDetailPage() {
         }
     }, [id])
 
-    // When meal type changes (and not locked from template), recompute default time
     useEffect(() => {
         if (isTemplateMode) return
         setEatenAt(defaultEatenAtForMealType(mealTypeId))
@@ -257,7 +257,8 @@ export function ProductDetailPage() {
                                     <label className={styles.label}>
                                         Время
                                         <input
-                                            type="time"	ortoise className="form-control"
+                                            type="time"
+                                            className="form-control"
                                             value={eatenAt}
                                             onChange={(e) =>
                                                 setEatenAt(
