@@ -18,9 +18,10 @@
 }
 
 .heroImage {
-    width: 4.5rem !important;
-    height: 4.5rem !important;
-    border-radius: 0.85rem !important;
+    width: 45px !important;
+    height: 45px !important;
+    object-fit: cover !important;
+    border-radius: 0.5rem !important;
     flex-shrink: 0;
 }
 
@@ -70,4 +71,10 @@
 
 .submit {
     margin-top: 0.35rem;
+}
+
+.lockedHint {
+    font-size: 0.8rem;
+    color: #6c757d;
+    margin: -0.4rem 0 0.75rem;
 }

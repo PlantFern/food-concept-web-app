@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { Link, useParams, useNavigate } from 'react-router-dom'
 import { BottomNav } from '@/components/diary'
@@ -7,10 +7,13 @@ import {
     createMealTemplate,
     updateMealTemplate,
     deleteMealTemplate,
+    deleteTemplateRecord,
+    type TemplateRecordItem,
 } from '@/api/meals'
 import { useAlert } from '@/components/ui/Alert'
 import { getErrorMessage } from '@/lib/errors'
 import { getDiaryProfileId } from '@/api/onboarding.ts'
+import { todayIso } from '@/lib/mealTime'
 
 type TemplateFormValues = {
     name: string
@@ -29,10 +32,12 @@ export function MealTemplateFormPage() {
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState('')
     const [deleting, setDeleting] = useState(false)
+    const [records, setRecords] = useState<TemplateRecordItem[]>([])
     const navigate = useNavigate()
 
     const { templateId } = useParams()
     const isEdit = Boolean(templateId)
+    const id = Number(templateId)
 
     const {
         register,
@@ -47,6 +52,17 @@ export function MealTemplateFormPage() {
             frequency: '1',
         },
     })
+
+    const loadDetail = useCallback(async () => {
+        if (!isEdit || !Number.isFinite(id)) return
+        const data = await getMealTemplate(id)
+        reset({
+            name: data.name ?? '',
+            scheduledTime: toTimeInput(data.scheduledTime),
+            frequency: data.frequency != null ? String(data.frequency) : '1',
+        })
+        setRecords(Array.isArray(data.records) ? data.records : [])
+    }, [isEdit, id, reset])
 
     useEffect(() => {
         let cancelled = false
@@ -66,13 +82,7 @@ export function MealTemplateFormPage() {
             setLoading(true)
             setError('')
             try {
-                const data = await getMealTemplate(Number(templateId))
-                if (cancelled) return
-                reset({
-                    name: data.name ?? '',
-                    scheduledTime: toTimeInput(data.scheduledTime),
-                    frequency: data.frequency != null ? String(data.frequency) : '1',
-                })
+                await loadDetail()
             } catch (err: unknown) {
                 if (!cancelled) {
                     showAlert(getErrorMessage(err, 'Не удалось загрузить шаблон'), 'danger')
@@ -86,33 +96,34 @@ export function MealTemplateFormPage() {
         return () => {
             cancelled = true
         }
-    }, [templateId, isEdit, reset, navigate, showAlert])
+    }, [templateId, isEdit, loadDetail, navigate, showAlert])
 
     const onSubmit = async (formData: TemplateFormValues) => {
         setError('')
         const frequency = Number(formData.frequency)
-        const startedAt = Date.now()
+        const startedAt = todayIso()
 
         try {
             if (isEdit) {
                 await updateMealTemplate(
-                    Number(templateId),
+                    id,
                     formData.name.trim(),
                     formData.scheduledTime,
                     frequency,
                     startedAt,
                 )
                 showAlert('Шаблон обновлён', 'success')
+                await loadDetail()
             } else {
-                await createMealTemplate(
+                const newId = await createMealTemplate(
                     formData.name.trim(),
                     formData.scheduledTime,
                     frequency,
                     startedAt,
                 )
-                showAlert('Шаблон создан', 'success')
+                showAlert('Шаблон создан — добавьте продукты', 'success')
+                navigate(`/diary/templates/${newId}/edit`, { replace: true })
             }
-            navigate('/diary/products?tab=templates', { replace: true })
         } catch (err: unknown) {
             setError(getErrorMessage(err, 'Не удалось сохранить шаблон'))
         }
@@ -124,13 +135,24 @@ export function MealTemplateFormPage() {
         setDeleting(true)
         setError('')
         try {
-            await deleteMealTemplate(Number(templateId))
+            await deleteMealTemplate(id)
             showAlert('Шаблон удалён', 'success')
             navigate('/diary/products?tab=templates', { replace: true })
         } catch (err: unknown) {
             setError(getErrorMessage(err, 'Не удалось удалить'))
         } finally {
             setDeleting(false)
+        }
+    }
+
+    const onDeleteRecord = async (recordId: number) => {
+        if (!window.confirm('Убрать продукт из шаблона?')) return
+        try {
+            await deleteTemplateRecord(recordId)
+            showAlert('Продукт убран', 'success')
+            await loadDetail()
+        } catch (err: unknown) {
+            showAlert(getErrorMessage(err, 'Не удалось удалить'), 'danger')
         }
     }
 
@@ -258,6 +280,51 @@ export function MealTemplateFormPage() {
                         </form>
                     )}
                 </div>
+
+                {isEdit && !loading && (
+                    <div className="col-xl-4 col-lg-6 col-md-8 col-sm-10 col-12 mx-auto mt-4 mb-5">
+                        <div className="d-flex justify-content-between align-items-center mb-2">
+                            <h6 className="mb-0">Продукты в шаблоне</h6>
+                            <Link
+                                to={`/diary/products?templateId=${id}`}
+                                className="btn btn-sm btn-primary"
+                            >
+                                + Добавить продукт
+                            </Link>
+                        </div>
+                        {records.length === 0 && (
+                            <p className="text-muted small">
+                                Пока пусто. Нажмите «Добавить продукт», выберите продукт и порцию —
+                                они попадут в этот шаблон.
+                            </p>
+                        )}
+                        <ul className="list-group list-group-flush rounded-3">
+                            {records.map((r) => (
+                                <li
+                                    key={r.id}
+                                    className="list-group-item d-flex justify-content-between align-items-center"
+                                >
+                                    <div>
+                                        <div className="fw-semibold small">
+                                            {r.productDescription ?? `Serving #${r.servingId}`}
+                                        </div>
+                                        <div className="text-muted small">
+                                            × {r.amount ?? 1}
+                                            {r.servingUnitCode ? ` ${r.servingUnitCode}` : ''}
+                                        </div>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        className="btn btn-sm btn-outline-danger"
+                                        onClick={() => void onDeleteRecord(r.id)}
+                                    >
+                                        Убрать
+                                    </button>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+                )}
             </div>
 
             <BottomNav />

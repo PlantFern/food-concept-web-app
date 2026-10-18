@@ -16,6 +16,28 @@ export type TemplateListItem = {
     totalKcal?: number | null
 }
 
+export type TemplateRecordItem = {
+    id: number
+    servingId: number
+    productDescription?: string | null
+    amount?: number | null
+    servingAmount?: number | null
+    gramWeight?: number | null
+    servingUnitCode?: string | null
+    nutrient?: number | null
+    photoPath?: string | null
+}
+
+export type MealTemplateDetail = {
+    id: number
+    diaryProfileId?: number
+    name: string
+    scheduledTime?: string | null
+    frequency?: number | null
+    startedAt?: string | null
+    records?: TemplateRecordItem[] | null
+}
+
 export async function fetchTemplates(diaryProfileId?: number): Promise<TemplateListItem[]> {
     const profileId = diaryProfileId ?? getDiaryProfileId()
     if (profileId == null) return []
@@ -29,9 +51,9 @@ export async function fetchTemplates(diaryProfileId?: number): Promise<TemplateL
     }
 }
 
-export async function getMealTemplate(templateId: number): Promise<TemplateListItem> {
+export async function getMealTemplate(templateId: number): Promise<MealTemplateDetail> {
     const profileId = requireProfileId()
-    const { data } = await http.get<TemplateListItem>(
+    const { data } = await http.get<MealTemplateDetail>(
         `/api/diary-profile/${profileId}/meal-templates/${templateId}`,
     )
     return data
@@ -41,7 +63,7 @@ export async function createMealTemplate(
     name: string,
     scheduledTime: string,
     frequency: number,
-    startedAt: number,
+    startedAt: string,
     diaryProfileId?: number,
 ): Promise<number> {
     const profileId = diaryProfileId ?? requireProfileId()
@@ -58,7 +80,7 @@ export async function updateMealTemplate(
     name: string,
     scheduledTime: string,
     frequency: number,
-    startedAt: number,
+    startedAt: string,
     diaryProfileId?: number,
 ): Promise<void> {
     const profileId = diaryProfileId ?? requireProfileId()
