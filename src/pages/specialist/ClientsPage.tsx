@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { SpecialistBottomNav } from '@/components/specialist/SpecialistBottomNav'
 import {
     activateRelation,
@@ -55,16 +56,24 @@ function RelationCard({
                         </>
                     )}
                     {isActiveRelation(r) && (
-                        <button
-                            type="button"
-                            className="btn btn-outline-danger btn-sm"
-                            disabled={busyId === r.id}
-                            onClick={() => {
-                                if (window.confirm('Завершить связь с клиентом?')) onEnd(r.id)
-                            }}
-                        >
-                            Завершить
-                        </button>
+                        <>
+                            <Link
+                                to={`/specialist/clients/${r.diaryProfileId}/diary`}
+                                className="btn btn-primary btn-sm"
+                            >
+                                Открыть дневник
+                            </Link>
+                            <button
+                                type="button"
+                                className="btn btn-outline-danger btn-sm"
+                                disabled={busyId === r.id}
+                                onClick={() => {
+                                    if (window.confirm('Завершить связь с клиентом?')) onEnd(r.id)
+                                }}
+                            >
+                                Завершить
+                            </button>
+                        </>
                     )}
                 </div>
             </div>

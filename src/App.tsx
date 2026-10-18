@@ -24,8 +24,10 @@ import { MealTemplateFormPage } from '@/pages/diary/MealTemplateFormPage'
 import { CommentFormPage } from '@/pages/diary/CommentFormPage'
 import { QuickProductFormPage } from '@/pages/diary/QuickProductFormPage'
 import { StatsPage } from '@/pages/diary/StatsPage'
-import { ClientsPage } from '@/pages/specialist/ClientsPage'
 import { MySpecialistsPage } from '@/pages/diary/MySpecialistsPage'
+import { SpecialistSearchPage } from '@/pages/diary/SpecialistSearchPage'
+import { ClientsPage } from '@/pages/specialist/ClientsPage'
+import { ClientDiaryPage } from '@/pages/specialist/ClientDiaryPage'
 import { SpecialistSettingsPage } from '@/pages/specialist/SpecialistSettingsPage'
 import { RequireAuth } from '@/routes/RequireAuth'
 import { RequireDiary } from '@/routes/RequireDiary'
@@ -63,6 +65,7 @@ function App() {
                             <Route path="/diary/settings/diary" element={<DiarySettingsPage />} />
                             <Route path="/diary/settings/goals" element={<GoalsPage />} />
                             <Route path="/diary/settings/specialists" element={<MySpecialistsPage />} />
+                            <Route path="/diary/specialists/search" element={<SpecialistSearchPage />} />
 
                             <Route path="/diary/sleep-log/add" element={<SleepLogFormPage />} />
                             <Route path="/diary/sleep-log/:sleepLogId/edit" element={<SleepLogFormPage />} />
@@ -83,6 +86,10 @@ function App() {
                         <Route element={<RequireSpecialist />}>
                             <Route path="/specialist" element={<Navigate to="/specialist/clients" replace />} />
                             <Route path="/specialist/clients" element={<ClientsPage />} />
+                            <Route
+                                path="/specialist/clients/:diaryProfileId/diary"
+                                element={<ClientDiaryPage />}
+                            />
                             <Route path="/specialist/settings" element={<SpecialistSettingsPage />} />
                         </Route>
 
