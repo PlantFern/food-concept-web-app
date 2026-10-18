@@ -7,26 +7,13 @@ import { getErrorMessage } from '@/lib/errors'
 import { addFoodRecord, type FoodServingDto } from '@/api/food'
 import { fetchRecipeDetail, type RecipeDetail } from '@/api/food/recipes'
 import { photoPathToUrl } from '@/lib/photo'
+import {
+    MEAL_TYPES,
+    clampEatenAtToMealType,
+    defaultEatenAtForMealType,
+    todayIso,
+} from '@/lib/mealTime'
 import styles from './ProductDetailPage.module.css'
-
-const MEAL_TYPES = [
-    { id: 1, code: 'BREAKFAST', label: 'Завтрак' },
-    { id: 2, code: 'LUNCH', label: 'Обед' },
-    { id: 3, code: 'SNACK', label: 'Перекус' },
-    { id: 4, code: 'DINNER', label: 'Ужин' },
-]
-
-function todayIso(): string {
-    const d = new Date()
-    const m = String(d.getMonth() + 1).padStart(2, '0')
-    const day = String(d.getDate()).padStart(2, '0')
-    return `${d.getFullYear()}-${m}-${day}`
-}
-
-function nowTime(): string {
-    const d = new Date()
-    return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
-}
 
 function servingLabel(s: FoodServingDto): string {
     const unit = s.servingUnit?.code || s.servingUnit?.name || ''
@@ -45,16 +32,27 @@ export function RecipeDetailPage() {
     const navigate = useNavigate()
     const { showAlert } = useAlert()
 
+    const mealTypeFromQuery = searchParams.get('mealTypeId')
+    const lockedMealType =
+        mealTypeFromQuery != null && mealTypeFromQuery !== ''
+            ? Number(mealTypeFromQuery)
+            : null
+    const mealTypeLocked = lockedMealType != null && Number.isFinite(lockedMealType)
+
     const [recipe, setRecipe] = useState<RecipeDetail | null>(null)
     const [loading, setLoading] = useState(true)
     const [saving, setSaving] = useState(false)
     const [formError, setFormError] = useState('')
 
-    const [mealTypeId, setMealTypeId] = useState(Number(searchParams.get('mealTypeId') || 1))
+    const [mealTypeId, setMealTypeId] = useState(
+        mealTypeLocked ? lockedMealType! : 1,
+    )
     const [servingId, setServingId] = useState<number | ''>('')
     const [amount, setAmount] = useState('1')
     const [date, setDate] = useState(searchParams.get('date') || todayIso())
-    const [eatenAt, setEatenAt] = useState(nowTime())
+    const [eatenAt, setEatenAt] = useState(() =>
+        defaultEatenAtForMealType(mealTypeLocked ? lockedMealType! : 1),
+    )
 
     const id = Number(recipeId)
 
@@ -79,6 +77,10 @@ export function RecipeDetailPage() {
         }
     }, [id])
 
+    useEffect(() => {
+        setEatenAt(defaultEatenAtForMealType(mealTypeId))
+    }, [mealTypeId])
+
     const image = photoPathToUrl(recipe?.photoPath) ?? null
 
     async function onSubmit(e: SyntheticEvent) {
@@ -93,13 +95,14 @@ export function RecipeDetailPage() {
 
         setSaving(true)
         try {
+            const time = clampEatenAtToMealType(eatenAt, mealTypeId)
             await addFoodRecord({
                 mealId: null,
                 mealTypeId,
                 servingId: Number(servingId),
                 amount: amountNum,
                 date,
-                eatenAt,
+                eatenAt: time,
             })
             showAlert('Рецепт добавлен в дневник', 'success')
             navigate('/diary', { replace: true })
@@ -153,12 +156,15 @@ export function RecipeDetailPage() {
                                     {recipe.components.map((c) => (
                                         <li key={c.componentId} className="list-group-item small">
                                             <span className="fw-semibold">
-                                                {c.productDescription ?? `Компонент #${c.componentId}`}
+                                                {c.productDescription ??
+                                                    `Компонент #${c.componentId}`}
                                             </span>
                                             {c.amount != null && (
                                                 <span className="text-muted ms-2">
                                                     × {c.amount}
-                                                    {c.servingUnitCode ? ` ${c.servingUnitCode}` : ''}
+                                                    {c.servingUnitCode
+                                                        ? ` ${c.servingUnitCode}`
+                                                        : ''}
                                                 </span>
                                             )}
                                         </li>
@@ -170,7 +176,10 @@ export function RecipeDetailPage() {
                         {recipe.recipeText && (
                             <div className="mb-3">
                                 <h2 className="h6 mb-2">Приготовление</h2>
-                                <p className="small text-muted mb-0" style={{ whiteSpace: 'pre-wrap' }}>
+                                <p
+                                    className="small text-muted mb-0"
+                                    style={{ whiteSpace: 'pre-wrap' }}
+                                >
                                     {recipe.recipeText}
                                 </p>
                             </div>
@@ -192,6 +201,7 @@ export function RecipeDetailPage() {
                                 <select
                                     className="form-select"
                                     value={mealTypeId}
+                                    disabled={mealTypeLocked}
                                     onChange={(e) => setMealTypeId(Number(e.target.value))}
                                 >
                                     {MEAL_TYPES.map((t) => (
@@ -201,6 +211,11 @@ export function RecipeDetailPage() {
                                     ))}
                                 </select>
                             </label>
+                            {mealTypeLocked && (
+                                <p className={styles.lockedHint}>
+                                    Тип приёма задан контекстом (секция дневника)
+                                </p>
+                            )}
 
                             <label className={styles.label}>
                                 Порция
@@ -254,7 +269,14 @@ export function RecipeDetailPage() {
                                         type="time"
                                         className="form-control"
                                         value={eatenAt}
-                                        onChange={(e) => setEatenAt(e.target.value)}
+                                        onChange={(e) =>
+                                            setEatenAt(
+                                                clampEatenAtToMealType(
+                                                    e.target.value,
+                                                    mealTypeId,
+                                                ),
+                                            )
+                                        }
                                         required
                                     />
                                 </label>
