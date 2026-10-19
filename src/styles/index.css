@@ -158,6 +158,19 @@ body {
     padding: 0.75rem 1rem;
     text-decoration: none;
     transition: background 0.15s, transform 0.05s, color 0.15s;
+    border-radius: var(--radius-sm);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    cursor: pointer;
+    font-size: 1rem;
+    line-height: 1.25;
+}
+
+.btn-sm {
+    padding: 0.4rem 0.75rem;
+    font-size: 0.875rem;
 }
 
 .btn-primary {
@@ -194,6 +207,25 @@ body {
 }
 
 .btn-secondary:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+}
+
+.btn-danger {
+    background: transparent;
+    border: 1px solid var(--danger);
+    color: var(--danger-fg);
+    font-weight: 400;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.btn-danger:hover:not(:disabled) {
+    background: var(--danger);
+    border-color: var(--danger);
+    color: var(--neutral-0);
+}
+
+.btn-danger:disabled {
     opacity: 0.65;
     cursor: not-allowed;
 }

@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
+import { HiChevronLeft } from 'react-icons/hi2'
 import { SpecialistBottomNav } from '@/components/specialist/SpecialistBottomNav'
+import { DateNav } from '@/components/diary'
 import {
     getClientActiveGoal,
     getClientLatestWeight,
     getClientSleepByDay,
-    type UserRelationDto,
 } from '@/api/specialist'
 import { fetchDayMeals, type DayMealsDto } from '@/api/diaryProfile/diary'
 import { useAlert } from '@/components/ui/Alert'
@@ -19,6 +20,11 @@ function toIsoDate(d: Date): string {
     return `${y}-${m}-${day}`
 }
 
+function parseIsoDate(iso: string): Date {
+    const [y, m, d] = iso.split('-').map(Number)
+    return new Date(y, (m ?? 1) - 1, d ?? 1)
+}
+
 export function ClientDiaryPage() {
     const { diaryProfileId: idParam } = useParams()
     const [searchParams, setSearchParams] = useSearchParams()
@@ -26,6 +32,7 @@ export function ClientDiaryPage() {
 
     const diaryProfileId = Number(idParam)
     const dateParam = searchParams.get('date') || toIsoDate(new Date())
+    const dateObj = parseIsoDate(dateParam)
 
     const [loading, setLoading] = useState(true)
     const [day, setDay] = useState<DayMealsDto | null>(null)
@@ -45,7 +52,6 @@ export function ClientDiaryPage() {
             setLoading(true)
             setError('')
             try {
-                // Prefer specialist day endpoint if available; fallback to diary API with profile id
                 let meals: DayMealsDto | null = null
                 try {
                     const { data } = await http.get<DayMealsDto>(
@@ -91,25 +97,23 @@ export function ClientDiaryPage() {
     return (
         <div className="diary-shell">
             <div className="bg-brand text-invert p-2 rounded-bottom-4">
-                <Link to="/specialist/clients" className="btn-tertiary bg-text-on-brand text-decoration-none">
-                    ← Клиенты
+                <Link
+                    to="/specialist/clients"
+                    className="btn-tertiary bg-text-on-brand text-decoration-none d-inline-flex align-items-center gap-1"
+                >
+                    <HiChevronLeft size={18} /> Клиенты
                 </Link>
                 <h2 className="page-title text-center p-2 bg-text-on-brand mb-0">
                     Дневник #{diaryProfileId}
                 </h2>
+                <DateNav
+                    date={dateObj}
+                    onPrev={() => shiftDay(-1)}
+                    onNext={() => shiftDay(1)}
+                />
             </div>
 
             <div className="diary-content p-3 pb-5">
-                <div className="d-flex justify-content-between align-items-center mb-3">
-                    <button type="button" className="btn btn-sm btn-outline-secondary" onClick={() => shiftDay(-1)}>
-                        ←
-                    </button>
-                    <span className="fw-semibold">{dateParam}</span>
-                    <button type="button" className="btn btn-sm btn-outline-secondary" onClick={() => shiftDay(1)}>
-                        →
-                    </button>
-                </div>
-
                 {loading && <p className="text-muted">Загрузка…</p>}
                 {error && <p className="text-danger">{error}</p>}
 
@@ -133,7 +137,7 @@ export function ClientDiaryPage() {
                                         <span className="fw-semibold">{section.mealTypeCode}</span>
                                         <Link
                                             to={`/diary/comments/add?commentableType=MEAL&commentableId=${section.mealId}&diaryProfileId=${diaryProfileId}`}
-                                            className="btn btn-sm btn-outline-primary"
+                                            className="btn btn-sm btn-secondary"
                                         >
                                             Коммент.
                                         </Link>
@@ -156,13 +160,13 @@ export function ClientDiaryPage() {
                         <div className="mt-3 d-flex flex-wrap gap-2">
                             <Link
                                 to={`/specialist/clients/${diaryProfileId}/goals`}
-                                className="btn btn-sm btn-outline-secondary"
+                                className="btn btn-sm btn-secondary"
                             >
                                 Цели клиента
                             </Link>
                             <Link
                                 to={`/diary/comments/add?diaryProfileId=${diaryProfileId}`}
-                                className="btn btn-sm btn-outline-secondary"
+                                className="btn btn-sm btn-secondary"
                             >
                                 Добавить комментарий
                             </Link>

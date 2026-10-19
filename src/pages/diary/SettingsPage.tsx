@@ -1,13 +1,12 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import {
-    HiOutlineInformationCircle,
-    HiOutlineSun,
     HiOutlinePlus,
     HiOutlineClipboardDocumentList,
     HiOutlineFlag,
     HiOutlineArrowRightOnRectangle,
     HiOutlineUserGroup,
+    HiChevronRight,
 } from 'react-icons/hi2'
 import { BottomNav } from '@/components/diary'
 import { logoutLocal } from '@/api/auth'
@@ -33,7 +32,9 @@ function SettingsRow({ icon, label, value, to, onClick }: RowProps) {
             <span className={styles.rowIcon}>{icon}</span>
             <span className={styles.rowLabel}>{label}</span>
             {value && <span className={styles.rowValue}>{value}</span>}
-            <span className={styles.rowChevron}>→</span>
+            <span className={styles.rowChevron}>
+                <HiChevronRight size={18} />
+            </span>
         </>
     )
 
@@ -87,7 +88,7 @@ export function SettingsPage() {
     return (
         <div className="diary-shell">
             <div className={`diary-content ${styles.page}`}>
-                <div className='bg-brand text-invert p-2 rounded-bottom-4'>
+                <div className="bg-brand text-invert p-2 rounded-bottom-4">
                     <h2 className={styles.title}>Profile</h2>
                 </div>
 
@@ -146,21 +147,6 @@ export function SettingsPage() {
                         </div>
                     </section>
                 )}
-
-                <section className={styles.section}>
-                    <div className={styles.sectionTitle}>Preferences</div>
-                    <div className={styles.group}>
-                        <SettingsRow
-                            icon={<HiOutlineInformationCircle />}
-                            label="About Us"
-                        />
-                        <SettingsRow
-                            icon={<HiOutlineSun />}
-                            label="Theme"
-                            value="Light"
-                        />
-                    </div>
-                </section>
 
                 <section className={styles.section}>
                     <div className={styles.group}>

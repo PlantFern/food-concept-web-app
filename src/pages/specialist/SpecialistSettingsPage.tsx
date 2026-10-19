@@ -1,12 +1,11 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import {
-    HiOutlineInformationCircle,
-    HiOutlineSun,
     HiOutlinePlus,
     HiOutlineArrowRightOnRectangle,
     HiOutlineClipboardDocumentList,
     HiOutlineUserGroup,
+    HiChevronRight,
 } from 'react-icons/hi2'
 import { SpecialistBottomNav } from '@/components/specialist/SpecialistBottomNav'
 import { logoutLocal } from '@/api/auth'
@@ -32,7 +31,9 @@ function SettingsRow({ icon, label, value, to, onClick }: RowProps) {
             <span className={styles.rowIcon}>{icon}</span>
             <span className={styles.rowLabel}>{label}</span>
             {value && <span className={styles.rowValue}>{value}</span>}
-            <span className={styles.rowChevron}>→</span>
+            <span className={styles.rowChevron}>
+                <HiChevronRight size={18} />
+            </span>
         </>
     )
     if (to) {
@@ -57,8 +58,8 @@ export function SpecialistSettingsPage() {
     const [loading, setLoading] = useState(true)
 
     useEffect(() => {
-        let cancelled = false;
-        (async () => {
+        let cancelled = false
+        ;(async () => {
             const [u, diary, specialist] = await Promise.all([
                 getMyUserProfile(),
                 checkDiaryProfileExists(),
@@ -83,7 +84,7 @@ export function SpecialistSettingsPage() {
     return (
         <div className="diary-shell">
             <div className={`diary-content ${styles.page}`}>
-                <div className='bg-brand text-invert p-2 rounded-bottom-4'>
+                <div className="bg-brand text-invert p-2 rounded-bottom-4">
                     <h2 className="page-title text-center p-2 bg-text-on-brand">Профиль</h2>
                 </div>
 
@@ -122,14 +123,6 @@ export function SpecialistSettingsPage() {
                         </Link>
                     )}
                 </div>
-
-                <section className={styles.section}>
-                    <div className={styles.sectionTitle}>Preferences</div>
-                    <div className={styles.group}>
-                        <SettingsRow icon={<HiOutlineInformationCircle />} label="About Us" />
-                        <SettingsRow icon={<HiOutlineSun />} label="Theme" value="Light" />
-                    </div>
-                </section>
 
                 <section className={styles.section}>
                     <div className={styles.group}>
