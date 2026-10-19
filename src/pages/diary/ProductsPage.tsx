@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
+import { HiChevronLeft } from 'react-icons/hi2'
 import { BottomNav } from '@/components/diary'
 import { DeferredImage } from '@/components/ui/DeferredImage'
 import {
@@ -36,7 +37,7 @@ export function ProductsPage() {
     const templateId = searchParams.get('templateId')
     const isTemplatePick = Boolean(templateId)
 
-    const [tab, setTab] = useState<TabKey>(isTemplatePick ? 'products' : 'products')
+    const [tab, setTab] = useState<TabKey>('products')
     const [query, setQuery] = useState('')
     const [products, setProducts] = useState<ProductListItem[]>([])
     const [page, setPage] = useState(0)
@@ -138,9 +139,9 @@ export function ProductsPage() {
                         <div className="px-2 mb-2">
                             <Link
                                 to={`/diary/templates/${templateId}/edit`}
-                                className="btn btn-sm btn-outline-light"
+                                className="btn btn-sm btn-secondary d-inline-flex align-items-center gap-1"
                             >
-                                ← Назад к шаблону
+                                <HiChevronLeft size={16} /> Назад к шаблону
                             </Link>
                         </div>
                     )}
