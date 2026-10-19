@@ -1,5 +1,7 @@
-import { type SyntheticEvent, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
+import { useForm } from 'react-hook-form'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
+import { HiChevronLeft } from 'react-icons/hi2'
 import { BottomNav } from '@/components/diary'
 import { DeferredImage } from '@/components/ui/DeferredImage'
 import { useAlert } from '@/components/ui/Alert'
@@ -31,6 +33,14 @@ function servingLabel(s: FoodServingDto): string {
     return parts.join(' · ') || `Serving #${s.id}`
 }
 
+type ProductFormValues = {
+    mealTypeId: number
+    servingId: string
+    amount: string
+    date: string
+    eatenAt: string
+}
+
 export function ProductDetailPage() {
     const { productId } = useParams()
     const [searchParams] = useSearchParams()
@@ -49,21 +59,29 @@ export function ProductDetailPage() {
 
     const [product, setProduct] = useState<ProductDetail | null>(null)
     const [loading, setLoading] = useState(true)
-    const [saving, setSaving] = useState(false)
     const [formError, setFormError] = useState('')
 
-    const [mealTypeId, setMealTypeId] = useState(
-        lockedMealType && Number.isFinite(lockedMealType) ? lockedMealType : 1,
-    )
-    const [servingId, setServingId] = useState<number | ''>('')
-    const [amount, setAmount] = useState('1')
-    const [date, setDate] = useState(searchParams.get('date') || todayIso())
-    const [eatenAt, setEatenAt] = useState(() =>
-        defaultEatenAtForMealType(
-            lockedMealType && Number.isFinite(lockedMealType) ? lockedMealType : 1,
-        ),
-    )
+    const defaultMealType =
+        lockedMealType && Number.isFinite(lockedMealType) ? lockedMealType : 1
 
+    const {
+        register,
+        handleSubmit,
+        setValue,
+        watch,
+        formState: { errors, isSubmitting },
+    } = useForm<ProductFormValues>({
+        mode: 'onTouched',
+        defaultValues: {
+            mealTypeId: defaultMealType,
+            servingId: '',
+            amount: '1',
+            date: searchParams.get('date') || todayIso(),
+            eatenAt: defaultEatenAtForMealType(defaultMealType),
+        },
+    })
+
+    const mealTypeId = watch('mealTypeId')
     const id = Number(productId)
     const mealTypeLocked =
         isTemplateMode || (lockedMealType != null && Number.isFinite(lockedMealType))
@@ -80,46 +98,45 @@ export function ProductDetailPage() {
             if (cancelled) return
             setProduct(data)
             if (data?.servings?.length) {
-                setServingId(data.servings[0].id)
+                setValue('servingId', String(data.servings[0].id))
             }
             setLoading(false)
         })()
         return () => {
             cancelled = true
         }
-    }, [id])
+    }, [id, setValue])
 
     useEffect(() => {
         if (isTemplateMode) return
-        setEatenAt(defaultEatenAtForMealType(mealTypeId))
-    }, [mealTypeId, isTemplateMode])
+        setValue('eatenAt', defaultEatenAtForMealType(Number(mealTypeId)))
+    }, [mealTypeId, isTemplateMode, setValue])
 
     const image = photoPathToUrl(product?.photoPath) ?? null
 
-    async function onSubmit(e: SyntheticEvent) {
-        e.preventDefault()
+    const onSubmit = async (values: ProductFormValues) => {
         setFormError('')
+        const amountNum = Number(values.amount)
+        const servingNum = Number(values.servingId)
 
-        const amountNum = Number(amount)
-        if (!servingId || !Number.isFinite(amountNum) || amountNum <= 0) {
+        if (!servingNum || !Number.isFinite(amountNum) || amountNum <= 0) {
             setFormError('Выберите порцию и укажите количество больше 0')
             return
         }
 
-        setSaving(true)
         try {
             if (isTemplateMode && templateId != null) {
-                await addTemplateRecord(templateId, Number(servingId), amountNum)
+                await addTemplateRecord(templateId, servingNum, amountNum)
                 showAlert('Продукт добавлен в шаблон', 'success')
                 navigate(`/diary/templates/${templateId}/edit`, { replace: true })
             } else {
-                const time = clampEatenAtToMealType(eatenAt, mealTypeId)
+                const time = clampEatenAtToMealType(values.eatenAt, Number(values.mealTypeId))
                 await addFoodRecord({
                     mealId: null,
-                    mealTypeId,
-                    servingId: Number(servingId),
+                    mealTypeId: Number(values.mealTypeId),
+                    servingId: servingNum,
                     amount: amountNum,
-                    date,
+                    date: values.date,
                     eatenAt: time,
                 })
                 showAlert('Запись добавлена в дневник', 'success')
@@ -132,8 +149,6 @@ export function ProductDetailPage() {
                     isTemplateMode ? 'Не удалось добавить в шаблон' : 'Не удалось добавить запись',
                 ),
             )
-        } finally {
-            setSaving(false)
         }
     }
 
@@ -145,8 +160,9 @@ export function ProductDetailPage() {
         <div className="diary-shell">
             <div className={`diary-content ${styles.page}`}>
                 <div className="bg-brand text-invert p-2 rounded-bottom-4">
-                    <Link to={backTo} className={styles.back}>
-                        ← {isTemplateMode ? 'К шаблону' : 'Продукты'}
+                    <Link to={backTo} className={`${styles.back} d-inline-flex align-items-center gap-1`}>
+                        <HiChevronLeft size={18} />{' '}
+                        {isTemplateMode ? 'К шаблону' : 'Продукты'}
                     </Link>
                 </div>
 
@@ -172,7 +188,7 @@ export function ProductDetailPage() {
                             </div>
                         </div>
 
-                        <form className={styles.form} onSubmit={onSubmit}>
+                        <form className={styles.form} onSubmit={handleSubmit(onSubmit)}>
                             <h2 className={styles.formTitle}>
                                 {isTemplateMode
                                     ? 'Добавить в шаблон'
@@ -186,10 +202,12 @@ export function ProductDetailPage() {
                                     <label className={styles.label}>
                                         Тип приёма
                                         <select
-                                            className="form-select"
-                                            value={mealTypeId}
+                                            className="input rounded-3 w-100"
                                             disabled={mealTypeLocked}
-                                            onChange={(e) => setMealTypeId(Number(e.target.value))}
+                                            {...register('mealTypeId', {
+                                                valueAsNumber: true,
+                                                required: 'Выберите тип приёма',
+                                            })}
                                         >
                                             {MEAL_TYPES.map((t) => (
                                                 <option key={t.id} value={t.id}>
@@ -203,20 +221,19 @@ export function ProductDetailPage() {
                                             Тип приёма задан контекстом (секция дневника)
                                         </p>
                                     )}
+                                    {errors.mealTypeId && (
+                                        <span className="input-error-text">{errors.mealTypeId.message}</span>
+                                    )}
                                 </>
                             )}
 
                             <label className={styles.label}>
                                 Порция
                                 <select
-                                    className="form-select"
-                                    value={servingId}
-                                    onChange={(e) =>
-                                        setServingId(
-                                            e.target.value ? Number(e.target.value) : '',
-                                        )
-                                    }
-                                    required
+                                    className="input rounded-3 w-100"
+                                    {...register('servingId', {
+                                        required: 'Выберите порцию',
+                                    })}
                                 >
                                     <option value="" disabled>
                                         Выберите порцию
@@ -228,19 +245,32 @@ export function ProductDetailPage() {
                                     ))}
                                 </select>
                             </label>
+                            {errors.servingId && (
+                                <span className="input-error-text">{errors.servingId.message}</span>
+                            )}
 
                             <label className={styles.label}>
                                 Количество порций
                                 <input
                                     type="number"
-                                    className="form-control"
+                                    className="input rounded-3 w-100"
                                     min={0.01}
                                     step="any"
-                                    value={amount}
-                                    onChange={(e) => setAmount(e.target.value)}
-                                    required
+                                    {...register('amount', {
+                                        required: 'Укажите количество',
+                                        validate: (v) => {
+                                            const n = Number(v)
+                                            if (!Number.isFinite(n) || n <= 0) {
+                                                return 'Количество должно быть больше 0'
+                                            }
+                                            return true
+                                        },
+                                    })}
                                 />
                             </label>
+                            {errors.amount && (
+                                <span className="input-error-text">{errors.amount.message}</span>
+                            )}
 
                             {!isTemplateMode && (
                                 <div className={styles.row2}>
@@ -248,38 +278,44 @@ export function ProductDetailPage() {
                                         Дата
                                         <input
                                             type="date"
-                                            className="form-control"
-                                            value={date}
-                                            onChange={(e) => setDate(e.target.value)}
-                                            required
+                                            className="input rounded-3 w-100"
+                                            {...register('date', { required: 'Укажите дату' })}
                                         />
                                     </label>
                                     <label className={styles.label}>
                                         Время
                                         <input
                                             type="time"
-                                            className="form-control"
-                                            value={eatenAt}
-                                            onChange={(e) =>
-                                                setEatenAt(
-                                                    clampEatenAtToMealType(
-                                                        e.target.value,
-                                                        mealTypeId,
-                                                    ),
-                                                )
-                                            }
-                                            required
+                                            className="input rounded-3 w-100"
+                                            {...register('eatenAt', {
+                                                required: 'Укажите время',
+                                                onChange: (e) => {
+                                                    setValue(
+                                                        'eatenAt',
+                                                        clampEatenAtToMealType(
+                                                            e.target.value,
+                                                            Number(mealTypeId),
+                                                        ),
+                                                    )
+                                                },
+                                            })}
                                         />
                                     </label>
                                 </div>
                             )}
+                            {errors.date && (
+                                <span className="input-error-text">{errors.date.message}</span>
+                            )}
+                            {errors.eatenAt && (
+                                <span className="input-error-text">{errors.eatenAt.message}</span>
+                            )}
 
                             <button
                                 type="submit"
-                                className={`btn btn-success w-100 ${styles.submit}`}
-                                disabled={saving}
+                                className={`btn btn-primary w-100 ${styles.submit}`}
+                                disabled={isSubmitting}
                             >
-                                {saving
+                                {isSubmitting
                                     ? 'Сохранение…'
                                     : isTemplateMode
                                       ? 'Добавить в шаблон'

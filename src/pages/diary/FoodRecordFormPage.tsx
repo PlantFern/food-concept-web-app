@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { Link, useParams, useNavigate } from 'react-router-dom'
+import { HiChevronLeft } from 'react-icons/hi2'
 import { BottomNav } from '@/components/diary'
 import {
     getFoodRecord,
@@ -116,8 +117,11 @@ export function FoodRecordFormPage() {
     return (
         <div className="diary-shell">
             <div className="bg-brand text-invert p-2 rounded-bottom-4">
-                <Link to="/diary" className="btn-tertiary bg-text-on-brand">
-                    ← Назад
+                <Link
+                    to="/diary"
+                    className="btn-tertiary bg-text-on-brand d-inline-flex align-items-center gap-1"
+                >
+                    <HiChevronLeft size={18} /> Назад
                 </Link>
                 <h2 className="bg-text-on-brand mt-2 text-center">Запись еды</h2>
             </div>
@@ -190,7 +194,7 @@ export function FoodRecordFormPage() {
                             <button
                                 type="button"
                                 disabled={isSubmitting || deleting}
-                                className="btn btn-outline-danger w-100"
+                                className="btn btn-danger w-100"
                                 onClick={() => void onDelete()}
                             >
                                 {deleting ? 'Удаление...' : 'Удалить'}
