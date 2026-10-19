@@ -1,22 +1,23 @@
-import {useEffect, useState} from "react";
-import {useForm}  from "react-hook-form";
-import {Link, useParams, useNavigate} from 'react-router-dom';
-import { BottomNav } from '@/components/diary';
+import { useEffect, useState } from 'react'
+import { useForm } from 'react-hook-form'
+import { Link, useParams, useNavigate } from 'react-router-dom'
+import { HiChevronLeft } from 'react-icons/hi2'
+import { BottomNav } from '@/components/diary'
 import {
     getSleepLogById,
     createSleepLog,
     updateSleepLog,
     deleteSleepLog,
-    type SleepLogDto, type SleepPeriodPayload,
-} from "@/api/diaryProfile";
-import {useAlert} from "@/components/ui/Alert";
+    type SleepLogDto,
+    type SleepPeriodPayload,
+} from '@/api/diaryProfile'
+import { useAlert } from '@/components/ui/Alert'
 import { getErrorMessage } from '@/lib/errors'
-import {getDiaryProfileId} from "@/api/onboarding.ts";
+import { getDiaryProfileId } from '@/api/onboarding.ts'
 
-
-type SleepLogFormValues =  {
-    beganAt: string;
-    endedAt: string;
+type SleepLogFormValues = {
+    beganAt: string
+    endedAt: string
 }
 
 function toFormValues(dto: SleepLogDto): SleepLogFormValues {
@@ -34,17 +35,16 @@ function toPayload(values: SleepLogFormValues): SleepPeriodPayload {
 }
 
 export function SleepLogFormPage() {
-
     const { showAlert } = useAlert()
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState('');
-    const [deleting, setDeleting] = useState(false);
-    const navigate = useNavigate();
+    const [loading, setLoading] = useState(true)
+    const [error, setError] = useState('')
+    const [deleting, setDeleting] = useState(false)
+    const navigate = useNavigate()
 
-    const {sleepLogId} = useParams();
-    const isEdit = Boolean(sleepLogId);
+    const { sleepLogId } = useParams()
+    const isEdit = Boolean(sleepLogId)
 
-    const [diaryProfileId, setDiaryProfileId] = useState<number>(-1);
+    const [diaryProfileId, setDiaryProfileId] = useState<number>(-1)
 
     const {
         register,
@@ -52,72 +52,69 @@ export function SleepLogFormPage() {
         reset,
         getValues,
         trigger,
-        formState: {errors, isSubmitting}
-    } = useForm<SleepLogFormValues>(
-        {
-            mode: 'onTouched',
-            defaultValues: {
-                beganAt: "",
-                endedAt: "",
-            }
-        }
-    )
+        formState: { errors, isSubmitting },
+    } = useForm<SleepLogFormValues>({
+        mode: 'onTouched',
+        defaultValues: {
+            beganAt: '',
+            endedAt: '',
+        },
+    })
 
-    // useEffect(() => {
-    //
-    //     setLoading(true);
-    //     let cancelled = false;
-    //
-    //     if (!isEdit) {
-    //         const profileId = getDiaryProfileId();
-    //
-    //         if(!profileId){
-    //             showAlert("Не удалось определить профиль дневника");
-    //             navigate(-1);
-    //             return;
-    //         }
-    //
-    //         setDiaryProfileId(profileId);
-    //         setLoading(false);
-    //     }
-    //     else {
-    //         (async () => {
-    //             setLoading(true)
-    //             const data = await getSleepLogById(Number(sleepLogId));
-    //             if (!data) {
-    //                 showAlert("Не удалось найти запись о сне");
-    //                 navigate(-1);
-    //                 return;
-    //             }
-    //
-    //
-    //             if (cancelled) return;
-    //             else {
-    //                 reset(toFormValues(data));
-    //                 setLoading(false);
-    //             }
-    //         })()
-    //     }
-    //
-    //     return () => {
-    //         cancelled = true;
-    //     }
-    // }, [sleepLogId, isEdit, reset])
+    useEffect(() => {
+        let cancelled = false
+        setLoading(true)
+
+        if (!isEdit) {
+            const profileId = getDiaryProfileId()
+            if (!profileId) {
+                showAlert('Не удалось определить профиль дневника', 'warning')
+                navigate(-1)
+                return
+            }
+            setDiaryProfileId(profileId)
+            setLoading(false)
+            return
+        }
+
+        ;(async () => {
+            try {
+                const data = await getSleepLogById(Number(sleepLogId))
+                if (cancelled) return
+                if (!data) {
+                    showAlert('Не удалось найти запись о сне', 'danger')
+                    navigate(-1)
+                    return
+                }
+                reset(toFormValues(data))
+            } catch (err: unknown) {
+                if (!cancelled) {
+                    showAlert(getErrorMessage(err, 'Не удалось загрузить запись'), 'danger')
+                    navigate(-1)
+                }
+            } finally {
+                if (!cancelled) setLoading(false)
+            }
+        })()
+
+        return () => {
+            cancelled = true
+        }
+    }, [sleepLogId, isEdit, reset, navigate, showAlert])
 
     const onSubmit = async (formData: SleepLogFormValues) => {
+        setError('')
         try {
             if (isEdit) {
-                await updateSleepLog(Number(sleepLogId), toPayload(formData));
-                showAlert('Данные обновлены', 'success');
+                await updateSleepLog(Number(sleepLogId), toPayload(formData))
+                showAlert('Данные обновлены', 'success')
+            } else {
+                await createSleepLog(diaryProfileId, toPayload(formData))
+                showAlert('Запись о сне добавлена', 'success')
             }
-            else {
-                await createSleepLog(diaryProfileId, toPayload(formData));
-                showAlert('Запись о сне добавлена', 'success');
-            }
-        }
-        catch (error: unknown) {
-            if (error instanceof Error)
-                setError(getErrorMessage(error));
+            navigate('/diary', { replace: true })
+        } catch (err: unknown) {
+            setError(getErrorMessage(err, 'Не удалось сохранить'))
         }
     }
 
@@ -137,114 +134,104 @@ export function SleepLogFormPage() {
         }
     }
 
-    return(
+    return (
         <div className="diary-shell">
-            <div className='bg-brand text-invert
-                            p-2
-                            rounded-bottom-4'>
-                <Link to="/diary/settings" className="btn-tertiary bg-text-on-brand">
-                    ← Назад
+            <div className="bg-brand text-invert p-2 rounded-bottom-4">
+                <Link
+                    to="/diary"
+                    className="btn-tertiary bg-text-on-brand d-inline-flex align-items-center gap-1"
+                >
+                    <HiChevronLeft size={18} /> Назад
                 </Link>
                 <h2 className="bg-text-on-brand mt-2 text-center">Запись о сне</h2>
             </div>
-            {
-                loading && <p className="no-content-placeholder">Загрузка…</p>
-            }
+            {loading && <p className="no-content-placeholder">Загрузка…</p>}
 
             <div className="container">
                 <div className="row">
-                    { !loading &&
-                        (
-                        <form onSubmit={handleSubmit(onSubmit)}
-                                className="form-card col-xl-4 col-lg-6 col-md-8 col-sm-10 col-12
-                                            d-flex flex-column gap-3
-                                            mx-auto">
+                    {!loading && (
+                        <form
+                            onSubmit={handleSubmit(onSubmit)}
+                            className="form-card col-xl-4 col-lg-6 col-md-8 col-sm-10 col-12
+                                            d-flex flex-column gap-3 mx-auto"
+                        >
                             {error && <p className="text-danger small mb-0">{error}</p>}
                             <div className="d-flex flex-column gap-1">
-                                <div className="d-flex gap-3
-                                                justify-content-between
-                                                align-items-center align-items-stretch
-                                                w-100">
-                                    <label htmlFor="beganAt" className="label text-wrap align-self-center">Начало сна</label>
+                                <div className="d-flex gap-3 justify-content-between align-items-center w-100">
+                                    <label htmlFor="beganAt" className="label text-wrap align-self-center">
+                                        Начало сна
+                                    </label>
                                     <input
                                         className="input rounded-3"
                                         id="beganAt"
                                         type="datetime-local"
-                                        {
-                                        ...register(
-                                            'beganAt',
-                                            {
-                                                required: 'Укажите время начала сна',
-                                                onChange: () => {
-                                                    if(getValues('endedAt'))
-                                                        trigger('endedAt')
-                                                }
-                                            }
-                                        )
-                                        }
+                                        {...register('beganAt', {
+                                            required: 'Укажите время начала сна',
+                                            onChange: () => {
+                                                if (getValues('endedAt')) trigger('endedAt')
+                                            },
+                                        })}
                                     />
                                 </div>
-                                {errors.beganAt && <span className="input-error-text">{errors.beganAt.message}</span>}
+                                {errors.beganAt && (
+                                    <span className="input-error-text">{errors.beganAt.message}</span>
+                                )}
                             </div>
 
                             <div className="d-flex flex-column gap-1">
-                                <div className="d-flex gap-2
-                                                justify-content-between
-                                                align-items-center align-items-stretch
-                                                w-100">
-                                    <label htmlFor="endedAt" className="label text-wrap align-self-center">Окончание сна</label>
+                                <div className="d-flex gap-2 justify-content-between align-items-center w-100">
+                                    <label htmlFor="endedAt" className="label text-wrap align-self-center">
+                                        Окончание сна
+                                    </label>
                                     <input
                                         className="input rounded-3"
                                         id="endedAt"
                                         type="datetime-local"
-                                        {
-                                            ...register(
-                                                'endedAt',
-                                                {
-                                                    deps: ['beganAt'],
-                                                    required: 'Укажите время окончания сна',
-                                                    validate: (value, formValues) => {
-
-                                                        if(!value || !formValues.beganAt) return true;
-
-                                                        const beganAt = new Date(formValues.beganAt).getTime();
-                                                        const endedAt = new Date(value).getTime();
-
-                                                        if(isNaN(beganAt) || isNaN(endedAt)) return true;
-
-                                                        return endedAt > beganAt || "Время окончания должно быть больше даты начала";
-                                                    }
-                                                }
-                                            )
-                                        }
+                                        {...register('endedAt', {
+                                            deps: ['beganAt'],
+                                            required: 'Укажите время окончания сна',
+                                            validate: (value, formValues) => {
+                                                if (!value || !formValues.beganAt) return true
+                                                const beganAt = new Date(formValues.beganAt).getTime()
+                                                const endedAt = new Date(value).getTime()
+                                                if (isNaN(beganAt) || isNaN(endedAt)) return true
+                                                return (
+                                                    endedAt > beganAt ||
+                                                    'Время окончания должно быть больше даты начала'
+                                                )
+                                            },
+                                        })}
                                     />
                                 </div>
-                                {errors.endedAt && <span className="input-error-text">{errors.endedAt.message}</span>}
+                                {errors.endedAt && (
+                                    <span className="input-error-text">{errors.endedAt.message}</span>
+                                )}
                             </div>
 
-                            <button type="submit"
-                                    disabled={isSubmitting || deleting}
-                                    className="btn btn-primary w-100 mt-2">
-                                {isSubmitting ? "Сохранение..." : isEdit ? "Сохранить" : "Создать"}
+                            <button
+                                type="submit"
+                                disabled={isSubmitting || deleting}
+                                className="btn btn-primary w-100 mt-2"
+                            >
+                                {isSubmitting ? 'Сохранение...' : isEdit ? 'Сохранить' : 'Создать'}
                             </button>
 
                             {isEdit && (
                                 <button
                                     type="button"
                                     disabled={isSubmitting || deleting}
-                                    className="btn btn-outline-danger w-100"
+                                    className="btn btn-danger w-100"
                                     onClick={() => void onDelete()}
                                 >
-                                    {deleting ? "Удаление..." : "Удалить"}
+                                    {deleting ? 'Удаление...' : 'Удалить'}
                                 </button>
                             )}
                         </form>
-                        )
-                    }
+                    )}
                 </div>
             </div>
 
             <BottomNav />
         </div>
-    );
+    )
 }

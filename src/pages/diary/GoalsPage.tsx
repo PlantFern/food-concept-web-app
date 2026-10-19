@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { HiChevronLeft } from 'react-icons/hi2'
 import { BottomNav } from '@/components/diary'
 import { useAlert } from '@/components/ui/Alert'
 import {
@@ -92,8 +93,11 @@ export function GoalsPage() {
     return (
         <div className="diary-shell">
             <div className="diary-content p-3" style={{ paddingBottom: '7.5rem' }}>
-                <Link to="/diary/settings" className="small text-decoration-none">
-                    ← Назад
+                <Link
+                    to="/diary/settings"
+                    className="small text-decoration-none d-inline-flex align-items-center gap-1"
+                >
+                    <HiChevronLeft size={18} /> Назад
                 </Link>
                 <h1 className="page-title mt-2">Цели</h1>
 
@@ -106,7 +110,7 @@ export function GoalsPage() {
                                 <h2 className="h6 mb-0">Текущая цель</h2>
                                 <button
                                     type="button"
-                                    className="btn btn-outline-secondary btn-sm"
+                                    className="btn btn-sm btn-secondary"
                                     disabled={completing}
                                     onClick={() => void onComplete()}
                                 >
@@ -162,7 +166,7 @@ export function GoalsPage() {
             >
                 <button
                     type="button"
-                    className="btn btn-success w-100 shadow"
+                    className="btn btn-primary w-100 shadow"
                     disabled={loading || saving}
                     onClick={() => void onSave()}
                 >
