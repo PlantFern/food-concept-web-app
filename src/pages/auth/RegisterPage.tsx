@@ -1,38 +1,39 @@
-import { type SyntheticEvent, useState } from 'react'
+import { useState } from 'react'
+import { useForm } from 'react-hook-form'
 import { Link, useNavigate } from 'react-router-dom'
 import { registerRequest } from '@/api/auth'
 import { getErrorMessage } from '@/lib/errors'
 import { NavigateBackButton } from '@/components/ui/NavigateBackButton'
 
+type RegisterFormValues = {
+    email: string
+    password: string
+    password2: string
+}
+
 export function RegisterPage() {
     const navigate = useNavigate()
-    const [email, setEmail] = useState('')
-    const [password, setPassword] = useState('')
-    const [password2, setPassword2] = useState('')
     const [error, setError] = useState<string | null>(null)
-    const [loading, setLoading] = useState(false)
 
-    async function onSubmit(e: SyntheticEvent) {
-        e.preventDefault()
+    const {
+        register,
+        handleSubmit,
+        watch,
+        formState: { errors, isSubmitting },
+    } = useForm<RegisterFormValues>({
+        mode: 'onTouched',
+        defaultValues: { email: '', password: '', password2: '' },
+    })
+
+    const password = watch('password')
+
+    const onSubmit = async (values: RegisterFormValues) => {
         setError(null)
-
-        if (password.length < 6) {
-            setError('Пароль не короче 6 символов')
-            return
-        }
-        if (password !== password2) {
-            setError('Пароли не совпадают')
-            return
-        }
-
-        setLoading(true)
         try {
-            await registerRequest({ email: email.trim(), password })
+            await registerRequest({ email: values.email.trim(), password: values.password })
             navigate('/login', { replace: true, state: { registered: true } })
         } catch (err: unknown) {
             setError(getErrorMessage(err, 'Не удалось зарегистрироваться.'))
-        } finally {
-            setLoading(false)
         }
     }
 
@@ -49,7 +50,7 @@ export function RegisterPage() {
                     </div>
 
                     <form
-                        onSubmit={onSubmit}
+                        onSubmit={handleSubmit(onSubmit)}
                         noValidate
                         className="d-flex gap-3 w-100 flex-column align-items-stretch"
                     >
@@ -68,11 +69,18 @@ export function RegisterPage() {
                                 type="email"
                                 className="form-control input"
                                 autoComplete="email"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                required
                                 placeholder="you@example.com"
+                                {...register('email', {
+                                    required: 'Укажите email',
+                                    pattern: {
+                                        value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                                        message: 'Некорректный email',
+                                    },
+                                })}
                             />
+                            {errors.email && (
+                                <span className="input-error-text">{errors.email.message}</span>
+                            )}
                         </div>
 
                         <div className="w-100">
@@ -84,11 +92,17 @@ export function RegisterPage() {
                                 type="password"
                                 className="form-control input"
                                 autoComplete="new-password"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                required
-                                minLength={6}
+                                {...register('password', {
+                                    required: 'Укажите пароль',
+                                    minLength: {
+                                        value: 6,
+                                        message: 'Пароль не короче 6 символов',
+                                    },
+                                })}
                             />
+                            {errors.password && (
+                                <span className="input-error-text">{errors.password.message}</span>
+                            )}
                         </div>
 
                         <div className="w-100">
@@ -100,18 +114,22 @@ export function RegisterPage() {
                                 type="password"
                                 className="form-control input"
                                 autoComplete="new-password"
-                                value={password2}
-                                onChange={(e) => setPassword2(e.target.value)}
-                                required
+                                {...register('password2', {
+                                    required: 'Повторите пароль',
+                                    validate: (v) => v === password || 'Пароли не совпадают',
+                                })}
                             />
+                            {errors.password2 && (
+                                <span className="input-error-text">{errors.password2.message}</span>
+                            )}
                         </div>
 
                         <button
                             type="submit"
                             className="btn btn-primary w-100 shadow-sm mt-4"
-                            disabled={loading}
+                            disabled={isSubmitting}
                         >
-                            {loading ? 'Регистрация…' : 'Зарегистрироваться'}
+                            {isSubmitting ? 'Регистрация…' : 'Зарегистрироваться'}
                         </button>
                     </form>
 

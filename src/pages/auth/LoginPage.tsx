@@ -1,23 +1,33 @@
-import { type SyntheticEvent, useState } from 'react'
+import { useState } from 'react'
+import { useForm } from 'react-hook-form'
 import { Link, useNavigate } from 'react-router-dom'
 import { loginRequest } from '@/api/auth'
 import { getMyProfile } from '@/api/profiles'
 import { getErrorMessage, getErrorStatus } from '@/lib/errors'
 import { NavigateBackButton } from '@/components/ui/NavigateBackButton'
 
+type LoginFormValues = {
+    email: string
+    password: string
+}
+
 export function LoginPage() {
     const navigate = useNavigate()
-    const [email, setEmail] = useState('')
-    const [password, setPassword] = useState('')
     const [error, setError] = useState<string | null>(null)
-    const [loading, setLoading] = useState(false)
 
-    async function onSubmit(e: SyntheticEvent) {
-        e.preventDefault()
+    const {
+        register,
+        handleSubmit,
+        formState: { errors, isSubmitting },
+    } = useForm<LoginFormValues>({
+        mode: 'onTouched',
+        defaultValues: { email: '', password: '' },
+    })
+
+    const onSubmit = async (values: LoginFormValues) => {
         setError(null)
-        setLoading(true)
         try {
-            await loginRequest({ email: email.trim(), password })
+            await loginRequest({ email: values.email.trim(), password: values.password })
 
             try {
                 await getMyProfile()
@@ -37,8 +47,6 @@ export function LoginPage() {
             } else {
                 setError(getErrorMessage(err, 'Ошибка входа'))
             }
-        } finally {
-            setLoading(false)
         }
     }
 
@@ -55,7 +63,7 @@ export function LoginPage() {
                     </div>
 
                     <form
-                        onSubmit={onSubmit}
+                        onSubmit={handleSubmit(onSubmit)}
                         noValidate
                         className="d-flex gap-3 w-100 flex-column align-items-stretch"
                     >
@@ -74,11 +82,18 @@ export function LoginPage() {
                                 type="email"
                                 className="form-control input"
                                 autoComplete="email"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                required
                                 placeholder="you@example.com"
+                                {...register('email', {
+                                    required: 'Укажите email',
+                                    pattern: {
+                                        value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                                        message: 'Некорректный email',
+                                    },
+                                })}
                             />
+                            {errors.email && (
+                                <span className="input-error-text">{errors.email.message}</span>
+                            )}
                         </div>
 
                         <div>
@@ -90,18 +105,21 @@ export function LoginPage() {
                                 type="password"
                                 className="form-control input"
                                 autoComplete="current-password"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                required
+                                {...register('password', {
+                                    required: 'Укажите пароль',
+                                })}
                             />
+                            {errors.password && (
+                                <span className="input-error-text">{errors.password.message}</span>
+                            )}
                         </div>
 
                         <button
                             type="submit"
                             className="btn btn-primary w-100 shadow-sm mt-4"
-                            disabled={loading}
+                            disabled={isSubmitting}
                         >
-                            {loading ? 'Вход…' : 'Войти'}
+                            {isSubmitting ? 'Вход…' : 'Войти'}
                         </button>
                     </form>
 
