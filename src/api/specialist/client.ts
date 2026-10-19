@@ -6,7 +6,7 @@ import type { DiaryCommentDto, CommentType } from '@/api/diaryProfile/comments'
 import type { ProfileFeatureSettingsDto, ProfileFeatureSettingsPayload } from '@/api/diaryProfile/settings'
 
 export async function getClientProfile(diaryProfileId: number): Promise<DiaryProfileDto> {
-    const { data } = await http.get<DiaryProfileDto>(`/api/specialist/profile/${diaryProfileId}`)
+    const { data } = await http.get<DiaryProfileDto>(`/api/specialist/diary-profile/${diaryProfileId}`)
     return data
 }
 
