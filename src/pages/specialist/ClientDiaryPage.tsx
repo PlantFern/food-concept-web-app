@@ -9,6 +9,8 @@ import {
     getClientSleepByDay,
 } from '@/api/specialist'
 import { fetchDayMeals, type DayMealsDto } from '@/api/diaryProfile/diary'
+import { getClientProfile } from '@/api/specialist/client'
+import type { DiaryProfileDto } from '@/api/diaryProfile/diary'
 import { useAlert } from '@/components/ui/Alert'
 import { getErrorMessage } from '@/lib/errors'
 import { http } from '@/api/http'
@@ -36,6 +38,7 @@ export function ClientDiaryPage() {
 
     const [loading, setLoading] = useState(true)
     const [day, setDay] = useState<DayMealsDto | null>(null)
+    const [clientProfile, setClientProfile] = useState<DiaryProfileDto | null>(null)
     const [sleepCount, setSleepCount] = useState(0)
     const [weight, setWeight] = useState<number | null>(null)
     const [hasGoal, setHasGoal] = useState(false)
@@ -52,6 +55,11 @@ export function ClientDiaryPage() {
             setLoading(true)
             setError('')
             try {
+                // Load the client's diary profile through the specialist-specific endpoint.
+                const profile = await getClientProfile(diaryProfileId)
+                if (cancelled) return
+                setClientProfile(profile)
+
                 let meals: DayMealsDto | null = null
                 try {
                     const { data } = await http.get<DayMealsDto>(
@@ -78,6 +86,7 @@ export function ClientDiaryPage() {
                 if (!cancelled) {
                     setError(getErrorMessage(err, 'Не удалось загрузить дневник клиента'))
                     setDay(null)
+                    setClientProfile(null)
                 }
             } finally {
                 if (!cancelled) setLoading(false)
@@ -104,7 +113,7 @@ export function ClientDiaryPage() {
                     <HiChevronLeft size={18} /> Клиенты
                 </Link>
                 <h2 className="page-title text-center p-2 bg-text-on-brand mb-0">
-                    Дневник #{diaryProfileId}
+                    Дневник клиента #{clientProfile?.id ?? diaryProfileId}
                 </h2>
                 <DateNav
                     date={dateObj}
