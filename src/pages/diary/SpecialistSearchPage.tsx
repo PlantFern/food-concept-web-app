@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { HiChevronLeft } from 'react-icons/hi2'
 import { BottomNav } from '@/components/diary'
 import {
     hasActiveSpecialistControl,
@@ -91,8 +92,11 @@ export function SpecialistSearchPage() {
     return (
         <div className="diary-shell">
             <div className="bg-brand text-invert p-2 rounded-bottom-4">
-                <Link to="/diary/settings" className="btn-tertiary bg-text-on-brand text-decoration-none">
-                    ← Назад
+                <Link
+                    to="/diary/settings"
+                    className="btn-tertiary bg-text-on-brand text-decoration-none d-inline-flex align-items-center gap-1"
+                >
+                    <HiChevronLeft size={18} /> Назад
                 </Link>
                 <h2 className="page-title text-center p-2 bg-text-on-brand mb-0">Поиск специалиста</h2>
             </div>

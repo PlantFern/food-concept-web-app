@@ -47,7 +47,7 @@ function RelationCard({
                             </button>
                             <button
                                 type="button"
-                                className="btn btn-outline-danger btn-sm"
+                                className="btn btn-danger btn-sm"
                                 disabled={busyId === r.id}
                                 onClick={() => onCancel(r.id)}
                             >
@@ -65,7 +65,7 @@ function RelationCard({
                             </Link>
                             <button
                                 type="button"
-                                className="btn btn-outline-danger btn-sm"
+                                className="btn btn-danger btn-sm"
                                 disabled={busyId === r.id}
                                 onClick={() => {
                                     if (window.confirm('Завершить связь с клиентом?')) onEnd(r.id)

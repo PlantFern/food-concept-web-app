@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { HiChevronLeft } from 'react-icons/hi2'
 import { BottomNav } from '@/components/diary'
 import { useAlert } from '@/components/ui/Alert'
 import { getDiaryProfileId } from '@/api/onboarding'
@@ -71,8 +72,11 @@ export function MySpecialistsPage() {
         <div className="diary-shell">
             <div className="diary-content p-3 pb-5">
                 <div className="bg-brand text-invert p-2 rounded-bottom-4">
-                    <Link to="/diary/settings" className="small text-decoration-none text-invert">
-                        ← Назад
+                    <Link
+                        to="/diary/settings"
+                        className="small text-decoration-none text-invert d-inline-flex align-items-center gap-1"
+                    >
+                        <HiChevronLeft size={18} /> Назад
                     </Link>
                     <h2 className="page-title text-center p-2 bg-text-on-brand">Мои специалисты</h2>
                 </div>
@@ -100,7 +104,7 @@ export function MySpecialistsPage() {
                                 {isActiveRelation(r) && (
                                     <button
                                         type="button"
-                                        className="btn btn-outline-danger btn-sm"
+                                        className="btn btn-danger btn-sm"
                                         disabled={busyId === r.id}
                                         onClick={() => void onEnd(r)}
                                     >
