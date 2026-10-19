@@ -1,8 +1,6 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import {
-    HiOutlineInformationCircle,
-    HiOutlineSun,
     HiOutlinePlus,
     HiOutlineClipboardDocumentList,
     HiOutlineFlag,
@@ -10,6 +8,7 @@ import {
     HiOutlineUserGroup,
     HiOutlineMagnifyingGlass,
     HiOutlineLink,
+    HiChevronRight,
 } from 'react-icons/hi2'
 import { BottomNav } from '@/components/diary'
 import { logoutLocal } from '@/api/auth'
@@ -35,7 +34,9 @@ function SettingsRow({ icon, label, value, to, onClick }: RowProps) {
             <span className={styles.rowIcon}>{icon}</span>
             <span className={styles.rowLabel}>{label}</span>
             {value && <span className={styles.rowValue}>{value}</span>}
-            <span className={styles.rowChevron}>→</span>
+            <span className={styles.rowChevron}>
+                <HiChevronRight size={16} />
+            </span>
         </>
     )
 
@@ -99,35 +100,37 @@ export function SettingsPage() {
                     </div>
                     <div>
                         <div className={styles.name}>
-                            {user?.login || user?.email || (loading ? '…' : 'Пользователь')}
+                            {loading ? '…' : (user?.email ?? 'User')}
                         </div>
-                        <div className={styles.email}>{user?.email ?? ''}</div>
+                        <div className={styles.email}>
+                            {hasDiary && hasSpecialist
+                                ? 'Дневник · Специалист'
+                                : hasDiary
+                                  ? 'Дневник'
+                                  : hasSpecialist
+                                    ? 'Специалист'
+                                    : 'Профиль'}
+                        </div>
                     </div>
                 </section>
 
                 <div className={styles.rolePills}>
                     {hasDiary ? (
                         <Link to="/diary" className={`${styles.pill} ${styles.pillActive}`}>
-                            Дневник питания
+                            <HiOutlineClipboardDocumentList /> Diary
                         </Link>
                     ) : (
-                        <Link
-                            to="/onboarding/scenario"
-                            className={`${styles.pill} ${styles.pillMuted}`}
-                        >
-                            <HiOutlinePlus /> Дневник питания
+                        <Link to="/onboarding/scenario" className={`${styles.pill} ${styles.pillMuted}`}>
+                            <HiOutlinePlus /> Diary
                         </Link>
                     )}
                     {hasSpecialist ? (
-                        <Link to="/specialist/clients" className={styles.pill}>
-                            <HiOutlineUserGroup /> Специалист
+                        <Link to="/specialist/clients" className={`${styles.pill} ${styles.pillActive}`}>
+                            <HiOutlineUserGroup /> Specialist
                         </Link>
                     ) : (
-                        <Link
-                            to="/onboarding/role"
-                            className={`${styles.pill} ${styles.pillMuted}`}
-                        >
-                            <HiOutlinePlus /> Специалист
+                        <Link to="/onboarding/role" className={`${styles.pill} ${styles.pillMuted}`}>
+                            <HiOutlinePlus /> Specialist
                         </Link>
                     )}
                 </div>
@@ -167,21 +170,6 @@ export function SettingsPage() {
                         </div>
                     </section>
                 )}
-
-                <section className={styles.section}>
-                    <div className={styles.sectionTitle}>Preferences</div>
-                    <div className={styles.group}>
-                        <SettingsRow
-                            icon={<HiOutlineInformationCircle />}
-                            label="About Us"
-                        />
-                        <SettingsRow
-                            icon={<HiOutlineSun />}
-                            label="Theme"
-                            value="Light"
-                        />
-                    </div>
-                </section>
 
                 <section className={styles.section}>
                     <div className={styles.group}>

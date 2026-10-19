@@ -6,49 +6,26 @@ import type { DiaryCommentDto, CommentType } from '@/api/diaryProfile/comments'
 import type { ProfileFeatureSettingsDto, ProfileFeatureSettingsPayload } from '@/api/diaryProfile/settings'
 
 export async function getClientProfile(diaryProfileId: number): Promise<DiaryProfileDto> {
-    const { data } = await http.get<DiaryProfileDto>(`/api/specialist/diary-profile/${diaryProfileId}`)
+    const { data } = await http.get<DiaryProfileDto>(`/api/specialist/profile/${diaryProfileId}`)
     return data
-}
-
-export async function getClientProfilesByIds(ids: number[]): Promise<DiaryProfileDto[]> {
-    const { data } = await http.get<DiaryProfileDto[]>(`/api/specialist/diary-profile/`, {
-        data: ids,
-    })
-    return Array.isArray(data) ? data : []
-}
-
-export async function getClientGoals(diaryProfileId: number): Promise<GoalDto[]> {
-    const { data } = await http.get<GoalDto[]>(
-        `/api/specialist/goal/diary-profile/${diaryProfileId}/get-all`,
-    )
-    return Array.isArray(data) ? data : []
-}
-
-export async function getClientActiveGoal(diaryProfileId: number): Promise<GoalDto | null> {
-    try {
-        const { data } = await http.get<GoalDto>(
-            `/api/specialist/goal/diary-profile/${diaryProfileId}/active`,
-        )
-        return data
-    } catch {
-        return null
-    }
 }
 
 export async function getClientLatestGoal(diaryProfileId: number): Promise<GoalDto | null> {
     try {
-        const { data } = await http.get<GoalDto>(
-            `/api/specialist/goal/diary-profile/${diaryProfileId}/latest`,
-        )
+        const { data } = await http.get<GoalDto>(`/api/specialist/goal/diary-profile/${diaryProfileId}/latest`)
         return data
     } catch {
         return null
     }
 }
 
-export async function getClientGoalById(goalId: number): Promise<GoalDto> {
-    const { data } = await http.get<GoalDto>(`/api/specialist/goal/goals/${goalId}`)
-    return data
+export async function getClientActiveGoal(diaryProfileId: number): Promise<GoalDto | null> {
+    try {
+        const { data } = await http.get<GoalDto>(`/api/specialist/goal/diary-profile/${diaryProfileId}/active`)
+        return data
+    } catch {
+        return null
+    }
 }
 
 export async function createClientGoal(
@@ -142,10 +119,12 @@ export async function getClientLatestSettings(diaryProfileId: number): Promise<P
     }
 }
 
-export async function saveClientSettings(diaryProfileId: number, current: ProfileFeatureSettingsDto | null, payload: ProfileFeatureSettingsPayload): Promise<ProfileFeatureSettingsDto> {
-    const { data } = current?.id
-        ? await http.put<ProfileFeatureSettingsDto>(`/api/specialist/profile-settings/settings/${current.id}`, payload)
-        : await http.post<ProfileFeatureSettingsDto>(`/api/specialist/profile-settings/${diaryProfileId}`, payload)
+export async function saveClientSettings(diaryProfileId: number, _current: ProfileFeatureSettingsDto | null, payload: ProfileFeatureSettingsPayload): Promise<ProfileFeatureSettingsDto> {
+    // Always POST: versioned settings. Specialist is often not the author of the previous row.
+    const { data } = await http.post<ProfileFeatureSettingsDto>(
+        `/api/specialist/profile-settings/${diaryProfileId}`,
+        payload,
+    )
     return data
 }
 
