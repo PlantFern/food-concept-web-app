@@ -24,9 +24,9 @@
     --green-600-rgb: 45, 125, 84;
 
     --brand-start: var(--green-700);
-    --brand-end: var(--green-500);
+    --brand-end: var(--green-600);
     --brand-gradient: linear-gradient(
-            135deg,
+            to bottom,
             var(--brand-start) 0%,
             var(--brand-end) 100%
     );
@@ -45,8 +45,9 @@
     --cta-fg: #ffffff;
 
     --cta-bg-invert: transparent;
-    --cta-bg-hover-invert: rgba(255, 255, 255, 0.12);
+    --cta-bg-hover-invert: #ffffff;
     --cta-fg-invert: var(--text-on-brand);
+    --cta-fg-hover-invert: var(--text);
     --cta-fg-muted-invert: var(--text-on-brand-muted);
 
     --danger: #c92a2a;
@@ -98,43 +99,19 @@ a {
     margin: 0;
 }
 
-.form-card {
+.card {
     background: var(--bg-card);
-    border-radius: var(--radius-lg);
     padding: var(--indent-16);
     box-shadow: var(--shadow-sm);
 }
 
-.label {
-    display: flex;
-    flex-direction: column;
-    gap: 0.35rem;
-    font-size: 0.85rem;
-    font-weight: 500;
-}
+.surface-card {
+    background: var(--bg-card);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
 
-.input,
-.form-control,
-.form-select {
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    padding: 0.5rem 0.75rem;
-    font-size: 0.95rem;
-    width: 100%;
-    background: #fff;
-}
-
-.input:focus,
-.form-control:focus,
-.form-select:focus {
-    outline: none;
-    border-color: var(--green-500);
-    box-shadow: 0 0 0 3px rgba(var(--green-600-rgb), 0.15);
-}
-
-.input-error-text {
-    color: var(--danger);
-    font-size: 0.8rem;
+    padding: var(--indent-16);
+    margin: var(--indent-16);
 }
 
 .no-content-placeholder {
@@ -144,14 +121,15 @@ a {
 }
 
 .btn {
-    padding: 0.75rem 1rem;
+    padding: var(--indent-12) var(--indent-20);
     text-decoration: none;
     transition: background 0.15s, transform 0.05s, color 0.15s;
+    line-height: 1rem;
     cursor: pointer;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 0.35rem;
+    gap: var(--indent-8);
     border-radius: var(--radius-sm);
     font-size: 0.95rem;
 }
@@ -161,8 +139,26 @@ a {
     border: none;
     color: var(--cta-fg);
     font-weight: 500;
-    padding: 0.75rem 1rem;
+    padding: var(--indent-16) var(--indent-24);
     transition: background 0.15s, transform 0.05s;
+}
+
+.btn-icon-start {
+    padding-left: var(--indent-20);
+}
+
+.btn-icon-end{
+    padding-right: var(--indent-20);
+}
+
+.fit-content{
+    width: fit-content;
+}
+
+.btn-start{
+    justify-content: flex-start;
+    text-align: start;
+    width: 100%;
 }
 
 .btn-primary:hover:not(:disabled) {
@@ -173,11 +169,6 @@ a {
 .btn-primary:disabled {
     opacity: 0.65;
     cursor: not-allowed;
-}
-
-.btn-sm {
-    padding: 0.4rem 0.75rem;
-    font-size: 0.875rem;
 }
 
 .btn-danger {
@@ -212,6 +203,28 @@ a {
 }
 
 .btn-secondary:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+}
+
+.btn-secondary-inverted {
+    background: transparent;
+    border: 1px solid var(--cta-fg-invert);
+    color: var(--cta-fg-invert);
+    font-weight: 400;
+    transition: background 0.15s, transform 0.05s, color 0.15s, border-color 0.15s;
+}
+
+.btn-secondary-inverted:hover:not(:disabled) {
+    background: var(--cta-bg-hover-invert);
+    border-color: var(--cta-bg-hover-invert);
+    color: var(--cta-fg-hover-invert);
+}
+
+.btn-secondary-inverted:disabled {
+    background: var(--cta-bg-hover-invert);
+    border-color: var(--cta-bg-hover-invert);
+    color: var(--cta-fg-hover-invert);
     opacity: 0.65;
     cursor: not-allowed;
 }
@@ -255,30 +268,13 @@ a {
     text-decoration: underline;
 }
 
-.bg-text-on-brand {
-    color: var(--text-on-brand);
-}
-
 .bg-brand {
     background: var(--brand-gradient) !important;
     color: var(--text-on-brand);
 }
 
-.bg-brand .btn-link {
-    color: var(--text-on-brand);
-}
-
-.bg-brand .btn-link:hover {
-    color: var(--text-on-brand-muted);
-}
-
 .text-invert {
     color: var(--text-on-brand);
-}
-
-.rounded-bottom-4 {
-    border-bottom-left-radius: 1rem;
-    border-bottom-right-radius: 1rem;
 }
 
 .date-nav-btn {
@@ -294,4 +290,22 @@ a {
 
 .date-nav-btn:hover {
     opacity: 0.85;
+}
+
+
+.tab-container{
+    display:flex;
+
+    flex-wrap: nowrap;
+
+    justify-content: space-between;
+    justify-items: start;
+    align-items: center;
+
+    gap: var(--indent-4);
+
+    overflow-x:auto;
+
+    padding-bottom: var(--indent-4);
+    margin-top: var(--indent-8);
 }

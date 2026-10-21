@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react';
 import {
     applyMealTemplate,
     fetchDayMeals,
@@ -7,11 +7,11 @@ import {
     type DayMealsDto,
     type MealSectionDto,
     type MealTemplateListItemDto,
-} from '@/api/diaryProfile/diary'
-import { fetchCommentsByType, type DiaryCommentDto } from '@/api/diaryProfile/comments'
-import { getDiaryProfileId } from '@/api/onboarding'
-import { getErrorMessage } from '@/lib/errors'
-import { useAlert } from '@/components/ui/Alert'
+} from '@/api/diaryProfile/diary';
+import { fetchCommentsByType, type DiaryCommentDto } from '@/api/diaryProfile/comments';
+import { getDiaryProfileId } from '@/api/onboarding';
+import { getErrorMessage } from '@/lib/errors';
+import { useAlert } from '@/components/ui/Alert';
 import {
     BottomNav,
     DateNav,
@@ -20,11 +20,12 @@ import {
     MealSection,
     SleepCard,
     WeightCard,
-} from '@/components/diary'
+} from '@/components/diary';
 
-const CANONICAL_ORDER = ['BREAKFAST', 'LUNCH', 'SNACK', 'DINNER', 'OTHERS'] as const
+const MEAL_TYPES = ['BREAKFAST', 'LUNCH', 'SNACK', 'DINNER', 'OTHERS'];
 
-const DEFAULT_SECTIONS: MealSectionDto[] = CANONICAL_ORDER.map((code, i) => ({
+const DEFAULT_SECTIONS: MealSectionDto[] = MEAL_TYPES.map((code, i) => ({
+
     mealId: -(i + 1),
     mealTypeCode: code,
     mealTypeId: i + 1,
@@ -32,150 +33,176 @@ const DEFAULT_SECTIONS: MealSectionDto[] = CANONICAL_ORDER.map((code, i) => ({
     records: [],
     totalPrimaryNutrient: null,
     photoPath: null,
-}))
+}));
 
-const PALETTE = ['#3498db', '#f39c12', '#2ecc71', '#9b59b6', '#e74c3c', '#1abc9c']
+const NUTRIENT_PALETTE = ['#3498db', '#f39c12', '#2ecc71', '#9b59b6', '#e74c3c', '#1abc9c'];
 
 function toIsoDate(d: Date): string {
-    const y = d.getFullYear()
+
+    const y = d.getFullYear();
     const m = String(d.getMonth() + 1).padStart(2, '0')
-    const day = String(d.getDate()).padStart(2, '0')
-    return `${y}-${m}-${day}`
+    const day = String(d.getDate()).padStart(2, '0');
+
+    return `${y}-${m}-${day}`;
 }
 
 function normalizeSectionCode(code: string | null | undefined): string {
+
     const c = (code ?? '').toUpperCase()
-    if (CANONICAL_ORDER.includes(c as (typeof CANONICAL_ORDER)[number])) return c
-    if (c.includes('SNACK') || c === 'BRUNCH') return 'SNACK'
-    if (c === 'OTHER' || c === 'OTHERS') return 'OTHERS'
-    return 'OTHERS'
+    if (MEAL_TYPES.includes(c as (typeof MEAL_TYPES)[number])) 
+        return c;
+    if (c.includes('SNACK') || c === 'BRUNCH') 
+        return 'SNACK';
+    if (c === 'OTHER' || c === 'OTHERS') 
+        return 'OTHERS';
+    return 'OTHERS';
 }
 
-/** Keep exactly 5 cards: breakfast → others. Merge extras into snack/others. */
 function normalizeSections(raw: MealSectionDto[] | null | undefined): MealSectionDto[] {
-    if (!raw?.length) return DEFAULT_SECTIONS
 
-    const byCode = new Map<string, MealSectionDto>()
-    for (const code of CANONICAL_ORDER) {
-        const found = raw.find((s) => (s.mealTypeCode ?? '').toUpperCase() === code)
+    if (!raw?.length) return DEFAULT_SECTIONS;
+
+    const byCode = new Map<string, MealSectionDto>();
+    for (const code of MEAL_TYPES) {
+
+        const found = raw.find((s) => (s.mealTypeCode ?? '').toUpperCase() === code);
+
         byCode.set(
             code,
             found
                 ? { ...found, mealTypeCode: code }
                 : {
-                      mealId: -(CANONICAL_ORDER.indexOf(code) + 1),
+                      mealId: -(MEAL_TYPES.indexOf(code) + 1),
                       mealTypeCode: code,
-                      mealTypeId: CANONICAL_ORDER.indexOf(code) + 1,
+                      mealTypeId: MEAL_TYPES.indexOf(code) + 1,
                       generatedFromTemplateId: null,
                       records: [],
                       totalPrimaryNutrient: null,
                       photoPath: null,
                   },
-        )
+        );
     }
 
     for (const s of raw) {
-        const code = normalizeSectionCode(s.mealTypeCode)
-        if (CANONICAL_ORDER.includes((s.mealTypeCode ?? '').toUpperCase() as (typeof CANONICAL_ORDER)[number])) {
-            continue
+
+        const code = normalizeSectionCode(s.mealTypeCode);
+
+        if (MEAL_TYPES.includes((s.mealTypeCode ?? '').toUpperCase() as (typeof MEAL_TYPES)[number])) {
+            continue;
         }
-        const target = byCode.get(code)!
-        const mergedRecords = [...(target.records ?? []), ...(s.records ?? [])]
+
+        const target = byCode.get(code)!;
+        const mergedRecords = [...(target.records ?? []), ...(s.records ?? [])];
+
         byCode.set(code, {
+
             ...target,
             mealId: target.mealId > 0 ? target.mealId : s.mealId,
             records: mergedRecords,
             photoPath: target.photoPath || s.photoPath || null,
             totalPrimaryNutrient:
                 (target.totalPrimaryNutrient ?? 0) + (s.totalPrimaryNutrient ?? 0) || null,
-        })
+        });
     }
 
-    return CANONICAL_ORDER.map((code) => byCode.get(code)!)
+    return MEAL_TYPES.map((code) => byCode.get(code)!);
 }
 
 function pickTemplatesForSection(
     templates: MealTemplateListItemDto[],
     mealTypeCode: string,
 ): MealTemplateListItemDto[] {
-    if (!templates.length) return []
+    if (!templates.length) 
+        return [];
 
-    const code = mealTypeCode.toUpperCase()
+    const code = mealTypeCode.toUpperCase();
     const hourHints: Record<string, [number, number]> = {
         BREAKFAST: [5, 11],
         LUNCH: [11, 16],
         SNACK: [9, 18],
         DINNER: [17, 23],
-    }
+    };
 
-    const range = hourHints[code]
+    const range = hourHints[code];
     if (range) {
         const matched = templates.filter((template) => {
+
             if (!template.scheduledTime) return false
-            const hour = Number(String(template.scheduledTime).slice(0, 2))
-            return Number.isFinite(hour) && hour >= range[0] && hour < range[1]
+
+            const hour = Number(String(template.scheduledTime).slice(0, 2));
+            return Number.isFinite(hour) && hour >= range[0] && hour < range[1];
         })
-        if (matched.length) return matched
+        if (matched.length) return matched;
     }
 
     if (code === 'OTHERS' || code === 'OTHER') {
-        return templates.filter((t) => !t.scheduledTime)
+        return templates.filter((t) => !t.scheduledTime);
     }
-    return []
+
+    return [];
 }
 
 export function DiaryHomePage() {
-    const { showAlert } = useAlert()
-    const [date, setDate] = useState(() => new Date())
-    const [day, setDay] = useState<DayMealsDto | null>(null)
-    const [mealComments, setMealComments] = useState<DiaryCommentDto[]>([])
-    const [loading, setLoading] = useState(true)
-    const [applyingTemplateId, setApplyingTemplateId] = useState<number | null>(null)
 
-    const iso = toIsoDate(date)
-    const profileId = getDiaryProfileId()
+    const { showAlert } = useAlert(); 
+    const [date, setDate] = useState(() => new Date());
+    const [day, setDay] = useState<DayMealsDto | null>(null);
+    const [mealComments, setMealComments] = useState<DiaryCommentDto[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [applyingTemplateId, setApplyingTemplateId] = useState<number | null>(null);
+
+    const iso = toIsoDate(date);
+    const profileId = getDiaryProfileId();
 
     async function load() {
         if (profileId == null) {
-            setDay(null)
-            setMealComments([])
-            setLoading(false)
-            showAlert('Нет профиля дневника. Пройдите онбординг.', 'warning')
-            return
+            setDay(null);
+            setMealComments([]);
+            setLoading(false);
+            showAlert('Нет профиля дневника. Пройдите онбординг.', 'warning');
+            return;
         }
-        setLoading(true)
+        setLoading(true);
 
         try {
             const [data, comments] = await Promise.all([
                 fetchDayMeals(iso, profileId),
                 fetchCommentsByType(profileId, 'MEAL'),
-            ])
-            setDay(data)
-            setMealComments(comments)
+            ]);
+            setDay(data);
+            setMealComments(comments);
         } catch (err: unknown) {
-            setDay(null)
-            setMealComments([])
-            showAlert(getErrorMessage(err, 'Не удалось загрузить день'), 'danger')
+            setDay(null);
+            setMealComments([]);
+            showAlert(
+                getErrorMessage(
+                    err, 
+                    'Не удалось загрузить день'
+                ), 'danger'
+            );
         } finally {
             setLoading(false)
         }
     }
 
     useEffect(() => {
-        void load()
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [iso, profileId])
+
+        void load();
+    }, [iso, profileId]);
 
     function shiftDay(delta: number) {
+
         setDate((prev) => {
-            const next = new Date(prev)
-            next.setDate(prev.getDate() + delta)
-            return next
+            const next = new Date(prev);
+            next.setDate(prev.getDate() + delta);
+            return next;
         })
     }
 
     async function onApplyTemplate(templateId: number, mealTypeId: number) {
-        setApplyingTemplateId(templateId)
+
+        setApplyingTemplateId(templateId);
+
         try {
             await applyMealTemplate(templateId, mealTypeId, iso)
             await load()
@@ -187,66 +214,87 @@ export function DiaryHomePage() {
         }
     }
 
+
     const primary = day?.targets?.find(
+
         (target) =>
-            target.nutrientId === day.primaryNutrient ||
-            target.nutrientCode?.toUpperCase() === day.primaryNutrientCode?.toUpperCase(),
-    )
+            target.nutrientId === day.primaryNutrient
+            || target.nutrientCode?.toUpperCase() === day.primaryNutrientCode?.toUpperCase(),
+    );
 
     const primaryName =
-        day?.primaryNutrientName?.trim() ||
-        (primary ? nutrientDisplayName(primary) : day?.primaryNutrientCode) ||
-        ''
+        day?.primaryNutrientName?.trim()
+        || (primary ? nutrientDisplayName(primary) : day?.primaryNutrientCode)
+        || '';
 
     const primaryUnit =
-        day?.primaryNutrientUnit?.trim() ||
-        (primary ? nutrientDisplayUnit(primary) : '') ||
-        ''
+        day?.primaryNutrientUnit?.trim()
+        || (primary ? nutrientDisplayUnit(primary) : '')
+        || '';
 
     const secondary = (day?.targets ?? []).filter(
+
         (target) =>
-            target.nutrientId !== day?.primaryNutrient &&
-            target.nutrientCode?.toUpperCase() !== day?.primaryNutrientCode?.toUpperCase(),
-    )
+            target.nutrientId !== day?.primaryNutrient
+            && target.nutrientCode?.toUpperCase() !== day?.primaryNutrientCode?.toUpperCase(),
+    );
 
     const secondaryItems = secondary.map((target, index) => ({
+
         key: String(target.nutrientId ?? target.nutrientCode ?? index),
         label: nutrientDisplayName(target),
         value: Math.max(target.factAmount ?? 0, 0),
         unit: nutrientDisplayUnit(target),
-        color: PALETTE[index % PALETTE.length],
-    }))
+        color: NUTRIENT_PALETTE[index % NUTRIENT_PALETTE.length],
+    }));
 
-    const sections = normalizeSections(day?.sections)
 
-    const showWeight = day?.weightEnabled !== false
-    const showSleep = day?.sleepEnabled !== false
+    const sections = normalizeSections(day?.sections);
+
+    const showWeight = day?.weightEnabled !== false;
+    const showSleep = day?.sleepEnabled !== false;
+
 
     return (
-        <div className="diary-shell">
-            <header className="stats-header">
-                <DateNav date={date} onPrev={() => shiftDay(-1)} onNext={() => shiftDay(1)} />
+        <div className="diary-shell 
+                        col-lg-4 col-md-8 col-sm-10 col-12 m-auto">
+            <header className="bg-brand 
+                                p-4 pt-2 
+                                rounded-bottom-5">
+                <div className="stats-header 
+                                d-flex g-2 flex-column
+                                justify-content-center justify-item-stretch
+                                item-align-center
+                                w-100">
+                    <DateNav date={date} onPrev={() => shiftDay(-1)} onNext={() => shiftDay(1)} />
 
-                <div className="stats-body">
-                    <PrimaryNutrientGauge
-                        current={primary?.factAmount ?? 0}
-                        goal={primary?.targetAmount ?? 0}
-                        name={primaryName}
-                        unit={primaryUnit}
-                    />
-                    {secondaryItems.length > 0 && <NutrientBar items={secondaryItems} />}
+                    <div className="stats-body 
+                                    d-flex g-2 flex-column
+                                    justify-content-center justify-item-stretch
+                                    item-align-center
+                                    w-100">
+                        <PrimaryNutrientGauge
+                            current={primary?.factAmount ?? 0}
+                            goal={primary?.targetAmount ?? 0}
+                            name={primaryName}
+                            unit={primaryUnit}
+                        />
+                        {secondaryItems.length > 0 && <NutrientBar items={secondaryItems} />}
+                    </div>
                 </div>
             </header>
 
-            <div className="diary-content container mt-2">
+            <div className="diary-content 
+                            container 
+                            mt-2">
                 {loading && <p className="meal-empty">Загрузка…</p>}
 
                 <div>
                     <h4 className="mb-3">Приёмы пищи</h4>
-                    <div className="row g-2">
+                    <div className="">
                         {!loading &&
                             sections.map((section) => (
-                                <div className="col-lg-6 col-md-10 col-12" key={section.mealTypeCode}>
+                                <div className="" key={section.mealTypeCode}>
                                     <MealSection
                                         mealTypeCode={section.mealTypeCode}
                                         mealTypeId={section.mealTypeId}
@@ -273,15 +321,15 @@ export function DiaryHomePage() {
                     <div className="border-top pt-2">
                         <h4 className="mb-3">Логи</h4>
 
-                        <div className="row g-2">
+                        <div className="">
                             {showWeight && (
-                                <div className="col-lg-6 col-md-10 col-12">
+                                <div className="">
                                     <WeightCard weightKg={day?.latestWeight?.weight ?? null} />
                                 </div>
                             )}
 
                             {showSleep && (
-                                <div className="col-lg-6 col-md-10 col-12">
+                                <div className="">
                                     <SleepCard
                                         entries={(day?.sleepForDay ?? []).map((s) => ({
                                             id: s.id,
@@ -298,5 +346,5 @@ export function DiaryHomePage() {
 
             <BottomNav />
         </div>
-    )
+    );
 }

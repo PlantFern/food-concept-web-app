@@ -1,7 +1,8 @@
 .dateNav {
     display: flex;
-    align-items: center;
     justify-content: space-between;
+    justify-items: stretch;
+    align-items: stretch;
     gap: 0.5rem;
     width: 100%;
 }

@@ -1,20 +1,22 @@
-import { type SyntheticEvent, useEffect, useState } from 'react'
-import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
-import { BottomNav } from '@/components/diary'
-import { DeferredImage } from '@/components/ui/DeferredImage'
-import { useAlert } from '@/components/ui/Alert'
-import { getErrorMessage } from '@/lib/errors'
+import { type SyntheticEvent, useEffect, useState } from 'react';
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { BottomNav } from '@/components/diary';
+import { DeferredImage } from '@/components/ui/DeferredImage';
+import { useAlert } from '@/components/ui/Alert';
+import { getErrorMessage } from '@/lib/errors';
 import {
     addFoodRecord,
     fetchProductDetail,
     type FoodServingDto,
     type ProductDetail,
     type ProductNutrientItem,
-} from '@/api/food'
-import { addTemplateRecord } from '@/api/meals'
-import { photoPathToUrl } from '@/lib/photo'
-import { NUTRIENTS, NUTRIENT_BY_ID, unitLabel } from '@/data/nutrients'
-import styles from './ProductDetailPage.module.css'
+} from '@/api/food';
+import { addTemplateRecord } from '@/api/meals';
+import { photoPathToUrl } from '@/lib/photo';
+import { NUTRIENTS, NUTRIENT_BY_ID, unitLabel } from '@/data/nutrients';
+import { NavigateBackButton } from '@/components/ui/NavigateBackButton';
+import styles from './ProductDetailPage.module.css';
+
 
 const MEAL_TYPES = [
     { id: 1, code: 'BREAKFAST', label: 'Завтрак' },
@@ -22,130 +24,170 @@ const MEAL_TYPES = [
     { id: 3, code: 'SNACK', label: 'Перекус' },
     { id: 4, code: 'DINNER', label: 'Ужин' },
     { id: 5, code: 'OTHERS', label: 'Другое' },
-]
+];
+
 
 function todayIso(): string {
-    const d = new Date()
-    const m = String(d.getMonth() + 1).padStart(2, '0')
-    const day = String(d.getDate()).padStart(2, '0')
-    return `${d.getFullYear()}-${m}-${day}`
+
+    const d = new Date();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+
+    return `${d.getFullYear()}-${m}-${day}`;
 }
 
 function nowTime(): string {
-    const d = new Date()
-    return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
+
+    const d = new Date();
+    return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
 }
 
 function servingLabel(s: FoodServingDto): string {
-    const unit = s.servingUnit?.code || s.servingUnit?.name || ''
+
+    const unit = s.servingUnit?.code || s.servingUnit?.name || '';
+
     const parts = [
         s.description,
         s.amount != null ? String(s.amount) : null,
         unit,
         s.gramWeight != null ? `${s.gramWeight} г` : null,
-    ].filter(Boolean)
-    return parts.join(' · ') || `Serving #${s.id}`
+    ].filter(Boolean);
+
+    return parts.join(' · ') || `Serving #${s.id}`;
 }
 
 function formatNutrientAmount(amount: number | null | undefined): string {
-    if (amount == null || !Number.isFinite(amount)) return '—'
-    return Number.isInteger(amount) ? String(amount) : amount.toFixed(1)
+
+    if (amount == null || !Number.isFinite(amount)) 
+        return '—';
+    return Number.isInteger(amount) 
+        ? String(amount) 
+        : amount.toFixed(1);
 }
 
 function dedupeNutrients(list: ProductNutrientItem[]): ProductNutrientItem[] {
-    const byId = new Map<number, ProductNutrientItem>()
+
+    const byId = new Map<number, ProductNutrientItem>();
+
     for (const n of list) {
-        if (n.nutrientId == null) continue
-        const prev = byId.get(n.nutrientId)
-        if (!prev || (prev.amountPer100g == null && n.amountPer100g != null)) {
-            byId.set(n.nutrientId, n)
-        }
+
+        if (n.nutrientId == null) 
+            continue;
+
+        const prev = byId.get(n.nutrientId);
+
+        if (!prev || (prev.amountPer100g == null && n.amountPer100g != null))
+            byId.set(n.nutrientId, n);
     }
-    return [...byId.values()]
+    
+    return [...byId.values()];
 }
 
-export function ProductDetailPage() {
-    const { productId } = useParams()
-    const [searchParams] = useSearchParams()
-    const navigate = useNavigate()
-    const { showAlert } = useAlert()
 
-    const templateIdRaw = searchParams.get('templateId')
+export function ProductDetailPage() {
+
+    const { productId } = useParams();
+    const [searchParams] = useSearchParams();
+    const navigate = useNavigate();
+    const { showAlert } = useAlert();
+
+    const templateIdRaw = searchParams.get('templateId');
     const templateId =
         templateIdRaw != null && Number.isFinite(Number(templateIdRaw)) && Number(templateIdRaw) > 0
             ? Number(templateIdRaw)
-            : null
-    const isTemplateMode = templateId != null
+            : null;
+    const isTemplateMode = templateId != null;
 
-    const [product, setProduct] = useState<ProductDetail | null>(null)
-    const [loading, setLoading] = useState(true)
-    const [saving, setSaving] = useState(false)
-    const [formError, setFormError] = useState('')
+    const [product, setProduct] = useState<ProductDetail | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [saving, setSaving] = useState(false);
+    const [formError, setFormError] = useState('');
 
-    const [mealTypeId, setMealTypeId] = useState(Number(searchParams.get('mealTypeId') || 1))
-    const [servingId, setServingId] = useState<number | ''>('')
-    const [amount, setAmount] = useState('1')
-    const [date, setDate] = useState(searchParams.get('date') || todayIso())
-    const [eatenAt, setEatenAt] = useState(nowTime())
+    const [mealTypeId, setMealTypeId] = useState(Number(searchParams.get('mealTypeId') || 1));
+    const [servingId, setServingId] = useState<number | ''>('');
+    const [amount, setAmount] = useState('1');
+    const [date, setDate] = useState(searchParams.get('date') || todayIso());
+    const [eatenAt, setEatenAt] = useState(nowTime());
 
-    const id = Number(productId)
+    const id = Number(productId);
+
 
     useEffect(() => {
-        if (!Number.isFinite(id) || id <= 0) {
-            setLoading(false)
-            return
-        }
-        let cancelled = false
-        ;(async () => {
-            setLoading(true)
-            const data = await fetchProductDetail(id)
-            if (cancelled) return
-            setProduct(data)
-            if (data?.servings?.length) {
-                setServingId(data.servings[0].id)
-            }
-            setLoading(false)
-        })()
-        return () => {
-            cancelled = true
-        }
-    }, [id])
 
-    const image = photoPathToUrl(product?.photoPath) ?? null
+        if (!Number.isFinite(id) || id <= 0) {
+            setLoading(false);
+            return;
+        }
+
+        let cancelled = false;
+
+        (async () => {
+
+            setLoading(true);
+            
+            const data = await fetchProductDetail(id);
+
+            if (cancelled) 
+                return;
+
+            setProduct(data);
+            if (data?.servings?.length) {
+                setServingId(data.servings[0].id);
+            }
+
+            setLoading(false);
+        })();
+
+        return () => {
+            cancelled = true;
+        }
+    }, [id]);
+
+    const image = photoPathToUrl(product?.photoPath) ?? null;
 
     const amountById = new Map(
         dedupeNutrients(product?.nutrients ?? []).map((n) => [n.nutrientId, n]),
-    )
+    );
+
     const nutrientRows = NUTRIENTS.map((def) => {
-        const raw = amountById.get(def.id)
+
+        const raw = amountById.get(def.id);
+
         const amountVal =
             raw?.amountPer100g != null && Number.isFinite(Number(raw.amountPer100g))
                 ? Number(raw.amountPer100g)
-                : null
-        return { def, amount: amountVal }
+                : null;
+
+        return { def, amount: amountVal };
     })
 
     const backTo = isTemplateMode
         ? `/diary/templates/${templateId}/edit`
-        : '/diary/products'
+        : '/diary/products';
+
 
     async function onSubmit(e: SyntheticEvent) {
-        e.preventDefault()
-        setFormError('')
 
-        const amountNum = Number(amount)
+        e.preventDefault();
+        setFormError('');
+
+        const amountNum = Number(amount);
+
         if (!servingId || !Number.isFinite(amountNum) || amountNum <= 0) {
-            setFormError('Выберите порцию и укажите количество больше 0')
-            return
+            setFormError('Выберите порцию и укажите количество больше 0');
+            return;
         }
 
-        setSaving(true)
+        setSaving(true);
+
         try {
             if (isTemplateMode && templateId != null) {
-                await addTemplateRecord(templateId, Number(servingId), amountNum)
-                showAlert('Продукт добавлен в шаблон', 'success')
-                navigate(`/diary/templates/${templateId}/edit`, { replace: true })
+
+                await addTemplateRecord(templateId, Number(servingId), amountNum);
+                showAlert('Продукт добавлен в шаблон', 'success');
+                navigate(`/diary/templates/${templateId}/edit`, { replace: true });
             } else {
+
                 await addFoodRecord({
                     mealId: null,
                     mealTypeId,
@@ -153,9 +195,9 @@ export function ProductDetailPage() {
                     amount: amountNum,
                     date,
                     eatenAt,
-                })
-                showAlert('Запись добавлена в дневник', 'success')
-                navigate('/diary', { replace: true })
+                });
+                showAlert('Запись добавлена в дневник', 'success');
+                navigate('/diary', { replace: true });
             }
         } catch (err: unknown) {
             setFormError(
@@ -165,20 +207,37 @@ export function ProductDetailPage() {
                         ? 'Не удалось добавить в шаблон'
                         : 'Не удалось добавить запись',
                 ),
-            )
+            );
         } finally {
-            setSaving(false)
+            setSaving(false);
         }
     }
 
+
     return (
-        <div className="diary-shell">
+        <div className="diary-shell col-lg-4 col-md-8 col-sm-10 col-12 m-auto">
+            <div className="bg-brand text-invert 
+                            p-4 pt-2 mb-2 
+                            rounded-bottom-4">
+                <NavigateBackButton label={isTemplateMode ? 'К шаблону' : 'Продукты'} className="btn-tertiary-invert" />
+                
+                {!loading && product && (
+                    <div className={styles.hero}>
+                        <DeferredImage
+                            src={image}
+                            alt={product.productDescription}
+                            className={styles.heroImage}
+                        />
+                        <div>
+                            <h5>{product.productDescription}</h5>
+                            {product.categoryCode && (
+                                <span className='small'>{product.categoryCode}</span>
+                            )}
+                        </div>
+                    </div>
+                )}
+            </div>
             <div className={`diary-content ${styles.page}`}>
-                <div className="bg-brand text-invert p-2 rounded-bottom-4">
-                    <Link to={backTo} className={styles.back}>
-                        ← {isTemplateMode ? 'К шаблону' : 'Продукты'}
-                    </Link>
-                </div>
 
                 {loading && <p className="text-muted mt-3">Загрузка…</p>}
 
@@ -188,20 +247,6 @@ export function ProductDetailPage() {
 
                 {!loading && product && (
                     <>
-                        <div className={styles.hero}>
-                            <DeferredImage
-                                src={image}
-                                alt={product.productDescription}
-                                className={styles.heroImage}
-                            />
-                            <div>
-                                <h1 className={styles.title}>{product.productDescription}</h1>
-                                {product.categoryCode && (
-                                    <div className={styles.meta}>{product.categoryCode}</div>
-                                )}
-                            </div>
-                        </div>
-
                         <form className={styles.form} onSubmit={onSubmit}>
                             <h2 className={styles.formTitle}>
                                 {isTemplateMode

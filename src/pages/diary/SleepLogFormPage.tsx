@@ -142,7 +142,7 @@ export function SleepLogFormPage() {
     }
 
     return(
-        <div className="diary-shell">
+        <div className="diary-shell col-lg-4 col-md-8 col-sm-10 col-12 m-auto">
             <div className='bg-brand text-invert
                             p-2
                             rounded-bottom-4'>
@@ -156,11 +156,11 @@ export function SleepLogFormPage() {
             }
 
             <div className="container">
-                <div className="row">
+                <div className="">
                     { !loading &&
                         (
                         <form onSubmit={handleSubmit(onSubmit)}
-                                className="form-card col-xl-4 col-lg-6 col-md-8 col-sm-10 col-12
+                                className="form-card
                                             d-flex flex-column gap-3
                                             mx-auto">
                             {error && <p className="text-danger small mb-0">{error}</p>}

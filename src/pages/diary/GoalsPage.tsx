@@ -106,7 +106,7 @@ export function GoalsPage() {
     const disabled = loading || lockedBySpecialist
 
     return (
-        <div className="diary-shell">
+        <div className="diary-shell col-lg-4 col-md-8 col-sm-10 col-12 m-auto">
             <div className="diary-content p-3" style={{ paddingBottom: '7.5rem' }}>
                 <Link to="/diary/settings" className="small text-decoration-none">
                     ← Назад

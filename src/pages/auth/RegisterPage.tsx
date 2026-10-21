@@ -1,40 +1,46 @@
-import { type SyntheticEvent, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import { registerRequest } from '@/api/auth'
-import { getErrorMessage } from '@/lib/errors'
-import { NavigateBackButton } from '@/components/ui/NavigateBackButton'
+import { type SyntheticEvent, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { registerRequest } from '@/api/auth';
+import { getErrorMessage } from '@/lib/errors';
+import { NavigateBackButton } from '@/components/ui/NavigateBackButton';
+
 
 export function RegisterPage() {
-    const navigate = useNavigate()
-    const [email, setEmail] = useState('')
-    const [password, setPassword] = useState('')
-    const [password2, setPassword2] = useState('')
-    const [error, setError] = useState<string | null>(null)
-    const [loading, setLoading] = useState(false)
 
+    const navigate = useNavigate();
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [password2, setPassword2] = useState('');
+    const [error, setError] = useState<string | null>(null);
+    const [loading, setLoading] = useState(false);
+
+    
     async function onSubmit(e: SyntheticEvent) {
-        e.preventDefault()
-        setError(null)
+    
+        e.preventDefault();
+        setError(null);
 
         if (password.length < 6) {
-            setError('Пароль не короче 6 символов')
-            return
+            setError('Пароль не короче 6 символов');
+            return;
         }
         if (password !== password2) {
-            setError('Пароли не совпадают')
-            return
+            setError('Пароли не совпадают');
+            return;
         }
 
-        setLoading(true)
+        setLoading(true);
+
         try {
-            await registerRequest({ email: email.trim(), password })
-            navigate('/login', { replace: true, state: { registered: true } })
+            await registerRequest({ email: email.trim(), password });
+            navigate('/login', { replace: true, state: { registered: true } });
         } catch (err: unknown) {
-            setError(getErrorMessage(err, 'Не удалось зарегистрироваться.'))
+            setError(getErrorMessage(err, 'Не удалось зарегистрироваться.'));
         } finally {
-            setLoading(false)
+            setLoading(false);
         }
     }
+
 
     return (
         <div className="col-lg-4 col-md-8 col-sm-10 col-12 m-auto">
@@ -124,5 +130,5 @@ export function RegisterPage() {
                 </div>
             </div>
         </div>
-    )
+    );
 }

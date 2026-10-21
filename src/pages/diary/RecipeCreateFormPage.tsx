@@ -205,7 +205,7 @@ export function RecipeCreateFormPage() {
     }
 
     return (
-        <div className="diary-shell">
+        <div className="diary-shell col-lg-4 col-md-8 col-sm-10 col-12 m-auto">
             <div className="bg-brand text-invert p-2 rounded-bottom-4">
                 <Link to="/diary/products?tab=recipes" className="btn-tertiary bg-text-on-brand">
                     ← Назад

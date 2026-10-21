@@ -82,7 +82,7 @@ export function SpecialistSettingsPage() {
     }
 
     return (
-        <div className="diary-shell">
+        <div className="diary-shell col-lg-4 col-md-8 col-sm-10 col-12 m-auto">
             <div className={`diary-content ${styles.page}`}>
                 <div className="bg-brand text-invert p-2 rounded-bottom-4">
                     <h2 className="page-title text-center p-2 bg-text-on-brand">Профиль</h2>

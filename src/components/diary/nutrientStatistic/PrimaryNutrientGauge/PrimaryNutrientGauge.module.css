@@ -1,5 +1,8 @@
 .kcalGaugeWrap {
     position: relative;
+
+    margin: 0 auto;
+
     width: 10rem;
     max-width: 42vw;
 }

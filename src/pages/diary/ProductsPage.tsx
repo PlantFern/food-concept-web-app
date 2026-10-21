@@ -1,30 +1,30 @@
-import { useEffect, useRef, useState, type CSSProperties } from 'react'
-import { Link, useSearchParams } from 'react-router-dom'
-import { BottomNav } from '@/components/diary'
-import { DeferredImage } from '@/components/ui/DeferredImage'
+import { useEffect, useRef, useState, type CSSProperties } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
+import { BottomNav } from '@/components/diary';
+import { DeferredImage } from '@/components/ui/DeferredImage';
 import {
     searchProductsPage,
     searchRecipes,
     type ProductListItem,
     type RecipeListItem,
-} from '@/api/food'
+} from '@/api/food';
 import {
     fetchTemplates,
     fetchRecentWeekFoods,
     type TemplateListItem,
     type RecentDayGroup,
-} from '@/api/meals'
+} from '@/api/meals';
 
-type TabKey = 'products' | 'recipes' | 'templates' | 'recent'
+type TabKey = 'products' | 'recipes' | 'templates' | 'recent';
 
-const PAGE_SIZE = 12
+const PAGE_SIZE = 12;
 
 const TABS: { key: TabKey; label: string }[] = [
     { key: 'products', label: 'Продукты' },
     { key: 'recipes', label: 'Рецепты' },
     { key: 'templates', label: 'Шаблоны' },
     { key: 'recent', label: 'Недавнее' },
-]
+];
 
 const thumbStyle: CSSProperties = {
     width: 45,
@@ -35,125 +35,162 @@ const thumbStyle: CSSProperties = {
 }
 
 export function ProductsPage() {
-    const [searchParams, setSearchParams] = useSearchParams()
-    const tab = (searchParams.get('tab') as TabKey) || 'products'
-    const [query, setQuery] = useState('')
-    const [showSearch, setShowSearch] = useState(false)
 
-    const [products, setProducts] = useState<ProductListItem[]>([])
-    const [recipes, setRecipes] = useState<RecipeListItem[]>([])
-    const [templates, setTemplates] = useState<TemplateListItem[]>([])
-    const [recent, setRecent] = useState<RecentDayGroup[]>([])
+    const [searchParams, setSearchParams] = useSearchParams();
+    const tab = (searchParams.get('tab') as TabKey) || 'products';
+    const [query, setQuery] = useState('');
+    const [showSearch, setShowSearch] = useState(false);
 
-    const [page, setPage] = useState(0)
-    const [last, setLast] = useState(true)
-    const [loading, setLoading] = useState(false)
-    const [loadingMore, setLoadingMore] = useState(false)
-    const sentinelRef = useRef<HTMLDivElement | null>(null)
+    const [products, setProducts] = useState<ProductListItem[]>([]);
+    const [recipes, setRecipes] = useState<RecipeListItem[]>([]);
+    const [templates, setTemplates] = useState<TemplateListItem[]>([]);
+    const [recent, setRecent] = useState<RecentDayGroup[]>([]);
 
-    const mealTypeId = searchParams.get('mealTypeId')
-    const date = searchParams.get('date')
-    const templateId = searchParams.get('templateId')
-    const isTemplatePick = Boolean(templateId)
+    const [page, setPage] = useState(0);
+    const [last, setLast] = useState(true);
+    const [loading, setLoading] = useState(false);
+    const [loadingMore, setLoadingMore] = useState(false);
+    const sentinelRef = useRef<HTMLDivElement | null>(null);
+
+    const mealTypeId = searchParams.get('mealTypeId');
+    const date = searchParams.get('date');
+    const templateId = searchParams.get('templateId');
+    const isTemplatePick = Boolean(templateId);
+
 
     function setTab(key: TabKey) {
-        const next = new URLSearchParams(searchParams)
-        next.set('tab', key)
-        setSearchParams(next, { replace: true })
+
+        const next = new URLSearchParams(searchParams);
+        next.set('tab', key);
+        setSearchParams(next, { replace: true });
     }
 
     function productHref(productId: number): string {
-        const q = new URLSearchParams()
-        if (templateId) q.set('templateId', templateId)
-        if (mealTypeId) q.set('mealTypeId', mealTypeId)
-        if (date) q.set('date', date)
-        const qs = q.toString()
-        return qs ? `/diary/products/${productId}?${qs}` : `/diary/products/${productId}`
+
+        const query = new URLSearchParams();
+
+        if (templateId) 
+            query.set('templateId', templateId);
+        if (mealTypeId) 
+            query.set('mealTypeId', mealTypeId);
+        if (date) 
+            query.set('date', date);
+
+        const qs = query.toString();
+
+        return qs ? `/diary/products/${productId}?${qs}` : `/diary/products/${productId}`;
     }
 
     function recipeHref(recipeId: number): string {
-        const q = new URLSearchParams()
-        if (templateId) q.set('templateId', templateId)
-        if (mealTypeId) q.set('mealTypeId', mealTypeId)
-        if (date) q.set('date', date)
-        const qs = q.toString()
-        return qs ? `/diary/recipes/${recipeId}?${qs}` : `/diary/recipes/${recipeId}`
+
+        const q = new URLSearchParams();
+
+        if (templateId) 
+            q.set('templateId', templateId);
+        if (mealTypeId) 
+            q.set('mealTypeId', mealTypeId);
+        if (date) 
+            q.set('date', date);
+
+        const qs = q.toString();
+        return qs ? `/diary/recipes/${recipeId}?${qs}` : `/diary/recipes/${recipeId}`;
     }
 
     async function loadProducts(q: string, pageNum: number, append: boolean) {
-        if (append) setLoadingMore(true)
-        else setLoading(true)
+
+        if (append) 
+            setLoadingMore(true);
+        else 
+            setLoading(true);
+
         try {
-            const res = await searchProductsPage(q.trim(), pageNum, PAGE_SIZE)
-            setProducts((prev) => (append ? [...prev, ...res.items] : res.items))
-            setPage(res.page)
-            setLast(res.last)
+            const res = await searchProductsPage(q.trim(), pageNum, PAGE_SIZE);
+
+            setProducts((prev) => (append ? [...prev, ...res.items] : res.items));
+            setPage(res.page);
+            setLast(res.last);
         } finally {
-            setLoading(false)
-            setLoadingMore(false)
+            setLoading(false);
+            setLoadingMore(false);
         }
     }
 
     async function loadTab(key: TabKey, q: string) {
+
         if (key === 'products') {
-            await loadProducts(q, 0, false)
-            return
+            await loadProducts(q, 0, false);
+            return;
         }
-        setLoading(true)
+
+        setLoading(true);
+
         try {
             if (key === 'recipes') {
-                setRecipes(await searchRecipes(q.trim()))
+                setRecipes(await searchRecipes(q.trim()));
             } else if (key === 'templates') {
-                setTemplates(await fetchTemplates())
+                setTemplates(await fetchTemplates());
             } else {
-                setRecent(await fetchRecentWeekFoods())
+                setRecent(await fetchRecentWeekFoods());
             }
         } finally {
-            setLoading(false)
+            setLoading(false);
         }
     }
 
     useEffect(() => {
-        void loadTab(tab, query)
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        void loadTab(tab, query);
     }, [tab])
 
     useEffect(() => {
-        if (tab !== 'products' && tab !== 'recipes') return
+        if (tab !== 'products' && tab !== 'recipes') 
+            return;
+
         const t = window.setTimeout(() => {
-            void loadTab(tab, query)
-        }, 300)
-        return () => window.clearTimeout(t)
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [query, tab])
+            void loadTab(tab, query);
+        }, 300);
+
+        return () => window.clearTimeout(t);
+    }, [query, tab]);
 
     useEffect(() => {
-        if (tab !== 'products' || last || loading || loadingMore) return
-        const el = sentinelRef.current
-        if (!el) return
+
+        if (tab !== 'products' || last || loading || loadingMore) 
+            return;
+
+        const el = sentinelRef.current;
+        if (!el) return;
 
         const obs = new IntersectionObserver(
             (entries) => {
+
                 if (entries.some((e) => e.isIntersecting)) {
-                    void loadProducts(query, page + 1, true)
+                    void loadProducts(query, page + 1, true);
                 }
             },
             { rootMargin: '120px' },
-        )
-        obs.observe(el)
-        return () => obs.disconnect()
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [tab, last, loading, loadingMore, page, query])
+        );
 
-    let emptyHint = 'За последние 7 дней записей нет'
-    if (loading) emptyHint = 'Загрузка…'
-    else if (tab === 'products') emptyHint = 'Продукты не найдены'
-    else if (tab === 'recipes') emptyHint = 'Рецепты не найдены'
-    else if (tab === 'templates') emptyHint = 'Шаблонов пока нет'
+        obs.observe(el);
+        return () => obs.disconnect();
+    }, [tab, last, loading, loadingMore, page, query]);
+
+    let emptyHint = 'За последние 7 дней записей нет';
+
+    if (loading) 
+        emptyHint = 'Загрузка…';
+    else if (tab === 'products') 
+        emptyHint = 'Продукты не найдены';
+    else if (tab === 'recipes') 
+        emptyHint = 'Рецепты не найдены';
+    else if (tab === 'templates') 
+        emptyHint = 'Шаблонов пока нет';
+
 
     return (
-        <div className="diary-shell">
-            <div className="bg-brand text-invert p-2 rounded-bottom-4">
+        <div className="diary-shell col-lg-4 col-md-8 col-sm-10 col-12 m-auto">
+            <div className="bg-brand text-invert 
+                            p-4 pt-2 mb-2 
+                            rounded-bottom-4">
                 <h2 className="page-title text-center p-2 bg-text-on-brand">
                     {isTemplatePick ? 'Выбор продукта для шаблона' : 'Продукты'}
                 </h2>
@@ -162,7 +199,7 @@ export function ProductsPage() {
                     <div className="mb-2 text-center">
                         <Link
                             to={`/diary/templates/${templateId}/edit`}
-                            className="btn btn-sm btn-outline-light"
+                            className="btn-tertiary-inverted"
                         >
                             ← Назад к шаблону
                         </Link>
@@ -171,13 +208,14 @@ export function ProductsPage() {
 
                 {!isTemplatePick && (
                     <div className="tab-container">
-                        <ul className="tab-nav nav nav-pills mb-3" role="tablist">
+                        <ul className="tab-container tab-nav nav nav-pills mb-3" role="tablist">
                             {TABS.map(({ key, label }) => (
-                                <li className="nav-item" key={key}>
+                                <li className="" key={key}>
                                     <button
                                         type="button"
                                         role="tab"
-                                        className={`nav-link ${tab === key ? 'active' : ''}`}
+                                        className={`btn btn-secondary-inverted`}
+                                        disabled = {tab === key}
                                         aria-selected={tab === key}
                                         onClick={() => setTab(key)}
                                     >
@@ -207,7 +245,7 @@ export function ProductsPage() {
                         ) : (
                             <button
                                 type="button"
-                                className="btn btn-sm btn-outline-light"
+                                className="btn btn-secondary-inverted"
                                 onClick={() => setShowSearch(true)}
                             >
                                 Поиск

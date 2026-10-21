@@ -1,63 +1,80 @@
-import { type SyntheticEvent, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import { loginRequest } from '@/api/auth'
-import { getMyProfile } from '@/api/profiles'
-import { getErrorMessage, getErrorStatus } from '@/lib/errors'
-import { NavigateBackButton } from '@/components/ui/NavigateBackButton'
+import { type SyntheticEvent, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { loginRequest } from '@/api/auth';
+import { getMyProfile } from '@/api/profiles';
+import { getErrorMessage, getErrorStatus } from '@/lib/errors';
+import { NavigateBackButton } from '@/components/ui/NavigateBackButton';
+
 
 export function LoginPage() {
-    const navigate = useNavigate()
-    const [email, setEmail] = useState('')
-    const [password, setPassword] = useState('')
-    const [error, setError] = useState<string | null>(null)
-    const [loading, setLoading] = useState(false)
+
+    const navigate = useNavigate();
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [error, setError] = useState<string | null>(null);
+    const [loading, setLoading] = useState(false);
+
 
     async function onSubmit(e: SyntheticEvent) {
-        e.preventDefault()
-        setError(null)
-        setLoading(true)
+    
+        e.preventDefault();
+        setError(null);
+        setLoading(true);
+
         try {
-            await loginRequest({ email: email.trim(), password })
+            await loginRequest({ email: email.trim(), password });
 
             try {
-                await getMyProfile()
-                navigate('/diary', { replace: true })
+
+                await getMyProfile();
+                navigate('/diary', { replace: true });
             } catch (profileErr: unknown) {
-                const status = getErrorStatus(profileErr)
+
+                const status = getErrorStatus(profileErr);
                 if (status === 404 || status === 403) {
-                    navigate('/onboarding/role', { replace: true })
-                    return
+
+                    navigate('/onboarding/role', { replace: true });
+                    return;
                 }
-                throw profileErr
+                throw profileErr;
             }
         } catch (err: unknown) {
-            const status = getErrorStatus(err)
+
+            const status = getErrorStatus(err);
             if (status === 401) {
-                setError('Неверный email или пароль')
+                setError('Неверный email или пароль');
             } else {
-                setError(getErrorMessage(err, 'Ошибка входа'))
+                setError(getErrorMessage(err, 'Ошибка входа'));
             }
         } finally {
-            setLoading(false)
+            setLoading(false);
         }
     }
 
+    
     return (
         <div className="col-lg-4 col-md-8 col-sm-10 col-12 m-auto">
-            <div className="d-flex flex-column gap-4 justify-content-start align-items-start form-card bg-brand rounded-md-5 vh-100 overflow-y-auto">
+            <div className="d-flex flex-column gap-4 
+                            justify-content-start align-items-start 
+                            bg-brand p-2
+                            rounded-md-5
+                            vh-100
+                            overflow-y-auto">
                 <div className="d-flex w-100 flex-column align-items-start flex-grow-0">
                     <NavigateBackButton label="Назад" className="btn-tertiary-invert" />
                 </div>
 
-                <div className="form-card-body d-flex flex-column gap-4 bg-page rounded-3">
-                    <div className="d-flex flex-column align-items-center text-center">
+                <div className="form-layout surface-card">
+                    <div className="d-flex flex-column 
+                                    align-items-center 
+                                    text-center">
                         <p className="fs-3 fw-medium mb-0">С возвращением!</p>
                     </div>
 
                     <form
                         onSubmit={onSubmit}
                         noValidate
-                        className="d-flex gap-3 w-100 flex-column align-items-stretch"
+                        className="form-card-body"
                     >
                         {error && (
                             <p className="text-danger small mb-0" role="alert">
@@ -114,5 +131,5 @@ export function LoginPage() {
                 </div>
             </div>
         </div>
-    )
+    );
 }

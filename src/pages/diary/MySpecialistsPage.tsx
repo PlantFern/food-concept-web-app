@@ -68,7 +68,7 @@ export function MySpecialistsPage() {
     }
 
     return (
-        <div className="diary-shell">
+        <div className="diary-shell col-lg-4 col-md-8 col-sm-10 col-12 m-auto">
             <div className="diary-content p-3 pb-5">
                 <div className="bg-brand text-invert p-2 rounded-bottom-4">
                     <Link to="/diary/settings" className="small text-decoration-none text-invert">

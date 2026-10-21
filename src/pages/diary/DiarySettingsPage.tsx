@@ -1,77 +1,107 @@
-import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
-import { BottomNav } from '@/components/diary'
-import { useAlert } from '@/components/ui/Alert'
+import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { BottomNav } from '@/components/diary';
+import { useAlert } from '@/components/ui/Alert';
 import {
     fetchLatestSettings,
     saveSettings,
     type ProfileFeatureSettingsDto,
-} from '@/api/diaryProfile/settings'
-import { hasActiveSpecialistControl } from '@/api/specialist'
-import { getDiaryProfileId } from '@/api/onboarding'
-import { NUTRIENT_GROUPS, NUTRIENTS, nutrientsByGroup } from '@/data/nutrients'
-import { getErrorMessage } from '@/lib/errors'
+} from '@/api/diaryProfile/settings';
+import { hasActiveSpecialistControl } from '@/api/specialist';
+import { getDiaryProfileId } from '@/api/onboarding';
+import { NUTRIENT_GROUPS, NUTRIENTS, nutrientsByGroup } from '@/data/nutrients';
+import { getErrorMessage } from '@/lib/errors';
+
 
 export function DiarySettingsPage() {
-    const { showAlert } = useAlert()
-    const [current, setCurrent] = useState<ProfileFeatureSettingsDto | null>(null)
-    const [loading, setLoading] = useState(true)
-    const [saving, setSaving] = useState(false)
-    const [error, setError] = useState('')
-    const [lockedBySpecialist, setLockedBySpecialist] = useState(false)
 
-    const [showSleep, setShowSleep] = useState(false)
-    const [showSleepLogs, setShowSleepLogs] = useState(false)
-    const [showWeight, setShowWeight] = useState(false)
-    const [showWeightLogs, setShowWeightLogs] = useState(false)
-    const [visibleIds, setVisibleIds] = useState<Set<number>>(() => new Set(NUTRIENTS.map((n) => n.id)))
+    const { showAlert } = useAlert();
+
+    const [current, setCurrent] = useState<ProfileFeatureSettingsDto | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [saving, setSaving] = useState(false);
+    const [error, setError] = useState('');
+
+    const [lockedBySpecialist, setLockedBySpecialist] = useState(false);
+
+    const [showSleep, setShowSleep] = useState(false);
+    const [showSleepLogs, setShowSleepLogs] = useState(false);
+    const [showWeight, setShowWeight] = useState(false);
+    const [showWeightLogs, setShowWeightLogs] = useState(false);
+    const [visibleIds, setVisibleIds] = useState<Set<number>>(() => new Set(NUTRIENTS.map((n) => n.id)));
+
 
     useEffect(() => {
         let cancelled = false;
 
         (async () => {
-            setLoading(true)
-            const profileId = getDiaryProfileId()
+
+            setLoading(true);
+            const profileId = getDiaryProfileId();
             const [data, locked] = await Promise.all([
                 fetchLatestSettings(),
                 profileId != null ? hasActiveSpecialistControl(profileId) : Promise.resolve(false),
-            ])
+            ]);
 
-            if (cancelled) return
-            setCurrent(data)
-            setLockedBySpecialist(locked)
+            if (cancelled) 
+                return;
+
+            setCurrent(data);
+            setLockedBySpecialist(locked);
 
             if (data) {
-                setShowSleep(Boolean(data.showSleep))
-                setShowSleepLogs(Boolean(data.showSleepLogs))
-                setShowWeight(Boolean(data.showWeight))
-                setShowWeightLogs(Boolean(data.showWeightLogs))
-                const hidden = new Set(data.hiddenNutrientIds ?? [])
-                setVisibleIds(new Set(NUTRIENTS.filter((n) => !hidden.has(n.id)).map((n) => n.id)))
+
+                setShowSleep(Boolean(data.showSleep));
+                setShowSleepLogs(Boolean(data.showSleepLogs));
+                setShowWeight(Boolean(data.showWeight));
+                setShowWeightLogs(Boolean(data.showWeightLogs));
+                const hidden = new Set(data.hiddenNutrientIds ?? []);
+                setVisibleIds(
+                    new Set(
+                        NUTRIENTS.filter((nutrient) => !hidden
+                        .has(nutrient.id))
+                        .map((nutrient) => nutrient.id)
+                    )
+                );
             }
-            setLoading(false)
+            setLoading(false);
         })()
+
         return () => {
-            cancelled = true
+            cancelled = true;
         }
     }, [])
 
     function toggleNutrient(id: number) {
-        if (lockedBySpecialist) return
+
+        if (lockedBySpecialist) 
+            return;
+
         setVisibleIds((prev) => {
-            const next = new Set(prev)
-            if (next.has(id)) next.delete(id)
-            else next.add(id)
-            return next
-        })
+
+            const next = new Set(prev);
+            if (next.has(id)) next.delete(id);
+            else next.add(id);
+            return next;
+        });
     }
 
     async function onSave() {
-        if (lockedBySpecialist) return
-        setError('')
-        setSaving(true)
+
+        if (lockedBySpecialist) 
+            return;
+
+        setError('');
+        setSaving(true);
+
         try {
-            const hiddenNutrients = NUTRIENTS.filter((n) => !visibleIds.has(n.id)).map((n) => n.id)
+
+            const hiddenNutrients = NUTRIENTS
+                .filter(
+                    (nutrient) => !visibleIds
+                        .has(nutrient.id))
+                        .map((nutrient) => nutrient.id);
+
             const saved = await saveSettings(current, {
                 showSleep,
                 showSleepLogs,
@@ -79,20 +109,24 @@ export function DiarySettingsPage() {
                 showWeightLogs,
                 showAllergensWarning: Boolean(current?.showAllergensWarning),
                 hiddenNutrients,
-            })
-            setCurrent(saved)
-            showAlert('Настройки обновлены', 'success')
+            });
+
+            setCurrent(saved);
+            showAlert('Настройки обновлены', 'success');
+
         } catch (err: unknown) {
-            setError(getErrorMessage(err, 'Не удалось сохранить настройки'))
+            setError(getErrorMessage(err, 'Не удалось сохранить настройки'));
         } finally {
-            setSaving(false)
+            setSaving(false);
         }
     }
 
-    const disabled = loading || lockedBySpecialist
+    const disabled = loading || lockedBySpecialist;
 
     return (
-        <div className="diary-shell">
+        <div className="diary-shell
+                        col-lg-4 col-md-8 col-sm-10 col-12
+                        m-auto">
             <div className="diary-content" style={{ paddingBottom: '7.5rem' }}>
                 <div className='bg-brand text-invert p-2 rounded-bottom-4'>
                     <Link to="/diary/settings" className="small text-decoration-none">

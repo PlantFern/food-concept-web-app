@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import { Link } from 'react-router-dom';
 
 
 export function StartPage(){
@@ -15,7 +15,7 @@ export function StartPage(){
                 <div className="d-flex flex-column flex-grow-1
                                 justify-content-start align-items-start justify-content-start
                                 mt-3">
-                    <h2>Welcome to</h2>
+                    <h2>Добро пожаловать в</h2>
                     <h1 className="fs-1 fw-bold h1">Food concept!</h1>
                 </div>
 
@@ -42,5 +42,5 @@ export function StartPage(){
                     </div>
             </div>
         </div>
-    )
+    );
 }

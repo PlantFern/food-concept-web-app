@@ -198,7 +198,7 @@ export function ClientDiaryPage() {
     }
 
     return (
-        <div className="diary-shell">
+        <div className="diary-shell col-lg-4 col-md-8 col-sm-10 col-12 m-auto">
             <div className="bg-brand text-invert p-2 rounded-bottom-4">
                 <Link to="/specialist/clients" className="btn-tertiary bg-text-on-brand text-decoration-none">← К связям</Link>
                 <h2 className="page-title text-center p-2 bg-text-on-brand mb-0">Дневник пользователя #{profileId}</h2>

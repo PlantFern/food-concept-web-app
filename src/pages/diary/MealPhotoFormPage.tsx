@@ -45,7 +45,7 @@ export function MealPhotoFormPage() {
     }
 
     return (
-        <div className="diary-shell">
+        <div className="diary-shell col-lg-4 col-md-8 col-sm-10 col-12 m-auto">
             <div className="bg-brand text-invert p-2 rounded-bottom-4">
                 <Link
                     to="/diary"
@@ -60,7 +60,7 @@ export function MealPhotoFormPage() {
             <div className="container py-3">
                 <form
                     onSubmit={handleSubmit(onSubmit)}
-                    className="form-card col-xl-4 col-lg-6 col-md-8 col-12 mx-auto d-flex flex-column gap-3"
+                    className="form-card mx-auto d-flex flex-column gap-3"
                 >
                     {error && <p className="text-danger small mb-0">{error}</p>}
 

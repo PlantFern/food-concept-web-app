@@ -1,4 +1,12 @@
 .nutrientBar {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    justify-items: stretch;
+    align-items: stretch;
+
+    margin: 0 auto;
+
     width: 100%;
     max-width: 22rem;
 }
