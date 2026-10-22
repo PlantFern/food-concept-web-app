@@ -1,66 +1,56 @@
 .nutrientBar {
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
-    justify-items: stretch;
-    align-items: stretch;
-
-    margin: 0 auto;
-
+    gap: 0.375rem;
     width: 100%;
-    max-width: 22rem;
+    min-width: 0;
 }
 
-.nutrientBarLegend {
+.nutrientBarHeader {
     display: flex;
-    flex-direction: column;
-    gap: 0.35rem;
-    margin-bottom: var(--indent-8, 0.5rem);
-}
-
-.nutrientBarLegendRow {
-    display: flex;
-    align-items: center;
+    align-items: baseline;
     justify-content: space-between;
-    gap: var(--indent-8, 0.5rem);
-    font-size: 0.8rem;
-    color: var(--text-on-brand, #fff);
+    gap: 0.75rem;
+    width: 100%;
+    min-width: 0;
+
+    font-size: 0.875rem;
+    line-height: 1.4;
 }
 
-.nutrientBarAmount {
-    font-weight: 600;
-    text-align: left;
-    min-width: 2.5rem;
+.nutrientBarInfo {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.25rem;
+    min-width: 0;
 }
 
 .nutrientBarLabel {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4rem;
-    margin-left: auto;
+    font-weight: 600;
 }
 
-.nutrientBarDot {
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
+.nutrientBarAmount {
+    font-weight: 400;
+}
+
+.nutrientBarGoal {
     flex-shrink: 0;
+    font-weight: 600;
+    white-space: nowrap;
 }
 
 .nutrientBarTrack {
-    display: flex;
     width: 100%;
-    height: 0.65rem;
-    border-radius: 999px;
+    height: 0.5rem;
     overflow: hidden;
-    background: rgba(255, 255, 255, 0.2);
+    border-radius: 999px;
+    background: var(--border-color, rgba(255,255,255,0.28));
 }
 
-.nutrientBarSeg {
+.nutrientBarFill {
     height: 100%;
-    min-width: 2px;
-}
-
-.nutrientBarSegEmpty {
-    background: rgba(255, 255, 255, 0.25);
+    min-width: 0;
+    border-radius: inherit;
+    transition: width 0.2s ease;
 }

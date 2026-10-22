@@ -44,12 +44,19 @@ export function RegisterPage() {
 
     return (
         <div className="col-lg-4 col-md-8 col-sm-10 col-12 m-auto">
-            <div className="d-flex flex-column gap-4 justify-content-start align-items-start form-card bg-brand rounded-md-5 vh-100 overflow-y-auto">
-                <div className="d-flex w-100 flex-column align-items-start flex-grow-0">
+            <div className="d-flex flex-column gap-4
+                            justify-content-start 
+                            align-items-start 
+                            bg-brand p-2
+                            vh-100 
+                            overflow-y-auto">
+                <div className="d-flex w-100 flex-column 
+                                align-items-start 
+                                flex-grow-0">
                     <NavigateBackButton label="Назад" className="btn-tertiary-invert" />
                 </div>
 
-                <div className="form-card-body d-flex flex-column gap-4 bg-page rounded-3">
+                <div className="surface-card surface-card-column w-100">
                     <div className="d-flex flex-column align-items-center text-center">
                         <p className="fs-3 fw-medium mb-0">Создайте Аккаунт</p>
                     </div>
@@ -57,13 +64,8 @@ export function RegisterPage() {
                     <form
                         onSubmit={onSubmit}
                         noValidate
-                        className="d-flex gap-3 w-100 flex-column align-items-stretch"
+                        className="form-layout mx-auto"
                     >
-                        {error && (
-                            <p className="text-danger small mb-0" role="alert">
-                                {error}
-                            </p>
-                        )}
 
                         <div className="w-100">
                             <label className="form-label label" htmlFor="reg-email">

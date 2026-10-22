@@ -101,17 +101,25 @@ a {
 
 .card {
     background: var(--bg-card);
+    color: var(--text);
     padding: var(--indent-16);
     box-shadow: var(--shadow-sm);
 }
 
 .surface-card {
     background: var(--bg-card);
+    color: var(--text);
+
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-sm);
 
     padding: var(--indent-16);
-    margin: var(--indent-16);
+}
+
+.surface-card-column {
+    display: flex;
+    flex-direction: column;
+    gap: var(--indent-16);
 }
 
 .no-content-placeholder {

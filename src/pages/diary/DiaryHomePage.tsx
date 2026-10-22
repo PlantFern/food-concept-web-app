@@ -2,16 +2,31 @@ import { useEffect, useState } from 'react';
 import {
     applyMealTemplate,
     fetchDayMeals,
-    nutrientDisplayName,
-    nutrientDisplayUnit,
     type DayMealsDto,
     type MealSectionDto,
     type MealTemplateListItemDto,
 } from '@/api/diaryProfile/diary';
+
+import { 
+    fetchLatestSettings, 
+    type ProfileFeatureSettingsDto 
+} from '../../api/diaryProfile/settings';
+
+import {
+    fetchActiveGoal,
+    type GoalDto,
+} from '@/api/diaryProfile/goals';
+
 import { fetchCommentsByType, type DiaryCommentDto } from '@/api/diaryProfile/comments';
+
 import { getDiaryProfileId } from '@/api/onboarding';
+
 import { getErrorMessage } from '@/lib/errors';
+
+import { NUTRIENTS } from '@/data/nutrients';
+
 import { useAlert } from '@/components/ui/Alert';
+
 import {
     BottomNav,
     DateNav,
@@ -72,14 +87,14 @@ function normalizeSections(raw: MealSectionDto[] | null | undefined): MealSectio
             found
                 ? { ...found, mealTypeCode: code }
                 : {
-                      mealId: -(MEAL_TYPES.indexOf(code) + 1),
-                      mealTypeCode: code,
-                      mealTypeId: MEAL_TYPES.indexOf(code) + 1,
-                      generatedFromTemplateId: null,
-                      records: [],
-                      totalPrimaryNutrient: null,
-                      photoPath: null,
-                  },
+                    mealId: -(MEAL_TYPES.indexOf(code) + 1),
+                    mealTypeCode: code,
+                    mealTypeId: MEAL_TYPES.indexOf(code) + 1,
+                    generatedFromTemplateId: null,
+                    records: [],
+                    totalPrimaryNutrient: null,
+                    photoPath: null,
+                },
         );
     }
 
@@ -112,6 +127,7 @@ function pickTemplatesForSection(
     templates: MealTemplateListItemDto[],
     mealTypeCode: string,
 ): MealTemplateListItemDto[] {
+
     if (!templates.length) 
         return [];
 
@@ -125,6 +141,7 @@ function pickTemplatesForSection(
 
     const range = hourHints[code];
     if (range) {
+
         const matched = templates.filter((template) => {
 
             if (!template.scheduledTime) return false
@@ -132,6 +149,7 @@ function pickTemplatesForSection(
             const hour = Number(String(template.scheduledTime).slice(0, 2));
             return Number.isFinite(hour) && hour >= range[0] && hour < range[1];
         })
+        
         if (matched.length) return matched;
     }
 
@@ -144,15 +162,18 @@ function pickTemplatesForSection(
 
 export function DiaryHomePage() {
 
-    const { showAlert } = useAlert(); 
+    const { showAlert } = useAlert();
     const [date, setDate] = useState(() => new Date());
     const [day, setDay] = useState<DayMealsDto | null>(null);
     const [mealComments, setMealComments] = useState<DiaryCommentDto[]>([]);
     const [loading, setLoading] = useState(true);
     const [applyingTemplateId, setApplyingTemplateId] = useState<number | null>(null);
+    const [settings, setSettings] = useState<ProfileFeatureSettingsDto|null>(null);
+    const [activeGoal, setActiveGoal] = useState<GoalDto|null>(null);
 
     const iso = toIsoDate(date);
     const profileId = getDiaryProfileId();
+
 
     async function load() {
         if (profileId == null) {
@@ -165,15 +186,23 @@ export function DiaryHomePage() {
         setLoading(true);
 
         try {
-            const [data, comments] = await Promise.all([
+
+            const [data, comments, goal, settings] = await Promise.all([
                 fetchDayMeals(iso, profileId),
                 fetchCommentsByType(profileId, 'MEAL'),
+                fetchActiveGoal(),
+                fetchLatestSettings()
             ]);
             setDay(data);
             setMealComments(comments);
+            setActiveGoal(goal);
+            setSettings(settings)
         } catch (err: unknown) {
+
             setDay(null);
             setMealComments([]);
+            setSettings(null);
+            setActiveGoal(null);
             showAlert(
                 getErrorMessage(
                     err, 
@@ -181,7 +210,7 @@ export function DiaryHomePage() {
                 ), 'danger'
             );
         } finally {
-            setLoading(false)
+            setLoading(false);
         }
     }
 
@@ -214,38 +243,98 @@ export function DiaryHomePage() {
         }
     }
 
-
-    const primary = day?.targets?.find(
-
-        (target) =>
-            target.nutrientId === day.primaryNutrient
-            || target.nutrientCode?.toUpperCase() === day.primaryNutrientCode?.toUpperCase(),
+    const hiddenNutrientIds = new Set(
+        settings?.hiddenNutrientIds ?? []
     );
 
-    const primaryName =
-        day?.primaryNutrientName?.trim()
-        || (primary ? nutrientDisplayName(primary) : day?.primaryNutrientCode)
-        || '';
+    const visibleNutrients = NUTRIENTS.filter((nutrient) => !hiddenNutrientIds.has(nutrient.id));
 
-    const primaryUnit =
-        day?.primaryNutrientUnit?.trim()
-        || (primary ? nutrientDisplayUnit(primary) : '')
-        || '';
+    const visibleNutrientIds = new Set(visibleNutrients.map(nutrient => nutrient.id));
 
-    const secondary = (day?.targets ?? []).filter(
 
-        (target) =>
-            target.nutrientId !== day?.primaryNutrient
-            && target.nutrientCode?.toUpperCase() !== day?.primaryNutrientCode?.toUpperCase(),
+    const goalNutrients = activeGoal?.nutrientSet ?? [];
+
+    const availableGoalNutrients = goalNutrients.filter(
+        goalNutrient => visibleNutrientIds.has(goalNutrient.nutrientId)
     );
 
-    const secondaryItems = secondary.map((target, index) => ({
 
-        key: String(target.nutrientId ?? target.nutrientCode ?? index),
-        label: nutrientDisplayName(target),
-        value: Math.max(target.factAmount ?? 0, 0),
-        unit: nutrientDisplayUnit(target),
-        color: NUTRIENT_PALETTE[index % NUTRIENT_PALETTE.length],
+    const targetById = new Map(
+        (day?.targets ?? []).map(target => [target.nutrientId, target])
+    );
+
+    const goalByNutrientId = new Map(
+        goalNutrients.map(goalNutrient => [goalNutrient.nutrientId, goalNutrient])
+    );
+
+    const prioritizeNutrients = availableGoalNutrients
+        .slice(0,4)
+        .map(
+            goalNutrient => {
+
+                const stat = targetById.get(goalNutrient.nutrientId);
+                const nutrient = NUTRIENTS.find(item => item.id === goalNutrient.nutrientId);
+                
+                return {
+                    nutrientId: goalNutrient.nutrientId,
+                    nutrientCode: stat?.nutrientCode ?? nutrient?.code ?? '',
+                    nutrientName: nutrient?.name ?? stat?.nutrientName ?? '',
+                    unit: nutrient?.unit ?? stat?.unit ?? '',
+                    targetAmount: stat?.targetAmount ?? goalNutrient.amount,
+                    factAmount: stat?.factAmount ?? 0
+                };
+            }
+        );
+
+    const selectedNutrientIds = new Set(
+        prioritizeNutrients.map(nutrient => nutrient.nutrientId)
+    );
+
+    const additionalNutrients = visibleNutrients
+        .filter(nutrient => !selectedNutrientIds.has(nutrient.id))
+        .map(nutrient => {
+
+            const stat = targetById.get(nutrient.id);
+            const goalNutrient = goalByNutrientId.get(nutrient.id);
+
+            return {
+                nutrientId: nutrient.id,
+                nutrientCode: stat?.nutrientCode ?? nutrient?.code ?? '',
+                nutrientName: nutrient.name,
+                unit: nutrient.unit,
+                targetAmount: stat?.targetAmount ?? goalNutrient?.amount ?? 0,
+                factAmount: stat?.factAmount ?? 0
+            };
+        });
+
+    const selectedNutrients = [
+        ...prioritizeNutrients,
+        ...additionalNutrients.slice(
+            0, 
+            Math.max(0, 4 - prioritizeNutrients.length)
+        )
+    ];
+
+    const primary = selectedNutrients.find(
+        (target) => target.nutrientId === day?.primaryNutrient
+    ) 
+    ?? prioritizeNutrients[0] 
+    ?? null;
+
+    const primaryName = primary?.nutrientName ?? '';
+    const primaryUnit = primary?.unit ?? '';
+
+    const secondaryItems = selectedNutrients
+        .filter(
+            (target) => target.nutrientId !== primary?.nutrientId
+        )
+        .map((target, index) => ({
+            key: String(target.nutrientId),
+            label: target.nutrientName,
+            value: Math.max(target.factAmount ?? 0, 0),
+            goal: target.targetAmount ?? 0,
+            unit: target.unit,
+            color: NUTRIENT_PALETTE[index % NUTRIENT_PALETTE.length],
     }));
 
 
@@ -269,17 +358,31 @@ export function DiaryHomePage() {
                     <DateNav date={date} onPrev={() => shiftDay(-1)} onNext={() => shiftDay(1)} />
 
                     <div className="stats-body 
-                                    d-flex g-2 flex-column
+                                    d-flex gap-2 flex-column
                                     justify-content-center justify-item-stretch
                                     item-align-center
                                     w-100">
-                        <PrimaryNutrientGauge
-                            current={primary?.factAmount ?? 0}
-                            goal={primary?.targetAmount ?? 0}
-                            name={primaryName}
-                            unit={primaryUnit}
-                        />
-                        {secondaryItems.length > 0 && <NutrientBar items={secondaryItems} />}
+
+                        {selectedNutrients.length > 0 && (
+                            <>
+                                {primary && (
+                                    <PrimaryNutrientGauge
+                                        current={primary.factAmount ?? 0}
+                                        goal={primary.targetAmount ?? 0}
+                                        name={primaryName}
+                                        unit={primaryUnit}
+                                    />
+                                )}
+
+                                {secondaryItems.map((item) => (
+                                    <NutrientBar
+                                        key={item.key}
+                                        item={item}
+                                    />
+                                ))}
+                            </>
+                        )}
+
                     </div>
                 </div>
             </header>
@@ -290,7 +393,6 @@ export function DiaryHomePage() {
                 {loading && <p className="meal-empty">Загрузка…</p>}
 
                 <div>
-                    <h4 className="mb-3">Приёмы пищи</h4>
                     <div className="">
                         {!loading &&
                             sections.map((section) => (

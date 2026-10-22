@@ -57,14 +57,13 @@ export function LoginPage() {
             <div className="d-flex flex-column gap-4 
                             justify-content-start align-items-start 
                             bg-brand p-2
-                            rounded-md-5
                             vh-100
                             overflow-y-auto">
                 <div className="d-flex w-100 flex-column align-items-start flex-grow-0">
                     <NavigateBackButton label="Назад" className="btn-tertiary-invert" />
                 </div>
 
-                <div className="form-layout surface-card">
+                <div className="surface-card surface-card-column w-100">
                     <div className="d-flex flex-column 
                                     align-items-center 
                                     text-center">
@@ -74,7 +73,7 @@ export function LoginPage() {
                     <form
                         onSubmit={onSubmit}
                         noValidate
-                        className="form-card-body"
+                        className="form-layout mx-auto"
                     >
                         {error && (
                             <p className="text-danger small mb-0" role="alert">

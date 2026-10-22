@@ -9,24 +9,19 @@ export function StartPage(){
                             justify-content-between
                             align-content-start
                             form-card
-                            bg-brand
-                            rounded-md-5
+                            bg-brand p-2
                             vh-100 overflow-y-auto">
                 <div className="d-flex flex-column flex-grow-1
-                                justify-content-start align-items-start justify-content-start
+                                justify-content-start align-items-center justify-content-start
+                                text-center
                                 mt-3">
                     <h2>Добро пожаловать в</h2>
                     <h1 className="fs-1 fw-bold h1">Food concept!</h1>
                 </div>
 
-                <div className="form-card-body
-                                d-flex flex-column
-                                align-items-stretch
-                                justify-content-end
-                                gap-4 flex-grow-1
-                                bg-page
-                                rounded-3
-                                    text-center">
+                <div className="surface-card surface-card-column
+                                w-100 h-50
+                                text-center">
                         <div className="d-flex">
                             <Link className="btn btn-primary w-100 shadow-sm" to="/register">
                                 Зарегистрироваться
