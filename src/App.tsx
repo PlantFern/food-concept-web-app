@@ -25,7 +25,6 @@ import { MealTemplateFormPage } from '@/pages/diary/MealTemplateFormPage'
 import { MealPhotoFormPage } from '@/pages/diary/MealPhotoFormPage'
 import { CommentFormPage } from '@/pages/diary/CommentFormPage'
 import { QuickProductFormPage } from '@/pages/diary/QuickProductFormPage'
-import { StatsPage } from '@/pages/diary/StatsPage'
 import { MySpecialistsPage } from '@/pages/diary/MySpecialistsPage'
 import { SpecialistSearchPage } from '@/pages/diary/SpecialistSearchPage'
 import { ClientsPage } from '@/pages/specialist/ClientsPage'
@@ -57,7 +56,6 @@ function App() {
 
                         <Route element={<RequireDiary />}>
                             <Route path="/diary" element={<DiaryHomePage />} />
-                            <Route path="/diary/stats" element={<StatsPage />} />
 
                             <Route path="/diary/products" element={<ProductsPage />} />
                             <Route path="/diary/products/:productId" element={<ProductDetailPage />} />
