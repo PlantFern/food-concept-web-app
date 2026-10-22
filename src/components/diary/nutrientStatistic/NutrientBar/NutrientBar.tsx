@@ -1,5 +1,7 @@
 import styles from './NutrientBar.module.css';
 
+import { formatNutrientValue } from '@/lib/formatNutrientValue';
+
 
 export type NutrientBarItem = {
     key: string
@@ -7,6 +9,7 @@ export type NutrientBarItem = {
     value: number
     goal: number
     unit?: string
+    code: string
     color: string
 };
 
@@ -32,14 +35,14 @@ export function NutrientBar({ item }: NutrientBarProps) {
 
                     <span className={styles.nutrientBarAmount}>
                         {' - '}
-                        {value.toFixed(1)}{item.unit}
+                        {formatNutrientValue(value, item.code)}{item.unit}
                         {' / '}
-                        {goal.toFixed(1)}{item.unit}
+                        {formatNutrientValue(goal, item.code)}{item.unit}
                     </span>
                 </div>
 
                 <span className={styles.nutrientBarGoal}>
-                    {goal.toFixed(1)}{item.unit}
+                    {formatNutrientValue(goal, item.code)}{item.unit}
                 </span>
             </div>
 

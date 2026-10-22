@@ -334,6 +334,7 @@ export function DiaryHomePage() {
             value: Math.max(target.factAmount ?? 0, 0),
             goal: target.targetAmount ?? 0,
             unit: target.unit,
+            nutrientCode: target.nutrientCode,
             color: NUTRIENT_PALETTE[index % NUTRIENT_PALETTE.length],
     }));
 
@@ -367,11 +368,12 @@ export function DiaryHomePage() {
                             <>
                                 {primary && (
                                     <PrimaryNutrientGauge
-                                        current={primary.factAmount ?? 0}
-                                        goal={primary.targetAmount ?? 0}
+                                        current={primary?.factAmount ?? 0}
+                                        goal={primary?.targetAmount ?? 0}
                                         name={primaryName}
                                         unit={primaryUnit}
-                                    />
+                                        nutrientCode={primary?.nutrientCode ?? day?.primaryNutrientCode}
+/>
                                 )}
 
                                 {secondaryItems.map((item) => (
