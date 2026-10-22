@@ -9,7 +9,7 @@ export type NutrientBarItem = {
     value: number
     goal: number
     unit?: string
-    code: string
+    nutrientCode: string
     color: string
 };
 
@@ -35,14 +35,14 @@ export function NutrientBar({ item }: NutrientBarProps) {
 
                     <span className={styles.nutrientBarAmount}>
                         {' - '}
-                        {formatNutrientValue(value, item.code)}{item.unit}
+                        {formatNutrientValue(value, item.nutrientCode)}{item.unit}
                         {' / '}
-                        {formatNutrientValue(goal, item.code)}{item.unit}
+                        {formatNutrientValue(goal, item.nutrientCode)}{item.unit}
                     </span>
                 </div>
 
                 <span className={styles.nutrientBarGoal}>
-                    {formatNutrientValue(goal, item.code)}{item.unit}
+                    {formatNutrientValue(goal, item.nutrientCode)}{item.unit}
                 </span>
             </div>
 

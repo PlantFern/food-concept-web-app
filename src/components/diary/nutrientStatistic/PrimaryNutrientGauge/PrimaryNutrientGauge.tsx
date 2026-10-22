@@ -52,7 +52,7 @@ export function PrimaryNutrientGauge({
     };
 
     const unitSuffix = unit ? ` ${unit}` : '';
-    
+
 
     return (
         <div className={styles.kcalGaugeWrap}>

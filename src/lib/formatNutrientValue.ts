@@ -20,10 +20,10 @@ export function formatNutrientValue(
         ? nutrientByCode.get(nutrientCode?.toUpperCase())
         : undefined;
     
-    if(nutrientCode === 'kcal'
-        || nutrientCode === 'protein'
-        || nutrientCode === 'fat'
-        || nutrientCode === 'carbs'
+    if(nutrient?.code === 'ENERGY_KCAL'
+        || nutrient?.code === 'PROTEIN'
+        || nutrient?.code === 'FAT'
+        || nutrient?.code === 'CARBS'
     ) 
         return new Intl.NumberFormat(
             'ru-RU',
