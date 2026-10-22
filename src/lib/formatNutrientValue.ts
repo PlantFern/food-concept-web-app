@@ -20,6 +20,19 @@ export function formatNutrientValue(
         ? nutrientByCode.get(nutrientCode?.toUpperCase())
         : undefined;
     
+    if(nutrientCode === 'kcal'
+        || nutrientCode === 'protein'
+        || nutrientCode === 'fat'
+        || nutrientCode === 'carbs'
+    ) 
+        return new Intl.NumberFormat(
+            'ru-RU',
+            {
+                maximumFractionDigits: 0,
+                useGrouping: false
+            }
+        ).format(value);
+
     const isGramMacro =
         nutrient?.group === 'macro'
         && nutrient.unit === 'g'
