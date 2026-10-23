@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { Link, useParams, useNavigate, useSearchParams } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { IoTrashOutline } from 'react-icons/io5';
 import { BottomNav } from '@/components/diary';
 import {
@@ -11,6 +11,7 @@ import {
     type CommentType,
 } from '@/api/diaryProfile';
 import { useAlert } from '@/components/ui/Alert';
+import { NavigateBackButton } from '@/components/ui/NavigateBackButton';
 import { getErrorMessage } from '@/lib/errors';
 import { getDiaryProfileId } from '@/api/onboarding.ts';
 
@@ -171,29 +172,32 @@ export function CommentFormPage() {
 
 
     return (
-        <div className="diary-shell">
-            <div className="bg-brand text-invert p-2 rounded-bottom-4">
-                <Link to="/diary" className="btn-tertiary bg-text-on-brand">
-                    ← Назад
-                </Link>
-                <h2 className="bg-text-on-brand mt-2 text-center">Комментарий</h2>
+        <div className="diary-shell col-lg-4 col-md-8 col-sm-10 col-12 m-auto">
+            <div className='d-flex gap-3
+                            justify-content-start align-items-center
+                            bg-brand text-invert 
+                            p-4 
+                            rounded-bottom-4'>
+                <NavigateBackButton label="Назад" className="btn-tertiary-invert" />
+
+                <p className="page-title text-center p-2 bg-text-on-brand">Комментарий</p>
             </div>
 
-            {loading && <p className="no-content-placeholder">Загрузка…</p>}
 
-            <div className="container">
-                <div className="row">
+            <div className="diary-content p-3" style={{ paddingBottom: '7.5rem' }}>
+                {loading && <p className="no-content-placeholder">Загрузка…</p>}
+
+                <div className='surface-card surface-card-column w-100'>
                     {!loading && (
                         <form
                             onSubmit={handleSubmit(onSubmit)}
-                            className="form-card col-xl-3 col-lg-4 col-md-6 col-sm-8 col-10
-                                            d-flex flex-column gap-3 mx-auto"
+                            className="form-layout mx-auto"
                         >
                             {error && <p className="text-danger small mb-0">{error}</p>}
 
                             {!isEdit && (
                                 <p className="small text-muted mb-0">
-                                    К: {TYPE_LABEL[commentableType] ?? commentableType}
+                                    Для: {TYPE_LABEL[commentableType] ?? commentableType}
                                 </p>
                             )}
 

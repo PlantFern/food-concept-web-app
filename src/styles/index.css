@@ -179,23 +179,6 @@ a {
     cursor: not-allowed;
 }
 
-.btn-danger {
-    background: #c92a2a;
-    border: none;
-    color: #fff;
-    font-weight: 500;
-}
-
-.btn-danger:hover:not(:disabled) {
-    background: #a61e1e;
-    color: #fff;
-}
-
-.btn-danger:disabled {
-    opacity: 0.65;
-    cursor: not-allowed;
-}
-
 .btn-secondary {
     background: transparent;
     border: 1px solid var(--cta-bg);
@@ -316,4 +299,22 @@ a {
 
     padding-bottom: var(--indent-4);
     margin-top: var(--indent-8);
+}
+
+
+.btn-danger {
+    background: #c92a2a;
+    border: none;
+    color: #fff !important;
+    font-weight: 500;
+}
+
+.btn-danger:hover:not(:disabled) {
+    background: #a61e1e;
+    color: #fff !important;
+}
+
+.btn-danger:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
 }

@@ -102,27 +102,27 @@ export function SettingsPage() {
                                 justify-content-center justify-items-center
                                 aling-items-center w-100 mx-auto'>
                     {hasDiary ? (
-                        <Link to="/diary" className={`btn btn-primary rounded-pill btn-icon-start
-                                                         fit-content mx-auto`}>
+                        <Link to="/diary" 
+                        className={`btn btn-primary rounded-pill btn-icon-start fit-content mx-auto`}>
                             <span><HiOutlineClipboardDocumentList size="20"/> </span>
                             <span>Дневник питания</span>
                         </Link>
                     ) : (
-                        <Link to="/onboarding/scenario" className={`btn btn-secondary rounded-pill btn-icon-start
-                                                         fit-content mx-auto`}>
+                        <Link to="/onboarding/scenario" 
+                        className={`btn btn-secondary rounded-pill btn-icon-start fit-content mx-auto`}>
                             <span><HiOutlinePlus size="20"/> </span>
                             <span>Дневник питания</span>
                         </Link>
                     )}
                     {hasSpecialist ? (
-                        <Link to="/diary" className={`btn btn-primary rounded-pill btn-icon-start
-                                                         fit-content mx-auto`}>
+                        <Link to="/specialist/clients" 
+                                className={`btn btn-primary rounded-pill btn-icon-start fit-content mx-auto`}>
                             <span><HiOutlineUserGroup size="20"/> </span>
                             <span>Специалист</span>
                         </Link>
                     ) : (
-                        <Link to="/onboarding/scenario" className={`btn btn-secondary rounded-pill btn-icon-start
-                                                         fit-content mx-auto`}>
+                        <Link to="/onboarding/role" 
+                                className={`btn btn-secondary rounded-pill btn-icon-start fit-content mx-auto`}>
                             <span><HiOutlinePlus size="20"/> </span>
                             <span>Специалист</span>
                         </Link>

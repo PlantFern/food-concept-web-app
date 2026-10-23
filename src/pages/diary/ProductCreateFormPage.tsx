@@ -1,12 +1,15 @@
-import { useState } from 'react'
-import { useForm } from 'react-hook-form'
-import { Link, useNavigate, useSearchParams } from 'react-router-dom'
-import { BottomNav } from '@/components/diary'
-import { http } from '@/api/http'
-import { uploadFile } from '@/api/files'
-import { useAlert } from '@/components/ui/Alert'
-import { getErrorMessage } from '@/lib/errors'
-import { CORE_GOAL_NUTRIENT_IDS, NUTRIENT_BY_ID, unitLabel } from '@/data/nutrients'
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { BottomNav } from '@/components/diary';
+import { NavigateBackButton } from '@/components/ui/NavigateBackButton';
+
+import { http } from '@/api/http';
+import { uploadFile } from '@/api/files';
+
+import { useAlert } from '@/components/ui/Alert';
+import { getErrorMessage } from '@/lib/errors';
+import { CORE_GOAL_NUTRIENT_IDS, NUTRIENT_BY_ID, unitLabel } from '@/data/nutrients';
 
 type FormValues = {
     description: string
@@ -16,7 +19,7 @@ type FormValues = {
     protein: string
     fat: string
     carbs: string
-}
+};
 
 async function optionalUpload(
     file: File | null,
@@ -121,17 +124,21 @@ export function ProductCreateFormPage() {
 
     return (
         <div className="diary-shell col-lg-4 col-md-8 col-sm-10 col-12 m-auto">
-            <div className="bg-brand text-invert p-2 rounded-bottom-4">
-                <Link to="/diary/products?tab=products" className="btn-tertiary bg-text-on-brand">
-                    ← Назад
-                </Link>
-                <h2 className="bg-text-on-brand mt-2 text-center">Новый продукт</h2>
-            </div>
+            <div className='d-flex gap-3
+                                justify-content-start align-items-center
+                                bg-brand text-invert 
+                                p-4 
+                                rounded-bottom-4'>
+                    <NavigateBackButton label="Назад" className="btn-tertiary-invert" />
 
-            <div className="container pb-5">
+                    <p className="page-title text-center p-2 bg-text-on-brand">Настройки</p>
+                </div>
+                
+            <div className="diary-content p-3" style={{ paddingBottom: '7.5rem' }}>
+                <div className='surface-card surface-card-column w-100'>
                 <form
                     onSubmit={handleSubmit(onSubmit)}
-                    className="form-card col-xl-4 col-lg-6 col-md-8 col-12 mx-auto d-flex flex-column gap-3"
+                    className="form-layout mx-auto"
                 >
                     {error && <p className="text-danger small mb-0">{error}</p>}
 
@@ -275,6 +282,7 @@ export function ProductCreateFormPage() {
                         {isSubmitting ? 'Создание…' : 'Создать продукт'}
                     </button>
                 </form>
+                </div>
             </div>
             <BottomNav />
         </div>

@@ -88,17 +88,22 @@ export function GoalAutoPage() {
 
     return (
         <div className="col-lg-4 col-md-8 col-sm-10 col-12 m-auto">
-            <div className="d-flex flex-column gap-4 justify-content-start align-items-start form-card bg-brand rounded-md-5 vh-100 overflow-y-auto">
+            <div className="d-flex flex-column gap-4 
+                            justify-content-start align-items-start 
+                            bg-brand p-2
+                            vh-100
+                            overflow-y-auto">
                 <div className="d-flex w-100 flex-column align-items-start flex-grow-0">
-                    <NavigateBackButton label="Назад" className="btn-tertiary" />
+                    <NavigateBackButton label="Назад" className="btn-tertiary-invert" />
                 </div>
-                <div className="form-card-body d-flex flex-column gap-4 bg-surface rounded-3">
+                
+                 <div className="surface-card surface-card-column w-100">
                     <div className="d-flex flex-column align-items-center text-center">
                         <h1 className="h3 mb-0">Введите данные</h1>
                     </div>
                     <form
                         onSubmit={onSubmit}
-                        className="d-flex gap-3 w-100 flex-column align-items-stretch"
+                        className="form-layout mx-auto"
                     >
                         {error && (
                             <p className="text-danger small mb-0" role="alert">

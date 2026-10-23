@@ -11,7 +11,9 @@ import {
 } from '@/api/specialist';
 import { getDiaryProfileId } from '@/api/onboarding';
 import { useAlert } from '@/components/ui/Alert';
+import { NavigateBackButton } from '@/components/ui/NavigateBackButton';
 import { getErrorMessage } from '@/lib/errors';
+
 
 function RelationCard(props: {
     r: UserRelationDto;
@@ -21,8 +23,8 @@ function RelationCard(props: {
     const { r, busyId, onEnd } = props;
 
     return (
-        <div className="card mb-2 shadow-sm border-0">
-            <div className="card-body py-2 px-3">
+        <div className="">
+            <div className="py-2 px-3">
                 <div className="fw-semibold">Специалист #{r.specialistId}</div>
                 <div className="small text-muted mb-2">
                     Тип: {r.relationType} · Статус: {r.relationStatusCode}
@@ -31,7 +33,7 @@ function RelationCard(props: {
                 {isActiveRelation(r) && (
                     <button
                         type="button"
-                        className="btn btn-outline-danger btn-sm"
+                        className="btn btn-danger"
                         disabled={busyId === r.id}
                         onClick={() => onEnd(r.id)}
                     >
@@ -46,6 +48,7 @@ function RelationCard(props: {
         </div>
     );
 }
+
 
 export function MySpecialistRelationsPage() {
     const { showAlert } = useAlert();
@@ -115,16 +118,21 @@ export function MySpecialistRelationsPage() {
 
     return (
         <div className="diary-shell col-lg-4 col-md-8 col-sm-10 col-12 m-auto">
-            <div className="bg-brand text-invert p-2 rounded-bottom-4">
-                <Link to="/diary/settings" className="btn-tertiary bg-text-on-brand text-decoration-none">
-                    ← Настройки
-                </Link>
-                <h2 className="page-title text-center p-2 bg-text-on-brand mb-0">Мои специалисты</h2>
+            <div className='d-flex gap-3
+                            justify-content-start align-items-center
+                            bg-brand text-invert 
+                            p-4 
+                            rounded-bottom-4'>
+                <NavigateBackButton label="Назад" className="btn-tertiary-invert" />
+
+                <p className="page-title text-center p-2 bg-text-on-brand">Связи</p>
             </div>
 
-            <div className="diary-content p-3 pb-5">
-                <div className="mb-3 d-flex justify-content-end">
-                    <Link to="/diary/specialists/search" className="btn btn-sm btn-primary">
+            <div className="diary-content p-3 
+                            d-flex flex-column gap-3" 
+                style={{ paddingBottom: '7.5rem' }}>
+                <div className="d-flex justify-content-end">
+                    <Link to="/diary/specialists/search" className="btn btn-primary">
                         Найти специалиста
                     </Link>
                 </div>
@@ -133,8 +141,7 @@ export function MySpecialistRelationsPage() {
                 {error && <p className="text-danger">{error}</p>}
 
                 {!loading && !error && (
-                    <div className="row g-3">
-                        <div className="col-12 col-md-6">
+                        <div className="surface-card surface-card-column w-100">
                             <h6 className="mb-2 text-secondary">Ожидают ({pending.length})</h6>
                             {pending.length === 0 && (
                                 <p className="text-muted small mb-0">Нет ожидающих заявок</p>
@@ -148,26 +155,27 @@ export function MySpecialistRelationsPage() {
                                 />
                             ))}
                         </div>
+                )}
+                {!loading && !error && (
 
-                        <div className="col-12 col-md-6">
-                            <h6 className="mb-2 text-secondary">Действующие ({active.length})</h6>
-                            {active.length === 0 && (
-                                <p className="text-muted small mb-0">Нет действующих связей</p>
-                            )}
-                            {active.map((r) => (
-                                <RelationCard
-                                    key={r.id}
-                                    r={r}
-                                    busyId={busyId}
-                                    onEnd={(id) => void onEnd(id)}
-                                />
-                            ))}
-                        </div>
+                    <div className="surface-card surface-card-column w-100">
+                        <h6 className="mb-2 text-secondary">Действующие ({active.length})</h6>
+                        {active.length === 0 && (
+                            <p className="text-muted small mb-0">Нет действующих связей</p>
+                        )}
+                        {active.map((r) => (
+                            <RelationCard
+                                key={r.id}
+                                r={r}
+                                busyId={busyId}
+                                onEnd={(id) => void onEnd(id)}
+                            />
+                        ))}
                     </div>
                 )}
 
                 {!loading && !error && other.length > 0 && (
-                    <div className="mt-3">
+                    <div className="surface-card surface-card-column w-100">
                         <h6 className="mb-2 text-secondary">Прочие ({other.length})</h6>
                         {other.map((r) => (
                             <div key={r.id} className="card mb-2 shadow-sm border-0">

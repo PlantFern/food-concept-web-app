@@ -31,7 +31,7 @@ export function TemplateBlock({
             </div>
             <button
                 type="button"
-                className={`btn btn-primary ${styles.templateApply}`}
+                className={`btn btn-primary`}
                 disabled={loading}
                 onClick={onApply}
             >

@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
-import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { IoChevronDown, IoTrashOutline } from 'react-icons/io5'
+import { NavigateBackButton } from '@/components/ui/NavigateBackButton';
 import { BottomNav } from '@/components/diary'
 import { http } from '@/api/http'
 import { uploadFile } from '@/api/files'
@@ -206,17 +207,21 @@ export function RecipeCreateFormPage() {
 
     return (
         <div className="diary-shell col-lg-4 col-md-8 col-sm-10 col-12 m-auto">
-            <div className="bg-brand text-invert p-2 rounded-bottom-4">
-                <Link to="/diary/products?tab=recipes" className="btn-tertiary bg-text-on-brand">
-                    ← Назад
-                </Link>
-                <h2 className="bg-text-on-brand mt-2 text-center">Новый рецепт</h2>
+            <div className='d-flex gap-3
+                            justify-content-start align-items-center
+                            bg-brand text-invert 
+                            p-4 
+                            rounded-bottom-4'>
+                <NavigateBackButton label="Назад" className="btn-tertiary-invert" />
+
+                <p className="page-title text-center p-2 bg-text-on-brand">Настройки</p>
             </div>
 
-            <div className="container pb-5">
+            <div className="diary-content p-3" style={{ paddingBottom: '7.5rem' }}>
+
                 <form
                     onSubmit={handleSubmit(onSubmit)}
-                    className="form-card col-xl-5 col-lg-7 col-md-9 col-12 mx-auto d-flex flex-column gap-3"
+                    className="surface-card surface-card-column w-100"
                 >
                     {error && <p className="text-danger small mb-0">{error}</p>}
 
@@ -276,7 +281,6 @@ export function RecipeCreateFormPage() {
                     <div className={styles.componentsBlock}>
                         <p className="label mb-2">Компоненты</p>
 
-                        {/* Product search dropdown with infinite scroll */}
                         <div className={styles.dropdown} ref={dropdownRef}>
                             <button
                                 type="button"

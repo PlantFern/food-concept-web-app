@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { NavigateBackButton } from '@/components/ui/NavigateBackButton';
 import { BottomNav } from '@/components/diary';
 import { useAlert } from '@/components/ui/Alert';
 import {
@@ -127,13 +127,16 @@ export function DiarySettingsPage() {
         <div className="diary-shell
                         col-lg-4 col-md-8 col-sm-10 col-12
                         m-auto">
-            <div className="diary-content" style={{ paddingBottom: '7.5rem' }}>
-                <div className='bg-brand text-invert p-2 rounded-bottom-4'>
-                    <Link to="/diary/settings" className="small text-decoration-none">
-                        ← Назад
-                    </Link>
-                    <h1 className="page-title mt-2">Настройки</h1>
+            <div className='d-flex gap-3
+                                justify-content-start align-items-center
+                                bg-brand text-invert 
+                                p-4 
+                                rounded-bottom-4'>
+                    <NavigateBackButton label="Назад" className="btn-tertiary-invert" />
+
+                    <p className="page-title text-center p-2 bg-text-on-brand">Настройки</p>
                 </div>
+            <div className="diary-content p-3" style={{ paddingBottom: '7.5rem' }}>
 
                 {loading && <p className="text-muted">Загрузка…</p>}
 
@@ -208,7 +211,6 @@ export function DiarySettingsPage() {
                         <div className="card border-0 shadow-sm mb-3">
                             <div className="card-body">
                                 <h2 className="h6 mb-3">Нутриенты</h2>
-                                <p className="text-muted small">Отметьте, что показывать в дневнике</p>
                                 {NUTRIENT_GROUPS.map((group) => (
                                     <details key={group.id} className="mb-2" open={group.id === 'macro'}>
                                         <summary className="fw-semibold" style={{ cursor: 'pointer' }}>
@@ -240,16 +242,15 @@ export function DiarySettingsPage() {
             </div>
 
             <div
-                className="position-fixed start-50 translate-middle-x w-100 px-3"
+                className="position-fixed start-50 translate-middle-x"
                 style={{
                     bottom: '4.5rem',
-                    maxWidth: '540px',
                     zIndex: 1020,
                 }}
             >
                 <button
                     type="button"
-                    className="btn btn-success w-100 shadow"
+                    className="btn btn-primary"
                     disabled={disabled || saving}
                     onClick={() => void onSave()}
                 >

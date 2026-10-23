@@ -12,6 +12,7 @@ import { GoalManualPage } from '@/pages/onboarding/diaryProfile/GoalManualPage'
 import { GoalAutoPage } from '@/pages/onboarding/diaryProfile/GoalAutoPage'
 import { DiaryHomePage } from '@/pages/diary/DiaryHomePage'
 import { ProductsPage } from '@/pages/diary/ProductsPage'
+import { ProductCreateFormPage } from '@/pages/diary/ProductCreateFormPage'
 import { ProductDetailPage } from '@/pages/diary/ProductDetailPage'
 import { RecipeDetailPage } from '@/pages/diary/RecipeDetailPage'
 import { RecipeCreateFormPage } from '@/pages/diary/RecipeCreateFormPage'
@@ -26,6 +27,7 @@ import { MealPhotoFormPage } from '@/pages/diary/MealPhotoFormPage'
 import { CommentFormPage } from '@/pages/diary/CommentFormPage'
 import { QuickProductFormPage } from '@/pages/diary/QuickProductFormPage'
 import { MySpecialistsPage } from '@/pages/diary/MySpecialistsPage'
+import { MySpecialistRelationsPage } from '@/pages/diary/MySpecialistRelationsPage'
 import { SpecialistSearchPage } from '@/pages/diary/SpecialistSearchPage'
 import { ClientsPage } from '@/pages/specialist/ClientsPage'
 import { ClientDiaryPage } from '@/pages/specialist/ClientDiaryPage'
@@ -58,6 +60,7 @@ function App() {
                             <Route path="/diary" element={<DiaryHomePage />} />
 
                             <Route path="/diary/products" element={<ProductsPage />} />
+                            <Route path="/diary/products/create" element={<ProductCreateFormPage />} />
                             <Route path="/diary/products/:productId" element={<ProductDetailPage />} />
                             <Route path="/diary/recipes/create" element={<RecipeCreateFormPage />} />
                             <Route path="/diary/recipes/:recipeId" element={<RecipeDetailPage />} />
@@ -67,7 +70,7 @@ function App() {
                             <Route path="/diary/settings/goals" element={<GoalsPage />} />
                             <Route path="/diary/settings/specialists" element={<MySpecialistsPage />} />
                             <Route path="/diary/specialists/search" element={<SpecialistSearchPage />} />
-                            <Route path="/diary/specialists/relations" element={<MySpecialistsPage />} />
+                            <Route path="/diary/specialists/relations" element={<MySpecialistRelationsPage />} />
 
                             <Route path="/diary/sleep-log/add" element={<SleepLogFormPage />} />
                             <Route path="/diary/sleep-log/:sleepLogId/edit" element={<SleepLogFormPage />} />

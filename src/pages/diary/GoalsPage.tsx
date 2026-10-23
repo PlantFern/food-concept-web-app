@@ -1,119 +1,146 @@
-import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
-import { BottomNav } from '@/components/diary'
-import { useAlert } from '@/components/ui/Alert'
+import { useEffect, useState } from 'react';
+
+import { NavigateBackButton } from '@/components/ui/NavigateBackButton';
+import { BottomNav } from '@/components/diary';
+import { useAlert } from '@/components/ui/Alert';
 import {
     GoalNutrientForm,
     emptyGoalForm,
     toNutrientGoals,
     type GoalNutrientFormValues,
-} from '@/components/goals'
+} from '@/components/goals';
 import {
     completeGoal,
     createGoal,
     fetchActiveGoal,
     type GoalDto,
     type GoalNutrientDto,
-} from '@/api/diaryProfile/goals'
-import { hasActiveSpecialistControl } from '@/api/specialist'
-import { getDiaryProfileId } from '@/api/onboarding'
-import { NUTRIENT_BY_ID, unitLabel } from '@/data/nutrients'
-import { getErrorMessage } from '@/lib/errors'
+} from '@/api/diaryProfile/goals';
+import { hasActiveSpecialistControl } from '@/api/specialist';
+import { getDiaryProfileId } from '@/api/onboarding';
+import { NUTRIENT_BY_ID, unitLabel } from '@/data/nutrients';
+import { getErrorMessage } from '@/lib/errors';
+
 
 function sortedNutrients(list: GoalNutrientDto[] | null | undefined): GoalNutrientDto[] {
-    return [...(list ?? [])].sort((a, b) => Number(a.nutrientId) - Number(b.nutrientId))
+    return [...(list ?? [])].sort((a, b) => Number(a.nutrientId) - Number(b.nutrientId));
 }
 
-export function GoalsPage() {
-    const { showAlert } = useAlert()
-    const [goal, setGoal] = useState<GoalDto | null>(null)
-    const [loading, setLoading] = useState(true)
-    const [saving, setSaving] = useState(false)
-    const [completing, setCompleting] = useState(false)
-    const [error, setError] = useState('')
-    const [lockedBySpecialist, setLockedBySpecialist] = useState(false)
-    const [form, setForm] = useState<GoalNutrientFormValues>(() => emptyGoalForm(true))
+export function GoalsPage() 
+{
+    const { showAlert } = useAlert();
+    const [goal, setGoal] = useState<GoalDto | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [saving, setSaving] = useState(false);
+    const [completing, setCompleting] = useState(false);
+    const [error, setError] = useState('');
+    const [lockedBySpecialist, setLockedBySpecialist] = useState(false);
+    const [form, setForm] = useState<GoalNutrientFormValues>(() => emptyGoalForm(true));
+
 
     async function reload() {
-        setLoading(true)
-        const profileId = getDiaryProfileId()
+        setLoading(true);
+        const profileId = getDiaryProfileId();
         const [active, locked] = await Promise.all([
             fetchActiveGoal(),
             profileId != null ? hasActiveSpecialistControl(profileId) : Promise.resolve(false),
-        ])
-        setGoal(active)
-        setLockedBySpecialist(locked)
-        setForm(emptyGoalForm(true))
-        setLoading(false)
+        ]);
+        setGoal(active);
+        setLockedBySpecialist(locked);
+        setForm(emptyGoalForm(true));
+        setLoading(false);
     }
 
     useEffect(() => {
-        void reload()
-    }, [])
+        void reload();
+    }, []);
 
     async function onSave() {
-        if (lockedBySpecialist) return
-        setError('')
-        const nutrients = toNutrientGoals(form.amounts)
+
+        if (lockedBySpecialist)
+             return;
+        setError('');
+
+        const nutrients = toNutrientGoals(form.amounts);
+
         if (nutrients.length === 0) {
-            setError('Укажите хотя бы один нутриент')
-            return
+            setError('Укажите хотя бы один нутриент');
+            return;
         }
         if (!form.startDate) {
-            setError('Укажите дату начала')
-            return
+            setError('Укажите дату начала');
+            return;
         }
 
-        setSaving(true)
+        setSaving(true);
+
         try {
+
             const payload = {
+
                 plannedWeight: form.plannedWeight ? Number(form.plannedWeight) : null,
                 startDate: form.startDate,
                 plannedEndDate: form.plannedEndDate || null,
                 nutrientGoals: nutrients,
-            }
+            };
+
             if (goal?.id) {
-                await completeGoal(goal.id).catch(() => undefined)
+                await completeGoal(goal.id).catch(() => undefined);
             }
-            const saved = await createGoal(payload)
-            setGoal(saved)
-            setForm(emptyGoalForm(true))
-            showAlert('Новая цель создана', 'success')
-            await reload()
+
+            const saved = await createGoal(payload);
+
+            setGoal(saved);
+            setForm(emptyGoalForm(true));
+            showAlert('Новая цель создана', 'success');
+
+            await reload();
         } catch (err: unknown) {
-            setError(getErrorMessage(err, 'Не удалось сохранить цель'))
+            setError(getErrorMessage(err, 'Не удалось сохранить цель'));
         } finally {
-            setSaving(false)
+            setSaving(false);
         }
     }
 
     async function onComplete() {
-        if (!goal?.id || lockedBySpecialist) return
-        setCompleting(true)
-        setError('')
+
+        if (!goal?.id || lockedBySpecialist) 
+            return;
+
+        setCompleting(true);
+        setError('');
+
         try {
-            await completeGoal(goal.id)
-            setGoal(null)
-            setForm(emptyGoalForm(true))
-            showAlert('Цель завершена', 'success')
+            await completeGoal(goal.id);
+
+            setGoal(null);
+            setForm(emptyGoalForm(true));
+            showAlert('Цель завершена', 'success');
         } catch (err: unknown) {
-            setError(getErrorMessage(err, 'Не удалось завершить цель'))
+            setError(getErrorMessage(err, 'Не удалось завершить цель'));
         } finally {
-            setCompleting(false)
+            setCompleting(false);
         }
     }
 
-    const disabled = loading || lockedBySpecialist
+    const disabled = loading || lockedBySpecialist;
+
 
     return (
         <div className="diary-shell col-lg-4 col-md-8 col-sm-10 col-12 m-auto">
-            <div className="diary-content p-3" style={{ paddingBottom: '7.5rem' }}>
-                <Link to="/diary/settings" className="small text-decoration-none">
-                    ← Назад
-                </Link>
-                <h1 className="page-title mt-2">Цели</h1>
+            <div className='d-flex gap-3
+                                justify-content-start align-items-center
+                                bg-brand text-invert 
+                                p-4 
+                                rounded-bottom-4'>
+                <NavigateBackButton label="Назад" className="btn-tertiary-invert" />
 
-                {loading && <p className="text-muted">Загрузка…</p>}
+                <p className="page-title text-center p-2 bg-text-on-brand">Цели</p>
+            </div>
+
+
+            <div className='diary-content p-3'>
+                {loading && <p className="no-content-placeholder">Загрузка…</p>}
 
                 {!loading && lockedBySpecialist && (
                     <div className="alert alert-warning small" role="status">
@@ -177,16 +204,15 @@ export function GoalsPage() {
             </div>
 
             <div
-                className="position-fixed start-50 translate-middle-x w-100 px-3"
+                className="position-fixed start-50 translate-middle-x"
                 style={{
                     bottom: '4.5rem',
-                    maxWidth: '540px',
                     zIndex: 1020,
                 }}
             >
                 <button
                     type="button"
-                    className="btn btn-success w-100 shadow"
+                    className="btn btn-primary"
                     disabled={disabled || saving}
                     onClick={() => void onSave()}
                 >

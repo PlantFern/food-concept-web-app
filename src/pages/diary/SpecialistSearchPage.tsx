@@ -1,126 +1,138 @@
-import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
-import { BottomNav } from '@/components/diary'
+import { useEffect, useState } from 'react';
+import { BottomNav } from '@/components/diary';
 import {
     hasActiveSpecialistControl,
     initiateSpecialistRelation,
     searchSpecialists,
     type SpecialistSearchItemDto,
-} from '@/api/specialist'
-import { getDiaryProfileId } from '@/api/onboarding'
-import { getMyUserProfile } from '@/api/profiles'
-import { useAlert } from '@/components/ui/Alert'
-import { getErrorMessage } from '@/lib/errors'
+} from '@/api/specialist';
+import { getDiaryProfileId } from '@/api/onboarding';
+import { getMyUserProfile } from '@/api/profiles';
+import { useAlert } from '@/components/ui/Alert';
+import { NavigateBackButton } from '@/components/ui/NavigateBackButton';
+import { getErrorMessage } from '@/lib/errors';
+
 
 export function SpecialistSearchPage() {
-    const { showAlert } = useAlert()
 
-    const [query, setQuery] = useState('')
-    const [results, setResults] = useState<SpecialistSearchItemDto[]>([])
-    const [loading, setLoading] = useState(false)
-    const [busyId, setBusyId] = useState<number | null>(null)
-    const [searched, setSearched] = useState(false)
-    const [relationType, setRelationType] = useState<'SPECIALIST' | 'OBSERVER'>('SPECIALIST')
-    const [hasSpecialistControl, setHasSpecialistControl] = useState(false)
+    const { showAlert } = useAlert();
+
+    const [query, setQuery] = useState('');
+    const [results, setResults] = useState<SpecialistSearchItemDto[]>([]);
+    const [loading, setLoading] = useState(false);
+    const [busyId, setBusyId] = useState<number | null>(null);
+    const [searched, setSearched] = useState(false);
+    const [relationType, setRelationType] = useState<'SPECIALIST' | 'OBSERVER'>('SPECIALIST');
+    const [hasSpecialistControl, setHasSpecialistControl] = useState(false);
+
 
     useEffect(() => {
-        const profileId = getDiaryProfileId()
-        if (profileId == null) return
+        const profileId = getDiaryProfileId();
+
+        if (profileId == null) 
+            return;
+
         void hasActiveSpecialistControl(profileId).then((active) => {
-            setHasSpecialistControl(active)
-            if (active) setRelationType('OBSERVER')
-        })
-    }, [])
+            setHasSpecialistControl(active);
+            if (active) setRelationType('OBSERVER');
+        });
+    }, []);
 
     async function onSearch(e?: React.FormEvent) {
-        e?.preventDefault()
-        setLoading(true)
-        setSearched(true)
+
+        e?.preventDefault();
+        setLoading(true);
+        setSearched(true);
 
         try {
-            const me = await getMyUserProfile()
-            const list = await searchSpecialists(query.trim())
+            const me = await getMyUserProfile();
+            const list = await searchSpecialists(query.trim());
 
             const filtered = list.filter((s) => {
-                if (me == null) return true
-                return s.userId !== me.id
+                if (me == null) 
+                    return true;
+                return s.userId !== me.id;
             })
 
-            setResults(filtered)
+            setResults(filtered);
         } catch (err: unknown) {
-            showAlert(getErrorMessage(err, 'Не удалось выполнить поиск'), 'danger')
-            setResults([])
+            showAlert(getErrorMessage(err, 'Не удалось выполнить поиск'), 'danger');
+            setResults([]);
         } finally {
-            setLoading(false)
+            setLoading(false);
         }
     }
 
     async function onInitiate(specialistId: number) {
-        const profileId = getDiaryProfileId()
+
+        const profileId = getDiaryProfileId();
 
         if (profileId == null) {
-            showAlert('Нет профиля дневника', 'warning')
-            return
+            showAlert('Нет профиля дневника', 'warning');
+            return;
         }
 
         if (relationType === 'SPECIALIST' && hasSpecialistControl) {
             showAlert(
                 'Уже есть активная связь типа «Специалист». Завершите её, прежде чем подключать другого.',
                 'warning',
-            )
-            return
+            );
+            return;
         }
 
-        setBusyId(specialistId)
+        setBusyId(specialistId);
 
         try {
-            await initiateSpecialistRelation(profileId, specialistId, relationType)
+            await initiateSpecialistRelation(profileId, specialistId, relationType);
             showAlert(
                 `Заявка отправлена. Тип связи: ${
                     relationType === 'SPECIALIST' ? 'Специалист' : 'Наблюдатель'
                 }`,
                 'success',
-            )
+            );
         } catch (err: unknown) {
-            showAlert(getErrorMessage(err, 'Не удалось отправить заявку'), 'danger')
+            showAlert(getErrorMessage(err, 'Не удалось отправить заявку'), 'danger');
         } finally {
-            setBusyId(null)
+            setBusyId(null);
         }
     }
 
+
     return (
         <div className="diary-shell col-lg-4 col-md-8 col-sm-10 col-12 m-auto">
-            <div className="bg-brand text-invert p-2 rounded-bottom-4">
-                <Link to="/diary/settings" className="btn-tertiary bg-text-on-brand text-decoration-none">
-                    ← Назад
-                </Link>
-                <h2 className="page-title text-center p-2 bg-text-on-brand mb-0">Поиск специалиста</h2>
-            </div>
+            <div className='d-flex gap-3 flex-column
+                                justify-content-start align-items-start
+                                bg-brand text-invert 
+                                p-4 
+                                rounded-bottom-4'>
+                <div className='d-flex gap-3
+                                justify-content-start align-items-center'>
+                    <NavigateBackButton label="Назад" className="btn-tertiary-invert" />
 
-            <div className="diary-content p-3 pb-5">
-                <form onSubmit={(e) => void onSearch(e)} className="mb-3">
-                    <label htmlFor="q" className="form-label">
-                        Email или логин
-                    </label>
+                    <p className="page-title text-center p-2 bg-text-on-brand">Поис специалиста</p>
+                </div>
+
+                <form onSubmit={(e) => void onSearch(e)} className="w-100 mb-3">
                     <div className="input-group">
                         <input
                             id="q"
                             className="form-control"
                             value={query}
                             onChange={(e) => setQuery(e.target.value)}
-                            placeholder="например name@mail.com"
+                            placeholder="email специалиста (name@mail.com)"
                         />
                         <button type="submit" className="btn btn-primary" disabled={loading}>
                             {loading ? '…' : 'Найти'}
                         </button>
                     </div>
                 </form>
+            </div>
+
+            <div className="diary-content p-3 pb-5">
 
                 {hasSpecialistControl && (
                     <div className="alert alert-warning py-2 small" role="status">
-                        У вас уже есть активная связь типа «Специалист». Можно отправить заявку только
-                        как наблюдатель. Чтобы подключить другого специалиста — сначала завершите
-                        текущую связь в «Мои специалисты».
+                        У вас уже есть активная связь типа «Специалист».
                     </div>
                 )}
 

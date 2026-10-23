@@ -99,40 +99,18 @@ export function DiaryProfileSetupPage() {
     }
 
     return (
-        <div className="col-lg-4 col-md-8 col-sm-10 col-12 m-auto">
-            <div
-                className="d-flex flex-column gap-4
-                            justify-content-start align-items-start
-                            align-content-start
-                            rounded-md-5
-                            bg-brand
-                            form-card
-                            vh-100 overflow-y-auto"
-            >
-                <div
-                    className="d-flex w-100
-                                    flex-column gap-2
-                                    align-items-start justify-content-center
-                                    align-content-stretch
-                                    flex-grow-0"
-                >
-                    <div className="text-start">
-                        <NavigateBackButton label="Назад" className="btn-tertiary" />
-                    </div>
+<div className="col-lg-4 col-md-8 col-sm-10 col-12 m-auto">
+            <div className="d-flex flex-column gap-4 
+                            justify-content-start align-items-start 
+                            bg-brand p-2
+                            vh-100
+                            overflow-y-auto">
+                <div className="d-flex w-100 flex-column align-items-start flex-grow-0">
+                    <NavigateBackButton label="Назад" className="btn-tertiary-invert" />
                 </div>
-                <div
-                    className="form-card-body
-                                    d-flex flex-column gap-4
-                                    bg-surface
-                                    rounded-3"
-                >
-                    <div
-                        className="d-flex
-                                        flex-column
-                                        align-items-center
-                                        justify-content-center
-                                        text-center"
-                    >
+                
+                 <div className="surface-card surface-card-column w-100">
+                    <div className="d-flex flex-column align-items-center text-center">
                         <h3>Введите данные</h3>
                     </div>
 
@@ -143,9 +121,7 @@ export function DiaryProfileSetupPage() {
                     )}
                     <form
                         onSubmit={onSubmit}
-                        className="d-flex gap-3 w-100 flex-column
-                                        justify-content-between align-items-stretch
-                                        align-content-stretch"
+                        className="form-layout mx-auto"
                     >
                         <div>
                             <label className="form-label label" htmlFor="ob-height">

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
-import { Link, useNavigate, useSearchParams } from 'react-router-dom'
-import { HiChevronLeft } from 'react-icons/hi2'
+import { useNavigate, useSearchParams } from 'react-router-dom'
+import { NavigateBackButton } from '@/components/ui/NavigateBackButton';
 import { BottomNav } from '@/components/diary'
 import { uploadMealPhoto } from '@/api/food'
 import { useAlert } from '@/components/ui/Alert'
@@ -46,56 +46,57 @@ export function MealPhotoFormPage() {
 
     return (
         <div className="diary-shell col-lg-4 col-md-8 col-sm-10 col-12 m-auto">
-            <div className="bg-brand text-invert p-2 rounded-bottom-4">
-                <Link
-                    to="/diary"
-                    className="btn-tertiary bg-text-on-brand d-inline-flex align-items-center gap-1"
-                >
-                    <HiChevronLeft size={18} />
-                    Назад
-                </Link>
-                <h2 className="bg-text-on-brand mt-2 text-center">Фото приёма</h2>
+            <div className='d-flex gap-3
+                            justify-content-start align-items-center
+                            bg-brand text-invert 
+                            p-4 
+                            rounded-bottom-4'>
+                <NavigateBackButton label="Назад" className="btn-tertiary-invert" />
+
+                <p className="page-title text-center p-2 bg-text-on-brand">Комментарий</p>
             </div>
 
-            <div className="container py-3">
-                <form
-                    onSubmit={handleSubmit(onSubmit)}
-                    className="form-card mx-auto d-flex flex-column gap-3"
-                >
-                    {error && <p className="text-danger small mb-0">{error}</p>}
-
-                    {(!Number.isFinite(mealId) || mealId <= 0) && (
-                        <p className="text-muted small">
-                            Приём ещё пустой. Добавьте хотя бы один продукт, затем снова откройте
-                            «Добавить фото».
-                        </p>
-                    )}
-
-                    <label className="label">
-                        Файл
-                        <input
-                            type="file"
-                            accept="image/*"
-                            className="form-control mt-1"
-                            {...register('fileList', {
-                                required: 'Выберите изображение',
-                                validate: (files) =>
-                                    (files && files.length > 0) || 'Выберите изображение',
-                            })}
-                        />
-                    </label>
-                    {errors.fileList && (
-                        <span className="input-error-text">{errors.fileList.message}</span>
-                    )}
-
-                    <button
-                        type="submit"
-                        className="btn btn-primary w-100"
-                        disabled={isSubmitting || mealId <= 0}
+            <div className="diary-content p-3" style={{ paddingBottom: '7.5rem' }}>
+                <div className='surface-card surface-card-column w-100'>
+                    <form
+                        onSubmit={handleSubmit(onSubmit)}
+                        className="form-layout mx-auto"
                     >
-                        {isSubmitting ? 'Загрузка…' : 'Загрузить'}
-                    </button>
-                </form>
+                        {error && <p className="text-danger small mb-0">{error}</p>}
+
+                        {(!Number.isFinite(mealId) || mealId <= 0) && (
+                            <p className="text-muted small">
+                                Приём ещё пустой. Добавьте хотя бы один продукт, затем снова откройте
+                                «Добавить фото».
+                            </p>
+                        )}
+
+                        <label className="label">
+                            Файл
+                            <input
+                                type="file"
+                                accept="image/*"
+                                className="form-control mt-1"
+                                {...register('fileList', {
+                                    required: 'Выберите изображение',
+                                    validate: (files) =>
+                                        (files && files.length > 0) || 'Выберите изображение',
+                                })}
+                            />
+                        </label>
+                        {errors.fileList && (
+                            <span className="input-error-text">{errors.fileList.message}</span>
+                        )}
+
+                        <button
+                            type="submit"
+                            className="btn btn-primary w-100"
+                            disabled={isSubmitting || mealId <= 0}
+                        >
+                            {isSubmitting ? 'Загрузка…' : 'Загрузить'}
+                        </button>
+                    </form>
+                </div>
             </div>
             <BottomNav />
         </div>
