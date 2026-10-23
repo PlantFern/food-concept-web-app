@@ -61,6 +61,15 @@ export function NutrientBar({ item }: NutrientBarProps) {
                         backgroundColor: item.color,
                     }}
                 />
+                {value > goal && goal > 0 && (
+                    <div
+                        className={styles.nutrientBarOverflow}
+                        style={{
+                            width: `${((value - goal) / value) * 100}%`,
+                            backgroundColor: item.color,
+                        }}
+                    />
+                )}
             </div>
         </div>
     );
