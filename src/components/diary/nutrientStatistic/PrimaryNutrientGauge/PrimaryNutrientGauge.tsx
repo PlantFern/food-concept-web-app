@@ -24,15 +24,22 @@ export function PrimaryNutrientGauge({
     nutrientCode
 }: PrimaryNutrientGaugeProps) {
 
-    const safeGoal = goal > 0 ? goal : 1;
-    const filled = Math.min(Math.max(current, 0), safeGoal);
-    const rest = Math.max(safeGoal - filled, 0);
+    const fact = Math.max(current, 0);
+    const target = Math.max(goal, 0)
+
+    const withinGoal = Math.min(fact, target);
+    const overGoal = Math.max(fact - target, 0);
+    const rest = Math.max(target - withinGoal, 0);
 
     const data = {
         datasets: [
             {
-                data: [filled, rest],
-                backgroundColor: ['#f6c2ea', 'rgba(255,255,255,0.28)'],
+                data: [withinGoal, rest, overGoal],
+                backgroundColor: [
+                    '#f6c2ea',
+                    'rgba(255,255,255,0.28)',
+                    '#dd8eab',
+                ],
                 borderWidth: 0,
                 circumference: 180,
                 rotation: 270,
