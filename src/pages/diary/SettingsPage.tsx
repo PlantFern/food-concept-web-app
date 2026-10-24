@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import {
     HiOutlinePlus,
     HiOutlineClipboardDocumentList,
@@ -10,6 +10,7 @@ import {
     HiOutlineLink,
 } from 'react-icons/hi2';
 import { BottomNav } from '@/components/diary';
+import { logoutLocal } from '@/api/auth'
 import {
     checkDiaryProfileExists,
     checkSpecialistExists,
@@ -21,6 +22,7 @@ import styles from './SettingsPage.module.css';
 
 export function SettingsPage() {
 
+    const navigate = useNavigate()
     const [user, setUser] = useState<UserProfileDto | null>(null);
     const [hasDiary, setHasDiary] = useState(false);
     const [hasSpecialist, setHasSpecialist] = useState(false);
@@ -54,6 +56,12 @@ export function SettingsPage() {
     }, [])
 
 
+    function onLogout() {
+        logoutLocal();
+        navigate('/login', { replace: true });
+    }
+
+
     return (
         <div className="diary-shell
                         col-lg-4 col-md-8 col-sm-10 col-12
@@ -66,7 +74,7 @@ export function SettingsPage() {
                                 justify-content-center justify-item-stretch
                                 item-align-center
                                 w-100">
-                    <h2 className={styles.title}>Profile</h2>
+                    <h2 className={styles.title}>Профиль дневника</h2>
 
                     <section className="card
                                         d-flex gap-3 flex-row
@@ -167,11 +175,11 @@ export function SettingsPage() {
 
                 <section>
                     <div className={styles.group}>
-                        <Link to="/logout" className={`btn btn-start btn-tertiary btn-icon-start
+                        <button onClick={onLogout} className={`btn btn-start btn-tertiary btn-icon-start
                                                                             ${styles["group-btn"]}`}>
                             <span><HiOutlineArrowRightOnRectangle size="20" /></span>
                             <span>Выход</span>
-                        </Link>
+                        </button>
                     </div>
                 </section>
             </div>

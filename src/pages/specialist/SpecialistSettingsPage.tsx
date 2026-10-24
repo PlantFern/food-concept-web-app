@@ -1,11 +1,10 @@
-import { useEffect, useState, type ReactNode } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import {
     HiOutlinePlus,
     HiOutlineArrowRightOnRectangle,
     HiOutlineClipboardDocumentList,
     HiOutlineUserGroup,
-    HiChevronRight,
 } from 'react-icons/hi2'
 import { SpecialistBottomNav } from '@/components/specialist/SpecialistBottomNav'
 import { logoutLocal } from '@/api/auth'
@@ -17,40 +16,9 @@ import {
 } from '@/api/profiles'
 import styles from '@/pages/diary/SettingsPage.module.css'
 
-type RowProps = {
-    icon: ReactNode
-    label: string
-    value?: string
-    to?: string
-    onClick?: () => void
-}
-
-function SettingsRow({ icon, label, value, to, onClick }: RowProps) {
-    const content = (
-        <>
-            <span className={styles.rowIcon}>{icon}</span>
-            <span className={styles.rowLabel}>{label}</span>
-            {value && <span className={styles.rowValue}>{value}</span>}
-            <span className={styles.rowChevron}>
-                <HiChevronRight size={16} />
-            </span>
-        </>
-    )
-    if (to) {
-        return (
-            <Link to={to} className={styles.row}>
-                {content}
-            </Link>
-        )
-    }
-    return (
-        <button type="button" className={styles.row} onClick={onClick}>
-            {content}
-        </button>
-    )
-}
 
 export function SpecialistSettingsPage() {
+
     const navigate = useNavigate()
     const [user, setUser] = useState<UserProfileDto | null>(null)
     const [hasDiary, setHasDiary] = useState(false)
@@ -77,60 +45,93 @@ export function SpecialistSettingsPage() {
     }, [])
 
     function onLogout() {
-        logoutLocal()
-        navigate('/login', { replace: true })
+        logoutLocal();
+        navigate('/login', { replace: true });
     }
 
+
     return (
-        <div className="diary-shell col-lg-4 col-md-8 col-sm-10 col-12 m-auto">
-            <div className={`diary-content ${styles.page}`}>
-                <div className="bg-brand text-invert p-2 rounded-bottom-4">
-                    <h2 className="page-title text-center p-2 bg-text-on-brand">Профиль</h2>
-                </div>
+        <div className="diary-shell
+                        col-lg-4 col-md-8 col-sm-10 col-12
+                        m-auto">
+            <header className="bg-brand 
+                                p-4 pt-2 mb-4
+                                rounded-bottom-5">
+                <div className="stats-header 
+                                d-flex g-2 flex-column
+                                justify-content-center justify-item-stretch
+                                item-align-center
+                                w-100">
+                    <h2 className={styles.title}>Профиль специалиста</h2>
 
-                <section className={styles.card}>
-                    <div className={styles.avatar}>
-                        {(user?.email ?? '?').slice(0, 1).toUpperCase()}
-                    </div>
-                    <div>
-                        <div className={styles.name}>
-                            {user?.email || (loading ? '…' : 'Пользователь')}
+                    <section className="card
+                                        d-flex gap-3 flex-row
+                                        justify-content-start justify-items-center
+                                        align-item-center
+                                        rounded-3">
+                        <div className={styles.avatar}>
+                            {(user?.email ?? '?').slice(0, 1).toUpperCase()}
                         </div>
-                        <div className={styles.email}>{user?.email ?? ''}</div>
-                    </div>
-                </section>
+                        <div>
+                            <div className={styles.name}>
+                                {loading ? '…' : (user?.email ?? 'User')}
+                            </div>
+                            <div className={styles.email}>
+                                {hasDiary && hasSpecialist
+                                    ? 'Дневник · Специалист'
+                                    : hasDiary
+                                    ? 'Дневник'
+                                    : hasSpecialist
+                                        ? 'Специалист'
+                                        : 'Профиль'}
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </header>
+            <div className='diary-content
+                            d-flex gap-3 flex-column
+                            justify-content-start justify-itens-stretch
+                            aling-items-stretch'>
 
-                <div className={styles.rolePills}>
+                <div className='d-flex gap-2 flex-column
+                                justify-content-center justify-items-center
+                                aling-items-center w-100 mx-auto'>
                     {hasDiary ? (
-                        <Link to="/diary" className={styles.pill}>
-                            <HiOutlineClipboardDocumentList /> Дневник питания
+                        <Link to="/diary" 
+                        className={`btn btn-primary rounded-pill btn-icon-start fit-content mx-auto`}>
+                            <span><HiOutlineClipboardDocumentList size="20"/> </span>
+                            <span>Дневник питания</span>
                         </Link>
                     ) : (
-                        <Link to="/onboarding/role" className={`${styles.pill} ${styles.pillMuted}`}>
-                            <HiOutlinePlus /> Дневник питания
+                        <Link to="/onboarding/scenario" 
+                        className={`btn btn-secondary rounded-pill btn-icon-start fit-content mx-auto`}>
+                            <span><HiOutlinePlus size="20"/> </span>
+                            <span>Дневник питания</span>
                         </Link>
                     )}
                     {hasSpecialist ? (
-                        <Link
-                            to="/specialist/clients"
-                            className={`${styles.pill} ${styles.pillActive}`}
-                        >
-                            <HiOutlineUserGroup /> Специалист
+                        <Link to="/specialist/clients" 
+                                className={`btn btn-primary rounded-pill btn-icon-start fit-content mx-auto`}>
+                            <span><HiOutlineUserGroup size="20"/> </span>
+                            <span>Специалист</span>
                         </Link>
                     ) : (
-                        <Link to="/onboarding/role" className={`${styles.pill} ${styles.pillMuted}`}>
-                            <HiOutlinePlus /> Специалист
+                        <Link to="/onboarding/role" 
+                                className={`btn btn-secondary rounded-pill btn-icon-start fit-content mx-auto`}>
+                            <span><HiOutlinePlus size="20"/> </span>
+                            <span>Специалист</span>
                         </Link>
                     )}
                 </div>
 
-                <section className={styles.section}>
+                <section>
                     <div className={styles.group}>
-                        <SettingsRow
-                            icon={<HiOutlineArrowRightOnRectangle />}
-                            label="Выйти"
-                            onClick={onLogout}
-                        />
+                        <button onClick={onLogout}  className={`btn btn-start btn-tertiary btn-icon-start
+                                                                            ${styles["group-btn"]}`}>
+                            <span><HiOutlineArrowRightOnRectangle size="20" /></span>
+                            <span>Выход</span>
+                        </button>
                     </div>
                 </section>
             </div>

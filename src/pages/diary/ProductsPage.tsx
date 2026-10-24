@@ -8,6 +8,7 @@ import {
     type ProductListItem,
     type RecipeListItem,
 } from '@/api/food';
+import { NavigateBackButton } from '@/components/ui/NavigateBackButton';
 import {
     fetchTemplates,
     fetchRecentWeekFoods,
@@ -196,14 +197,7 @@ export function ProductsPage() {
                 </h2>
 
                 {isTemplatePick && (
-                    <div className="mb-2 text-center">
-                        <Link
-                            to={`/diary/templates/${templateId}/edit`}
-                            className="btn-tertiary-inverted"
-                        >
-                            ← Назад к шаблону
-                        </Link>
-                    </div>
+                    <NavigateBackButton label={'Продукты'} className="btn-tertiary-invert" />
                 )}
 
                 {!isTemplatePick && (

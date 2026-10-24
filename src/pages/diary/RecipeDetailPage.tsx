@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
 import { BottomNav } from '@/components/diary'
 import { DeferredImage } from '@/components/ui/DeferredImage'
+import { NavigateBackButton } from '@/components/ui/NavigateBackButton';
 import {
     fetchRecipeDetail,
     formatComponentAmount,
@@ -100,12 +101,34 @@ export function RecipeDetailPage() {
 
     return (
         <div className="diary-shell col-lg-4 col-md-8 col-sm-10 col-12 m-auto">
+            <div className="bg-brand text-invert 
+                                        p-4 pt-2 mb-2 
+                                        rounded-bottom-4">
+                <NavigateBackButton label={'Рецепт'} className="btn-tertiary-invert" />
+                
+                {!loading && recipe && (
+                    <div className={styles.hero}>
+                        <DeferredImage
+                            src={image}
+                            alt={recipe.recipeName}
+                            className={styles.heroImage}
+                        />
+                        <div>
+                            <h5 className={styles.title}>{recipe.recipeName}</h5>
+                            {recipe.recipeDescription && (
+                                <div className={styles.meta}>{recipe.recipeDescription}</div>
+                            )}
+                            {recipe.totalWeightGrams != null && (
+                                <div className={styles.meta}>
+                                    Вес: {recipe.totalWeightGrams} г
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                )}
+            </div>
+
             <div className={`diary-content ${styles.page}`}>
-                <div className="bg-brand text-invert p-2 rounded-bottom-4">
-                    <Link to="/diary/products?tab=recipes" className={styles.back}>
-                        ← Рецепты
-                    </Link>
-                </div>
 
                 {loading && <p className="text-muted mt-3">Загрузка…</p>}
                 {!loading && !recipe && (
@@ -114,26 +137,6 @@ export function RecipeDetailPage() {
 
                 {!loading && recipe && (
                     <>
-                        <div className={styles.hero}>
-                            <DeferredImage
-                                src={image}
-                                alt={recipe.recipeName}
-                                className={styles.heroImage}
-                            />
-                            <div>
-                                <h1 className={styles.title}>{recipe.recipeName}</h1>
-                                {recipe.recipeDescription && (
-                                    <div className={styles.meta}>{recipe.recipeDescription}</div>
-                                )}
-                                {recipe.totalWeightGrams != null && (
-                                    <div className={styles.meta}>
-                                        Вес: {recipe.totalWeightGrams} г
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-
-
                         <section className={mealStyles.mealSection}>
                             <div className={mealStyles.mealSectionHead}><strong>Записать в приём пищи</strong></div>
                             <form className="p-3" onSubmit={(e) => void onAddToMeal(e)}>

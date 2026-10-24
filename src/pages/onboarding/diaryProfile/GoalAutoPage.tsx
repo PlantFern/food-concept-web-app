@@ -30,7 +30,6 @@ export function GoalAutoPage() {
     const [weight, setWeight] = useState('')
     const [plannedWeight, setPlannedWeight] = useState('')
     const [activityLevel, setActivityLevel] = useState<ActivityLevel>('LIGHT')
-    const [goalType, setGoalType] = useState<GoalType>('MAINTAIN')
     const [error, setError] = useState<string | null>(null)
     const [loading, setLoading] = useState(false)
 
@@ -76,7 +75,6 @@ export function GoalAutoPage() {
                 weight: w,
                 plannedWeight: pw,
                 activityLevel,
-                goalType,
             })
             navigate('/diary', { replace: true })
         } catch (err: unknown) {
@@ -97,7 +95,7 @@ export function GoalAutoPage() {
                     <NavigateBackButton label="Назад" className="btn-tertiary-invert" />
                 </div>
                 
-                 <div className="surface-card surface-card-column w-100">
+                <div className="surface-card surface-card-column w-100">
                     <div className="d-flex flex-column align-items-center text-center">
                         <h1 className="h3 mb-0">Введите данные</h1>
                     </div>
@@ -159,23 +157,7 @@ export function GoalAutoPage() {
                                 ))}
                             </select>
                         </div>
-                        <div>
-                            <label className="form-label label" htmlFor="auto-goal-type">
-                                Задача
-                            </label>
-                            <select
-                                id="auto-goal-type"
-                                className="form-select input"
-                                value={goalType}
-                                onChange={(e) => setGoalType(e.target.value as GoalType)}
-                            >
-                                {GOAL_TYPE_OPTIONS.map((o) => (
-                                    <option key={o.value} value={o.value}>
-                                        {o.label}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
+
                         <button
                             type="submit"
                             className="btn btn-primary w-100 text-center mt-4"
