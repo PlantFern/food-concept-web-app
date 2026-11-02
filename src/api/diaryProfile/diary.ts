@@ -22,6 +22,7 @@ export type MealFoodRecordItemDto = {
     gramWeight: number | null
     servingUnitCode: string | null
     nutrient: number | null
+    photoPath?: string | null
 }
 
 export type MealSectionDto = {
@@ -31,6 +32,8 @@ export type MealSectionDto = {
     generatedFromTemplateId: number | null
     records: MealFoodRecordItemDto[]
     totalPrimaryNutrient: number | null
+    /** Photo of the whole meal (not product thumb) */
+    photoPath?: string | null
 }
 
 export type MealTemplateListItemDto = {
@@ -121,6 +124,7 @@ export function formatFoodAmount(item: MealFoodRecordItemDto): string {
     return parts.length ? parts.join(' × ') : '—'
 }
 
+/** UI labels for meal_types.code — always Russian on the diary screen */
 export function mealTypeLabel(code: string | null | undefined): string {
     if (!code) return 'Приём'
     const map: Record<string, string> = {
@@ -129,6 +133,11 @@ export function mealTypeLabel(code: string | null | undefined): string {
         DINNER: 'Ужин',
         SNACK: 'Перекус',
         BRUNCH: 'Бранч',
+        MORNING_SNACK: 'Утренний перекус',
+        AFTERNOON_SNACK: 'Дневной перекус',
+        LATE_SNACK: 'Поздний перекус',
+        OTHER: 'Другое',
+        OTHERS: 'Другое',
     }
     return map[code.toUpperCase()] ?? code
 }

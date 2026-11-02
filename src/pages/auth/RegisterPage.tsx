@@ -1,64 +1,71 @@
-import { useState } from 'react'
-import { useForm } from 'react-hook-form'
-import { Link, useNavigate } from 'react-router-dom'
-import { registerRequest } from '@/api/auth'
-import { getErrorMessage } from '@/lib/errors'
-import { NavigateBackButton } from '@/components/ui/NavigateBackButton'
+import { type SyntheticEvent, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { registerRequest } from '@/api/auth';
+import { getErrorMessage } from '@/lib/errors';
+import { NavigateBackButton } from '@/components/ui/NavigateBackButton';
 
-type RegisterFormValues = {
-    email: string
-    password: string
-    password2: string
-}
 
 export function RegisterPage() {
-    const navigate = useNavigate()
-    const [error, setError] = useState<string | null>(null)
 
-    const {
-        register,
-        handleSubmit,
-        watch,
-        formState: { errors, isSubmitting },
-    } = useForm<RegisterFormValues>({
-        mode: 'onTouched',
-        defaultValues: { email: '', password: '', password2: '' },
-    })
+    const navigate = useNavigate();
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [password2, setPassword2] = useState('');
+    const [error, setError] = useState<string | null>(null);
+    const [loading, setLoading] = useState(false);
 
-    const password = watch('password')
+    
+    async function onSubmit(e: SyntheticEvent) {
+    
+        e.preventDefault();
+        setError(null);
 
-    const onSubmit = async (values: RegisterFormValues) => {
-        setError(null)
+        if (password.length < 6) {
+            setError('Пароль не короче 6 символов');
+            return;
+        }
+        if (password !== password2) {
+            setError('Пароли не совпадают');
+            return;
+        }
+
+        setLoading(true);
+
         try {
-            await registerRequest({ email: values.email.trim(), password: values.password })
-            navigate('/login', { replace: true, state: { registered: true } })
+            await registerRequest({ email: email.trim(), password });
+            navigate('/login', { replace: true, state: { registered: true } });
         } catch (err: unknown) {
-            setError(getErrorMessage(err, 'Не удалось зарегистрироваться.'))
+            setError(getErrorMessage(err, 'Не удалось зарегистрироваться.'));
+        } finally {
+            setLoading(false);
         }
     }
 
+
     return (
         <div className="col-lg-4 col-md-8 col-sm-10 col-12 m-auto">
-            <div className="d-flex flex-column gap-4 justify-content-start align-items-start form-card bg-brand rounded-md-5 vh-100 overflow-y-auto">
-                <div className="d-flex w-100 flex-column align-items-start flex-grow-0">
+            <div className="d-flex flex-column gap-4
+                            justify-content-start 
+                            align-items-start 
+                            bg-brand p-2
+                            vh-100 
+                            overflow-y-auto">
+                <div className="d-flex w-100 flex-column 
+                                align-items-start 
+                                flex-grow-0">
                     <NavigateBackButton label="Назад" className="btn-tertiary-invert" />
                 </div>
 
-                <div className="form-card-body d-flex flex-column gap-4 bg-page rounded-3">
+                <div className="surface-card surface-card-column w-100">
                     <div className="d-flex flex-column align-items-center text-center">
                         <p className="fs-3 fw-medium mb-0">Создайте Аккаунт</p>
                     </div>
 
                     <form
-                        onSubmit={handleSubmit(onSubmit)}
+                        onSubmit={onSubmit}
                         noValidate
-                        className="d-flex gap-3 w-100 flex-column align-items-stretch"
+                        className="form-layout mx-auto"
                     >
-                        {error && (
-                            <p className="text-danger small mb-0" role="alert">
-                                {error}
-                            </p>
-                        )}
 
                         <div className="w-100">
                             <label className="form-label label" htmlFor="reg-email">
@@ -69,18 +76,11 @@ export function RegisterPage() {
                                 type="email"
                                 className="form-control input"
                                 autoComplete="email"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                required
                                 placeholder="you@example.com"
-                                {...register('email', {
-                                    required: 'Укажите email',
-                                    pattern: {
-                                        value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-                                        message: 'Некорректный email',
-                                    },
-                                })}
                             />
-                            {errors.email && (
-                                <span className="input-error-text">{errors.email.message}</span>
-                            )}
                         </div>
 
                         <div className="w-100">
@@ -92,17 +92,11 @@ export function RegisterPage() {
                                 type="password"
                                 className="form-control input"
                                 autoComplete="new-password"
-                                {...register('password', {
-                                    required: 'Укажите пароль',
-                                    minLength: {
-                                        value: 6,
-                                        message: 'Пароль не короче 6 символов',
-                                    },
-                                })}
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                required
+                                minLength={6}
                             />
-                            {errors.password && (
-                                <span className="input-error-text">{errors.password.message}</span>
-                            )}
                         </div>
 
                         <div className="w-100">
@@ -114,22 +108,18 @@ export function RegisterPage() {
                                 type="password"
                                 className="form-control input"
                                 autoComplete="new-password"
-                                {...register('password2', {
-                                    required: 'Повторите пароль',
-                                    validate: (v) => v === password || 'Пароли не совпадают',
-                                })}
+                                value={password2}
+                                onChange={(e) => setPassword2(e.target.value)}
+                                required
                             />
-                            {errors.password2 && (
-                                <span className="input-error-text">{errors.password2.message}</span>
-                            )}
                         </div>
 
                         <button
                             type="submit"
                             className="btn btn-primary w-100 shadow-sm mt-4"
-                            disabled={isSubmitting}
+                            disabled={loading}
                         >
-                            {isSubmitting ? 'Регистрация…' : 'Зарегистрироваться'}
+                            {loading ? 'Регистрация…' : 'Зарегистрироваться'}
                         </button>
                     </form>
 
@@ -142,5 +132,5 @@ export function RegisterPage() {
                 </div>
             </div>
         </div>
-    )
+    );
 }

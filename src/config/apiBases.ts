@@ -32,3 +32,7 @@ export function resolveApiBaseUrl(): string {
 }
 
 export const API_BASE_URL = resolveApiBaseUrl();
+
+// Backward-compatible aliases for existing imports.
+export const API_BASE_URE = API_BASE_URL;
+export const API_BASE_FD = API_BASE_URL;

@@ -13,9 +13,7 @@ export type ActivityLevel =
     | 'LIGHT'
     | 'MODERATE'
     | 'HIGH'
-    | 'VERY_HIGH'
-
-export type GoalType = 'LOSE_WEIGHT' | 'MAINTAIN' | 'GAIN_WEIGHT'
+    | 'VERY_HIGH';
 
 export type ExtendedProfilePayload = {
     height: number
@@ -24,7 +22,6 @@ export type ExtendedProfilePayload = {
     weight: number
     plannedWeight: number
     activityLevel: ActivityLevel
-    goalType: GoalType
 }
 
 export type ProfileWithGoalPayload = {

@@ -9,6 +9,7 @@ export type DiaryCommentDto = {
     commentableId: number
     body: string
     createdAt?: string
+    createdById?: number | null
 }
 
 export type CommentPayload = {
@@ -52,13 +53,18 @@ export async function getCommentById(commentId: number): Promise<DiaryCommentDto
     return data
 }
 
+/** All comments of a type (e.g. MEAL) for a diary profile */
 export async function fetchCommentsByType(
     diaryProfileId: number,
-    commentType: string,
+    commentType: CommentType | string,
 ): Promise<DiaryCommentDto[]> {
-    const { data } = await http.get<DiaryCommentDto[]>(
-        `/api/diary-profile/comment/diary-profile/${diaryProfileId}/get-by-comment-type`,
-        { params: { commentType } },
-    )
-    return Array.isArray(data) ? data : []
+    try {
+        const { data } = await http.get<DiaryCommentDto[]>(
+            `/api/diary-profile/comment/diary-profile/${diaryProfileId}/get-by-comment-type`,
+            { params: { commentType } },
+        )
+        return Array.isArray(data) ? data : []
+    } catch {
+        return []
+    }
 }

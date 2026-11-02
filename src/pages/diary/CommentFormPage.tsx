@@ -1,39 +1,54 @@
-import { useEffect, useState } from 'react'
-import { useForm } from 'react-hook-form'
-import { Link, useParams, useNavigate, useSearchParams } from 'react-router-dom'
-import { HiChevronLeft } from 'react-icons/hi2'
-import { BottomNav } from '@/components/diary'
+import { useEffect, useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
+import { IoTrashOutline } from 'react-icons/io5';
+import { BottomNav } from '@/components/diary';
 import {
     getCommentById,
     createComment,
     updateComment,
     deleteComment,
     type CommentType,
-} from '@/api/diaryProfile'
-import { useAlert } from '@/components/ui/Alert'
-import { getErrorMessage } from '@/lib/errors'
-import { getDiaryProfileId } from '@/api/onboarding.ts'
+} from '@/api/diaryProfile';
+import { useAlert } from '@/components/ui/Alert';
+import { NavigateBackButton } from '@/components/ui/NavigateBackButton';
+import { getErrorMessage } from '@/lib/errors';
+import { getDiaryProfileId } from '@/api/onboarding.ts';
+
 
 type CommentFormValues = {
     body: string
-    commentableType: string
-    commentableId: string
-}
+};
 
-const COMMENT_TYPES: CommentType[] = ['MEAL', 'SLEEP_LOG', 'WEIGHT_LOG']
+const TYPE_LABEL: Record<string, string> = {
+    MEAL: 'Приём пищи',
+    SLEEP_LOG: 'Лог сна',
+    WEIGHT_LOG: 'Лог веса',
+};
+
 
 export function CommentFormPage() {
-    const { showAlert } = useAlert()
-    const [loading, setLoading] = useState(true)
-    const [error, setError] = useState('')
-    const [deleting, setDeleting] = useState(false)
-    const navigate = useNavigate()
-    const [searchParams] = useSearchParams()
+    
+    const { showAlert } = useAlert();
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState('');
+    const [deleting, setDeleting] = useState(false);
+    const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
 
-    const { commentId } = useParams()
-    const isEdit = Boolean(commentId)
+    const { commentId } = useParams();
+    const isEdit = Boolean(commentId);
 
-    const [diaryProfileId, setDiaryProfileId] = useState<number>(-1)
+    const commentableType = (searchParams.get('commentableType') ?? 'MEAL') as CommentType;
+    const commentableIdRaw =
+        searchParams.get('commentableId') ??
+        searchParams.get('mealId') ??
+        searchParams.get('sleepLogId') ??
+        searchParams.get('weightLogId') ??
+        '';
+    const commentableId = Number(commentableIdRaw);
+
+    const [diaryProfileId, setDiaryProfileId] = useState<number>(-1);
 
     const {
         register,
@@ -42,169 +57,149 @@ export function CommentFormPage() {
         formState: { errors, isSubmitting },
     } = useForm<CommentFormValues>({
         mode: 'onTouched',
-        defaultValues: {
-            body: '',
-            commentableType: searchParams.get('commentableType') ?? 'MEAL',
-            commentableId: searchParams.get('commentableId') ?? '',
-        },
-    })
+        defaultValues: { body: '' },
+    });
+
 
     useEffect(() => {
-        let cancelled = false
-        setLoading(true)
-        setError('')
+
+        let cancelled = false;
+        setLoading(true);
+        setError('');
 
         if (!isEdit) {
-            const profileId = getDiaryProfileId()
+
+            const profileId = getDiaryProfileId();
+
             if (!profileId) {
-                showAlert('Не удалось определить профиль дневника', 'warning')
-                navigate(-1)
-                return
+                showAlert('Не удалось определить профиль дневника', 'warning');
+                navigate(-1);
+                return;
             }
-            setDiaryProfileId(profileId)
-            setLoading(false)
-            return
+            if (!Number.isFinite(commentableId) || commentableId <= 0) {
+                showAlert('Сначала создайте приём / лог, затем добавьте комментарий', 'warning');
+                navigate(-1);
+                return;
+            }
+            setDiaryProfileId(profileId);
+            setLoading(false);
+            return;
         }
 
         ;(async () => {
+
             try {
-                const data = await getCommentById(Number(commentId))
-                if (cancelled) return
+
+                const data = await getCommentById(Number(commentId));
+                if (cancelled) return;
                 if (!data) {
-                    showAlert('Не удалось найти комментарий', 'danger')
-                    navigate(-1)
-                    return
+                    showAlert('Не удалось найти комментарий', 'danger');
+                    navigate(-1);
+                    return;
                 }
-                reset({
-                    body: data.body ?? '',
-                    commentableType: String(data.commentableType ?? 'MEAL'),
-                    commentableId: String(data.commentableId ?? ''),
-                })
+                reset({ body: data.body ?? '' });
             } catch (err: unknown) {
+
                 if (!cancelled) {
-                    showAlert(getErrorMessage(err, 'Не удалось загрузить комментарий'), 'danger')
-                    navigate(-1)
+                    showAlert(getErrorMessage(err, 'Не удалось загрузить комментарий'), 'danger');
+                    navigate(-1);
                 }
             } finally {
-                if (!cancelled) setLoading(false)
+                if (!cancelled) 
+                    setLoading(false);
             }
         })()
 
         return () => {
-            cancelled = true
+            cancelled = true;
         }
-    }, [commentId, isEdit, reset, navigate, showAlert])
+    }, [commentId, isEdit, reset, navigate, showAlert, commentableId]);
 
     const onSubmit = async (formData: CommentFormValues) => {
-        setError('')
-        const payload = {
-            commentableType: formData.commentableType,
-            commentableId: Number(formData.commentableId),
-            body: formData.body.trim(),
-        }
+
+        setError('');
+
         try {
+
             if (isEdit) {
-                await updateComment(Number(commentId), payload)
-                showAlert('Данные обновлены', 'success')
+
+                await updateComment(Number(commentId), {
+                    commentableType,
+                    commentableId,
+                    body: formData.body.trim(),
+                });
+                showAlert('Данные обновлены', 'success');
             } else {
-                await createComment(diaryProfileId, payload)
-                showAlert('Комментарий добавлен', 'success')
+
+                await createComment(diaryProfileId, {
+                    commentableType,
+                    commentableId,
+                    body: formData.body.trim(),
+                });
+                showAlert('Комментарий добавлен', 'success');
             }
+
             navigate('/diary', { replace: true })
         } catch (err: unknown) {
-            setError(getErrorMessage(err, 'Не удалось сохранить'))
+            setError(
+                getErrorMessage(err, 'Не удалось сохранить')
+            );
         }
     }
 
     const onDelete = async () => {
-        if (!isEdit) return
-        if (!window.confirm('Удалить комментарий?')) return
-        setDeleting(true)
-        setError('')
+
+        if (!isEdit) 
+            return;
+
+        if (!window.confirm('Удалить комментарий?')) 
+            return;
+
+        setDeleting(true);
+        setError('');
+        
         try {
-            await deleteComment(Number(commentId))
-            showAlert('Комментарий удалён', 'success')
-            navigate('/diary', { replace: true })
+
+            await deleteComment(Number(commentId));
+            showAlert('Комментарий удалён', 'success');
+            navigate('/diary', { replace: true });
         } catch (err: unknown) {
-            setError(getErrorMessage(err, 'Не удалось удалить'))
+            setError(getErrorMessage(err, 'Не удалось удалить'));
         } finally {
-            setDeleting(false)
+            setDeleting(false);
         }
     }
 
+
     return (
-        <div className="diary-shell">
-            <div className="bg-brand text-invert p-2 rounded-bottom-4">
-                <Link
-                    to="/diary"
-                    className="btn-tertiary bg-text-on-brand d-inline-flex align-items-center gap-1"
-                >
-                    <HiChevronLeft size={18} /> Назад
-                </Link>
-                <h2 className="bg-text-on-brand mt-2 text-center">Комментарий</h2>
+        <div className="diary-shell col-lg-4 col-md-8 col-sm-10 col-12 m-auto">
+            <div className='d-flex gap-3
+                            justify-content-start align-items-center
+                            bg-brand text-invert 
+                            p-4 
+                            rounded-bottom-4'>
+                <NavigateBackButton label="Назад" className="btn-tertiary-invert" />
+
+                <p className="page-title text-center p-2 bg-text-on-brand">Комментарий</p>
             </div>
 
-            {loading && <p className="no-content-placeholder">Загрузка…</p>}
 
-            <div className="container">
-                <div className="row">
+            <div className="diary-content p-3" style={{ paddingBottom: '7.5rem' }}>
+                {loading && <p className="no-content-placeholder">Загрузка…</p>}
+
+                <div className='surface-card surface-card-column w-100'>
                     {!loading && (
                         <form
                             onSubmit={handleSubmit(onSubmit)}
-                            className="form-card col-xl-3 col-lg-4 col-md-6 col-sm-8 col-10
-                                            d-flex flex-column gap-3 mx-auto"
+                            className="form-layout mx-auto"
                         >
                             {error && <p className="text-danger small mb-0">{error}</p>}
 
-                            <div className="d-flex flex-column gap-1">
-                                <div className="d-flex gap-2 justify-content-between align-items-center w-100">
-                                    <label htmlFor="commentableType" className="label text-wrap align-self-center">
-                                        Тип
-                                    </label>
-                                    <select
-                                        className="input rounded-3"
-                                        id="commentableType"
-                                        {...register('commentableType', {
-                                            required: 'Укажите тип',
-                                        })}
-                                    >
-                                        {COMMENT_TYPES.map((t) => (
-                                            <option key={t} value={t}>
-                                                {t}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </div>
-                                {errors.commentableType && (
-                                    <span className="input-error-text">{errors.commentableType.message}</span>
-                                )}
-                            </div>
-
-                            <div className="d-flex flex-column gap-1">
-                                <div className="d-flex gap-2 justify-content-between align-items-center w-100">
-                                    <label htmlFor="commentableId" className="label text-wrap align-self-center">
-                                        Id объекта
-                                    </label>
-                                    <input
-                                        className="input rounded-3"
-                                        id="commentableId"
-                                        type="number"
-                                        {...register('commentableId', {
-                                            required: 'Укажите id объекта',
-                                            validate: (value) => {
-                                                const n = Number(value)
-                                                if (!Number.isFinite(n) || n <= 0) {
-                                                    return 'Id должен быть больше 0'
-                                                }
-                                                return true
-                                            },
-                                        })}
-                                    />
-                                </div>
-                                {errors.commentableId && (
-                                    <span className="input-error-text">{errors.commentableId.message}</span>
-                                )}
-                            </div>
+                            {!isEdit && (
+                                <p className="small text-muted mb-0">
+                                    Для: {TYPE_LABEL[commentableType] ?? commentableType}
+                                </p>
+                            )}
 
                             <div className="d-flex flex-column gap-1">
                                 <div className="d-flex gap-2 justify-content-between align-items-center w-100">
@@ -238,10 +233,13 @@ export function CommentFormPage() {
                                 <button
                                     type="button"
                                     disabled={isSubmitting || deleting}
-                                    className="btn btn-danger w-100"
+                                    className="btn btn-outline-danger w-100 d-inline-flex align-items-center justify-content-center gap-2"
                                     onClick={() => void onDelete()}
+                                    aria-label="Удалить"
+                                    title="Удалить"
                                 >
-                                    {deleting ? 'Удаление...' : 'Удалить'}
+                                    <IoTrashOutline size={18} />
+                                    {deleting ? 'Удаление...' : null}
                                 </button>
                             )}
                         </form>
@@ -251,5 +249,5 @@ export function CommentFormPage() {
 
             <BottomNav />
         </div>
-    )
+    );
 }

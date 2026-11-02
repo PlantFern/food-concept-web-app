@@ -1,71 +1,79 @@
-import { useState } from 'react'
-import { useForm } from 'react-hook-form'
-import { Link, useNavigate } from 'react-router-dom'
-import { loginRequest } from '@/api/auth'
-import { getMyProfile } from '@/api/profiles'
-import { getErrorMessage, getErrorStatus } from '@/lib/errors'
-import { NavigateBackButton } from '@/components/ui/NavigateBackButton'
+import { type SyntheticEvent, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { loginRequest } from '@/api/auth';
+import { getMyProfile } from '@/api/profiles';
+import { getErrorMessage, getErrorStatus } from '@/lib/errors';
+import { NavigateBackButton } from '@/components/ui/NavigateBackButton';
 
-type LoginFormValues = {
-    email: string
-    password: string
-}
 
 export function LoginPage() {
-    const navigate = useNavigate()
-    const [error, setError] = useState<string | null>(null)
 
-    const {
-        register,
-        handleSubmit,
-        formState: { errors, isSubmitting },
-    } = useForm<LoginFormValues>({
-        mode: 'onTouched',
-        defaultValues: { email: '', password: '' },
-    })
+    const navigate = useNavigate();
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [error, setError] = useState<string | null>(null);
+    const [loading, setLoading] = useState(false);
 
-    const onSubmit = async (values: LoginFormValues) => {
-        setError(null)
+
+    async function onSubmit(e: SyntheticEvent) {
+    
+        e.preventDefault();
+        setError(null);
+        setLoading(true);
+
         try {
-            await loginRequest({ email: values.email.trim(), password: values.password })
+            await loginRequest({ email: email.trim(), password });
 
             try {
-                await getMyProfile()
-                navigate('/diary', { replace: true })
+
+                await getMyProfile();
+                navigate('/diary', { replace: true });
             } catch (profileErr: unknown) {
-                const status = getErrorStatus(profileErr)
+
+                const status = getErrorStatus(profileErr);
                 if (status === 404 || status === 403) {
-                    navigate('/onboarding/role', { replace: true })
-                    return
+
+                    navigate('/onboarding/role', { replace: true });
+                    return;
                 }
-                throw profileErr
+                throw profileErr;
             }
         } catch (err: unknown) {
-            const status = getErrorStatus(err)
+
+            const status = getErrorStatus(err);
             if (status === 401) {
-                setError('Неверный email или пароль')
+                setError('Неверный email или пароль');
             } else {
-                setError(getErrorMessage(err, 'Ошибка входа'))
+                setError(getErrorMessage(err, 'Ошибка входа'));
             }
+        } finally {
+            setLoading(false);
         }
     }
 
+    
     return (
         <div className="col-lg-4 col-md-8 col-sm-10 col-12 m-auto">
-            <div className="d-flex flex-column gap-4 justify-content-start align-items-start form-card bg-brand rounded-md-5 vh-100 overflow-y-auto">
+            <div className="d-flex flex-column gap-4 
+                            justify-content-start align-items-start 
+                            bg-brand p-2
+                            vh-100
+                            overflow-y-auto">
                 <div className="d-flex w-100 flex-column align-items-start flex-grow-0">
                     <NavigateBackButton label="Назад" className="btn-tertiary-invert" />
                 </div>
 
-                <div className="form-card-body d-flex flex-column gap-4 bg-page rounded-3">
-                    <div className="d-flex flex-column align-items-center text-center">
+                <div className="surface-card surface-card-column w-100">
+                    <div className="d-flex flex-column 
+                                    align-items-center 
+                                    text-center">
                         <p className="fs-3 fw-medium mb-0">С возвращением!</p>
                     </div>
 
                     <form
-                        onSubmit={handleSubmit(onSubmit)}
+                        onSubmit={onSubmit}
                         noValidate
-                        className="d-flex gap-3 w-100 flex-column align-items-stretch"
+                        className="form-layout mx-auto"
                     >
                         {error && (
                             <p className="text-danger small mb-0" role="alert">
@@ -82,18 +90,11 @@ export function LoginPage() {
                                 type="email"
                                 className="form-control input"
                                 autoComplete="email"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                required
                                 placeholder="you@example.com"
-                                {...register('email', {
-                                    required: 'Укажите email',
-                                    pattern: {
-                                        value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-                                        message: 'Некорректный email',
-                                    },
-                                })}
                             />
-                            {errors.email && (
-                                <span className="input-error-text">{errors.email.message}</span>
-                            )}
                         </div>
 
                         <div>
@@ -105,21 +106,18 @@ export function LoginPage() {
                                 type="password"
                                 className="form-control input"
                                 autoComplete="current-password"
-                                {...register('password', {
-                                    required: 'Укажите пароль',
-                                })}
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                required
                             />
-                            {errors.password && (
-                                <span className="input-error-text">{errors.password.message}</span>
-                            )}
                         </div>
 
                         <button
                             type="submit"
                             className="btn btn-primary w-100 shadow-sm mt-4"
-                            disabled={isSubmitting}
+                            disabled={loading}
                         >
-                            {isSubmitting ? 'Вход…' : 'Войти'}
+                            {loading ? 'Вход…' : 'Войти'}
                         </button>
                     </form>
 
@@ -132,5 +130,5 @@ export function LoginPage() {
                 </div>
             </div>
         </div>
-    )
+    );
 }

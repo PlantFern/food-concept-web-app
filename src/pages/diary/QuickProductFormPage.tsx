@@ -1,12 +1,21 @@
 import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
-import { HiChevronLeft } from 'react-icons/hi2'
 import { BottomNav } from '@/components/diary'
 import { addQuickProductRecord } from '@/api/food'
 import { useAlert } from '@/components/ui/Alert'
+import { NavigateBackButton } from '@/components/ui/NavigateBackButton';
 import { getErrorMessage } from '@/lib/errors'
 import { getDiaryProfileId } from '@/api/onboarding.ts'
+import { NUTRIENTS, unitLabel } from '@/data/nutrients'
+
+const MEAL_TYPES = [
+    { id: 1, label: 'Завтрак' },
+    { id: 2, label: 'Обед' },
+    { id: 3, label: 'Перекус' },
+    { id: 4, label: 'Ужин' },
+    { id: 5, label: 'Другое' },
+]
 
 type QuickProductFormValues = {
     mealTypeId: string
@@ -15,8 +24,7 @@ type QuickProductFormValues = {
     amount: string
     description: string
     gramWeight: string
-    nutrientId: string
-    nutrientAmount: string
+    [key: string]: string
 }
 
 function todayIso(): string {
@@ -27,6 +35,15 @@ function todayIso(): string {
     return `${y}-${m}-${day}`
 }
 
+function nowTime(): string {
+    const d = new Date()
+    return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
+}
+
+function nutrientField(id: number): string {
+    return `n_${id}`
+}
+
 export function QuickProductFormPage() {
     const { showAlert } = useAlert()
     const [loading, setLoading] = useState(true)
@@ -34,7 +51,9 @@ export function QuickProductFormPage() {
     const navigate = useNavigate()
     const [searchParams] = useSearchParams()
 
-    const [diaryProfileId, setDiaryProfileId] = useState<number>(-1)
+    const defaultNutrients = Object.fromEntries(
+        NUTRIENTS.map((n) => [nutrientField(n.id), '']),
+    )
 
     const {
         register,
@@ -45,47 +64,58 @@ export function QuickProductFormPage() {
         defaultValues: {
             mealTypeId: searchParams.get('mealTypeId') ?? '1',
             date: searchParams.get('date') ?? todayIso(),
-            eatenAt: searchParams.get('eatenAt') ?? '',
+            eatenAt: searchParams.get('eatenAt') ?? nowTime(),
             amount: '1',
             description: '',
             gramWeight: '100',
-            nutrientId: '1',
-            nutrientAmount: '0',
+            ...defaultNutrients,
         },
     })
 
     useEffect(() => {
         setLoading(true)
-        setError('')
         const profileId = getDiaryProfileId()
         if (!profileId) {
             showAlert('Не удалось определить профиль дневника', 'warning')
             navigate(-1)
             return
         }
-        setDiaryProfileId(profileId)
         setLoading(false)
     }, [navigate, showAlert])
 
     const onSubmit = async (formData: QuickProductFormValues) => {
         setError('')
+        const nutrients: Record<string, number> = {}
+        for (const def of NUTRIENTS) {
+            const raw = formData[nutrientField(def.id)] ?? ''
+            if (String(raw).trim() === '') continue
+            const n = Number(raw)
+            if (!Number.isFinite(n) || n < 0) {
+                setError(`Нутриент «${def.name}» — неотрицательное число`)
+                return
+            }
+            nutrients[String(def.id)] = n
+        }
+        if (Object.keys(nutrients).length === 0) {
+            setError('Укажите хотя бы один нутриент')
+            return
+        }
+
         try {
+            const mealIdRaw = searchParams.get('mealId')
+            const mealId =
+                mealIdRaw && Number(mealIdRaw) > 0 ? Number(mealIdRaw) : null
+
             await addQuickProductRecord({
-                mealId: null,
+                mealId,
                 mealTypeId: Number(formData.mealTypeId),
                 date: formData.date,
                 eatenAt: formData.eatenAt,
                 amount: Number(formData.amount),
                 description: formData.description.trim(),
                 gramWeight: Number(formData.gramWeight),
-                nutrients: [
-                    {
-                        nutrientId: Number(formData.nutrientId),
-                        amount: Number(formData.nutrientAmount),
-                    },
-                ],
+                nutrients,
             })
-            void diaryProfileId
             showAlert('Запись добавлена', 'success')
             navigate('/diary', { replace: true })
         } catch (err: unknown) {
@@ -94,204 +124,150 @@ export function QuickProductFormPage() {
     }
 
     return (
-        <div className="diary-shell">
-            <div className="bg-brand text-invert p-2 rounded-bottom-4">
-                <Link
-                    to="/diary"
-                    className="btn-tertiary bg-text-on-brand d-inline-flex align-items-center gap-1"
-                >
-                    <HiChevronLeft size={18} /> Назад
-                </Link>
-                <h2 className="bg-text-on-brand mt-2 text-center">Быстрый продукт</h2>
+        <div className="diary-shell col-lg-4 col-md-8 col-sm-10 col-12 m-auto">
+            <div className='d-flex gap-3
+                            justify-content-start align-items-center
+                            bg-brand text-invert 
+                            p-4 
+                            rounded-bottom-4'>
+                <NavigateBackButton label="Назад" className="btn-tertiary-invert" />
+
+                <p className="page-title text-center p-2 bg-text-on-brand">Связи</p>
             </div>
 
+        
+            <div className="diary-content p-3">
             {loading && <p className="no-content-placeholder">Загрузка…</p>}
 
-            <div className="container">
-                <div className="row">
+                <div className="surface-card surface-card-column w-100">
                     {!loading && (
                         <form
                             onSubmit={handleSubmit(onSubmit)}
-                            className="form-card col-xl-3 col-lg-4 col-md-6 col-sm-8 col-10
-                                            d-flex flex-column gap-3 mx-auto"
+                            className="form-layout mx-auto"
                         >
                             {error && <p className="text-danger small mb-0">{error}</p>}
 
                             <div className="d-flex flex-column gap-1">
-                                <div className="d-flex gap-2 justify-content-between align-items-center w-100">
-                                    <label htmlFor="description" className="label text-wrap align-self-center">
-                                        Описание
-                                    </label>
-                                    <input
-                                        className="input rounded-3"
-                                        id="description"
-                                        type="text"
-                                        {...register('description', {
-                                            required: 'Укажите описание',
-                                            validate: (v) => v.trim().length > 0 || 'Укажите описание',
-                                        })}
-                                    />
-                                </div>
+                                <label htmlFor="description" className="label">
+                                    Описание
+                                </label>
+                                <input
+                                    className="input rounded-3"
+                                    id="description"
+                                    type="text"
+                                    placeholder="Например: салат рыбный"
+                                    {...register('description', {
+                                        required: 'Укажите описание',
+                                        validate: (v) => v.trim().length > 0 || 'Укажите описание',
+                                    })}
+                                />
                                 {errors.description && (
                                     <span className="input-error-text">{errors.description.message}</span>
                                 )}
                             </div>
 
                             <div className="d-flex flex-column gap-1">
-                                <div className="d-flex gap-2 justify-content-between align-items-center w-100">
-                                    <label htmlFor="mealTypeId" className="label text-wrap align-self-center">
-                                        Приём пищи (id)
-                                    </label>
-                                    <input
-                                        className="input rounded-3"
-                                        id="mealTypeId"
-                                        type="number"
-                                        {...register('mealTypeId', {
-                                            required: 'Укажите тип приёма',
-                                            validate: (value) => {
-                                                const n = Number(value)
-                                                if (!Number.isFinite(n) || n <= 0) return 'Id должен быть больше 0'
-                                                return true
-                                            },
-                                        })}
-                                    />
-                                </div>
-                                {errors.mealTypeId && (
-                                    <span className="input-error-text">{errors.mealTypeId.message}</span>
-                                )}
+                                <label htmlFor="mealTypeId" className="label">
+                                    Приём пищи
+                                </label>
+                                <select
+                                    className="input rounded-3"
+                                    id="mealTypeId"
+                                    {...register('mealTypeId', { required: 'Укажите приём' })}
+                                >
+                                    {MEAL_TYPES.map((t) => (
+                                        <option key={t.id} value={t.id}>
+                                            {t.label}
+                                        </option>
+                                    ))}
+                                </select>
                             </div>
 
-                            <div className="d-flex flex-column gap-1">
-                                <div className="d-flex gap-2 justify-content-between align-items-center w-100">
-                                    <label htmlFor="date" className="label text-wrap align-self-center">
+                            <div className="row g-2">
+                                <div className="col-6">
+                                    <label htmlFor="date" className="label">
                                         Дата
                                     </label>
                                     <input
-                                        className="input rounded-3"
+                                        className="input rounded-3 w-100"
                                         id="date"
                                         type="date"
                                         {...register('date', { required: 'Укажите дату' })}
                                     />
                                 </div>
-                                {errors.date && (
-                                    <span className="input-error-text">{errors.date.message}</span>
-                                )}
-                            </div>
-
-                            <div className="d-flex flex-column gap-1">
-                                <div className="d-flex gap-2 justify-content-between align-items-center w-100">
-                                    <label htmlFor="eatenAt" className="label text-wrap align-self-center">
+                                <div className="col-6">
+                                    <label htmlFor="eatenAt" className="label">
                                         Время
                                     </label>
                                     <input
-                                        className="input rounded-3"
+                                        className="input rounded-3 w-100"
                                         id="eatenAt"
                                         type="time"
                                         {...register('eatenAt', { required: 'Укажите время' })}
                                     />
                                 </div>
-                                {errors.eatenAt && (
-                                    <span className="input-error-text">{errors.eatenAt.message}</span>
-                                )}
                             </div>
 
-                            <div className="d-flex flex-column gap-1">
-                                <div className="d-flex gap-2 justify-content-between align-items-center w-100">
-                                    <label htmlFor="amount" className="label text-wrap align-self-center">
-                                        Количество
+                            <div className="row g-2">
+                                <div className="col-6">
+                                    <label htmlFor="amount" className="label">
+                                        Порций
                                     </label>
                                     <input
-                                        className="input rounded-3"
+                                        className="input rounded-3 w-100"
                                         id="amount"
                                         type="number"
                                         step="any"
                                         {...register('amount', {
                                             required: 'Укажите количество',
-                                            validate: (value) => {
-                                                const n = Number(value)
-                                                if (!Number.isFinite(n) || n <= 0) return 'Количество должно быть больше 0'
-                                                return true
-                                            },
+                                            validate: (v) => Number(v) > 0 || 'Должно быть > 0',
                                         })}
                                     />
                                 </div>
-                                {errors.amount && (
-                                    <span className="input-error-text">{errors.amount.message}</span>
-                                )}
-                            </div>
-
-                            <div className="d-flex flex-column gap-1">
-                                <div className="d-flex gap-2 justify-content-between align-items-center w-100">
-                                    <label htmlFor="gramWeight" className="label text-wrap align-self-center">
-                                        Вес (г)
+                                <div className="col-6">
+                                    <label htmlFor="gramWeight" className="label">
+                                        Вес порции (г)
                                     </label>
                                     <input
-                                        className="input rounded-3"
+                                        className="input rounded-3 w-100"
                                         id="gramWeight"
                                         type="number"
                                         step="any"
                                         {...register('gramWeight', {
                                             required: 'Укажите вес',
-                                            validate: (value) => {
-                                                const n = Number(value)
-                                                if (!Number.isFinite(n) || n <= 0) return 'Вес должен быть больше 0'
-                                                return true
-                                            },
+                                            validate: (v) => Number(v) > 0 || 'Должно быть > 0',
                                         })}
                                     />
                                 </div>
-                                {errors.gramWeight && (
-                                    <span className="input-error-text">{errors.gramWeight.message}</span>
-                                )}
                             </div>
 
-                            <div className="d-flex flex-column gap-1">
-                                <div className="d-flex gap-2 justify-content-between align-items-center w-100">
-                                    <label htmlFor="nutrientId" className="label text-wrap align-self-center">
-                                        Нутриент (id)
-                                    </label>
-                                    <input
-                                        className="input rounded-3"
-                                        id="nutrientId"
-                                        type="number"
-                                        {...register('nutrientId', {
-                                            required: 'Укажите нутриент',
-                                            validate: (value) => {
-                                                const n = Number(value)
-                                                if (!Number.isFinite(n) || n <= 0) return 'Id должен быть больше 0'
-                                                return true
-                                            },
-                                        })}
-                                    />
+                            <div>
+                                <p className="label mb-2">Нутриенты (на указанный вес)</p>
+                                <div className="d-flex flex-column gap-2">
+                                    {NUTRIENTS.map((def) => {
+                                        const field = nutrientField(def.id)
+                                        return (
+                                            <div
+                                                key={def.id}
+                                                className="d-flex gap-2 align-items-center justify-content-between"
+                                            >
+                                                <label className="small mb-0" htmlFor={field}>
+                                                    {def.name} ({unitLabel(def.unit)})
+                                                </label>
+                                                <input
+                                                    className="input rounded-3"
+                                                    style={{ maxWidth: 120 }}
+                                                    id={field}
+                                                    type="number"
+                                                    step="any"
+                                                    min={0}
+                                                    placeholder="—"
+                                                    {...register(field)}
+                                                />
+                                            </div>
+                                        )
+                                    })}
                                 </div>
-                                {errors.nutrientId && (
-                                    <span className="input-error-text">{errors.nutrientId.message}</span>
-                                )}
-                            </div>
-
-                            <div className="d-flex flex-column gap-1">
-                                <div className="d-flex gap-2 justify-content-between align-items-center w-100">
-                                    <label htmlFor="nutrientAmount" className="label text-wrap align-self-center">
-                                        Кол-во нутриента
-                                    </label>
-                                    <input
-                                        className="input rounded-3"
-                                        id="nutrientAmount"
-                                        type="number"
-                                        step="any"
-                                        {...register('nutrientAmount', {
-                                            required: 'Укажите количество нутриента',
-                                            validate: (value) => {
-                                                const n = Number(value)
-                                                if (!Number.isFinite(n) || n < 0) return 'Значение некорректно'
-                                                return true
-                                            },
-                                        })}
-                                    />
-                                </div>
-                                {errors.nutrientAmount && (
-                                    <span className="input-error-text">{errors.nutrientAmount.message}</span>
-                                )}
                             </div>
 
                             <button

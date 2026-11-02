@@ -1,65 +1,107 @@
-import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
-import { HiChevronLeft } from 'react-icons/hi2'
-import { BottomNav } from '@/components/diary'
-import { useAlert } from '@/components/ui/Alert'
+import { useEffect, useState } from 'react';
+import { NavigateBackButton } from '@/components/ui/NavigateBackButton';
+import { BottomNav } from '@/components/diary';
+import { useAlert } from '@/components/ui/Alert';
 import {
     fetchLatestSettings,
     saveSettings,
     type ProfileFeatureSettingsDto,
-} from '@/api/diaryProfile/settings'
-import { NUTRIENT_GROUPS, NUTRIENTS, nutrientsByGroup } from '@/data/nutrients'
-import { getErrorMessage } from '@/lib/errors'
+} from '@/api/diaryProfile/settings';
+import { hasActiveSpecialistControl } from '@/api/specialist';
+import { getDiaryProfileId } from '@/api/onboarding';
+import { NUTRIENT_GROUPS, NUTRIENTS, nutrientsByGroup } from '@/data/nutrients';
+import { getErrorMessage } from '@/lib/errors';
+
 
 export function DiarySettingsPage() {
-    const { showAlert } = useAlert()
-    const [current, setCurrent] = useState<ProfileFeatureSettingsDto | null>(null)
-    const [loading, setLoading] = useState(true)
-    const [saving, setSaving] = useState(false)
-    const [error, setError] = useState('')
 
-    const [showSleep, setShowSleep] = useState(false)
-    const [showSleepLogs, setShowSleepLogs] = useState(false)
-    const [showWeight, setShowWeight] = useState(false)
-    const [showWeightLogs, setShowWeightLogs] = useState(false)
-    const [visibleIds, setVisibleIds] = useState<Set<number>>(() => new Set(NUTRIENTS.map((n) => n.id)))
+    const { showAlert } = useAlert();
+
+    const [current, setCurrent] = useState<ProfileFeatureSettingsDto | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [saving, setSaving] = useState(false);
+    const [error, setError] = useState('');
+
+    const [lockedBySpecialist, setLockedBySpecialist] = useState(false);
+
+    const [showSleep, setShowSleep] = useState(false);
+    const [showSleepLogs, setShowSleepLogs] = useState(false);
+    const [showWeight, setShowWeight] = useState(false);
+    const [showWeightLogs, setShowWeightLogs] = useState(false);
+    const [visibleIds, setVisibleIds] = useState<Set<number>>(() => new Set(NUTRIENTS.map((n) => n.id)));
+
 
     useEffect(() => {
-        let cancelled = false
-        ;(async () => {
-            setLoading(true)
-            const data = await fetchLatestSettings()
-            if (cancelled) return
-            setCurrent(data)
+        let cancelled = false;
+
+        (async () => {
+
+            setLoading(true);
+            const profileId = getDiaryProfileId();
+            const [data, locked] = await Promise.all([
+                fetchLatestSettings(),
+                profileId != null ? hasActiveSpecialistControl(profileId) : Promise.resolve(false),
+            ]);
+
+            if (cancelled) 
+                return;
+
+            setCurrent(data);
+            setLockedBySpecialist(locked);
+
             if (data) {
-                setShowSleep(Boolean(data.showSleep))
-                setShowSleepLogs(Boolean(data.showSleepLogs))
-                setShowWeight(Boolean(data.showWeight))
-                setShowWeightLogs(Boolean(data.showWeightLogs))
-                const hidden = new Set(data.hiddenNutrientIds ?? [])
-                setVisibleIds(new Set(NUTRIENTS.filter((n) => !hidden.has(n.id)).map((n) => n.id)))
+
+                setShowSleep(Boolean(data.showSleep));
+                setShowSleepLogs(Boolean(data.showSleepLogs));
+                setShowWeight(Boolean(data.showWeight));
+                setShowWeightLogs(Boolean(data.showWeightLogs));
+                const hidden = new Set(data.hiddenNutrientIds ?? []);
+                setVisibleIds(
+                    new Set(
+                        NUTRIENTS.filter((nutrient) => !hidden
+                        .has(nutrient.id))
+                        .map((nutrient) => nutrient.id)
+                    )
+                );
             }
-            setLoading(false)
+            setLoading(false);
         })()
+
         return () => {
-            cancelled = true
+            cancelled = true;
         }
     }, [])
 
     function toggleNutrient(id: number) {
+
+        if (lockedBySpecialist) 
+            return;
+
         setVisibleIds((prev) => {
-            const next = new Set(prev)
-            if (next.has(id)) next.delete(id)
-            else next.add(id)
-            return next
-        })
+
+            const next = new Set(prev);
+            if (next.has(id)) next.delete(id);
+            else next.add(id);
+            return next;
+        });
     }
 
     async function onSave() {
-        setError('')
-        setSaving(true)
+
+        if (lockedBySpecialist) 
+            return;
+
+        setError('');
+        setSaving(true);
+
         try {
-            const hiddenNutrients = NUTRIENTS.filter((n) => !visibleIds.has(n.id)).map((n) => n.id)
+
+            const hiddenNutrients = NUTRIENTS
+                .filter(
+                    (nutrient) => !visibleIds
+                        .has(nutrient.id))
+                        .map((nutrient) => nutrient.id);
+
             const saved = await saveSettings(current, {
                 showSleep,
                 showSleepLogs,
@@ -67,28 +109,43 @@ export function DiarySettingsPage() {
                 showWeightLogs,
                 showAllergensWarning: Boolean(current?.showAllergensWarning),
                 hiddenNutrients,
-            })
-            setCurrent(saved)
-            showAlert('Настройки обновлены', 'success')
+            });
+
+            setCurrent(saved);
+            showAlert('Настройки обновлены', 'success');
+
         } catch (err: unknown) {
-            setError(getErrorMessage(err, 'Не удалось сохранить настройки'))
+            setError(getErrorMessage(err, 'Не удалось сохранить настройки'));
         } finally {
-            setSaving(false)
+            setSaving(false);
         }
     }
 
+    const disabled = loading || lockedBySpecialist;
+
     return (
-        <div className="diary-shell">
+        <div className="diary-shell
+                        col-lg-4 col-md-8 col-sm-10 col-12
+                        m-auto">
+            <div className='d-flex gap-3
+                                justify-content-start align-items-center
+                                bg-brand text-invert 
+                                p-4 
+                                rounded-bottom-4'>
+                    <NavigateBackButton label="Назад" className="btn-tertiary-invert" />
+
+                    <p className="page-title text-center p-2 bg-text-on-brand">Настройки</p>
+                </div>
             <div className="diary-content p-3" style={{ paddingBottom: '7.5rem' }}>
-                <Link
-                    to="/diary/settings"
-                    className="small text-decoration-none d-inline-flex align-items-center gap-1"
-                >
-                    <HiChevronLeft size={18} /> Назад
-                </Link>
-                <h1 className="page-title mt-2">Настройки</h1>
 
                 {loading && <p className="text-muted">Загрузка…</p>}
+
+                {!loading && lockedBySpecialist && (
+                    <div className="alert alert-warning small" role="status">
+                        У вас активная связь со специалистом (тип «специалист»). Настройки
+                        управляются специалистом и недоступны для изменения.
+                    </div>
+                )}
 
                 {!loading && (
                     <>
@@ -102,6 +159,7 @@ export function DiarySettingsPage() {
                                         type="checkbox"
                                         id="show-sleep"
                                         checked={showSleep}
+                                        disabled={disabled}
                                         onChange={(e) => setShowSleep(e.target.checked)}
                                     />
                                     <label className="form-check-label" htmlFor="show-sleep">
@@ -114,6 +172,7 @@ export function DiarySettingsPage() {
                                         type="checkbox"
                                         id="show-sleep-logs"
                                         checked={showSleepLogs}
+                                        disabled={disabled}
                                         onChange={(e) => setShowSleepLogs(e.target.checked)}
                                     />
                                     <label className="form-check-label" htmlFor="show-sleep-logs">
@@ -126,6 +185,7 @@ export function DiarySettingsPage() {
                                         type="checkbox"
                                         id="show-weight"
                                         checked={showWeight}
+                                        disabled={disabled}
                                         onChange={(e) => setShowWeight(e.target.checked)}
                                     />
                                     <label className="form-check-label" htmlFor="show-weight">
@@ -138,6 +198,7 @@ export function DiarySettingsPage() {
                                         type="checkbox"
                                         id="show-weight-logs"
                                         checked={showWeightLogs}
+                                        disabled={disabled}
                                         onChange={(e) => setShowWeightLogs(e.target.checked)}
                                     />
                                     <label className="form-check-label" htmlFor="show-weight-logs">
@@ -150,7 +211,6 @@ export function DiarySettingsPage() {
                         <div className="card border-0 shadow-sm mb-3">
                             <div className="card-body">
                                 <h2 className="h6 mb-3">Нутриенты</h2>
-                                <p className="text-muted small">Отметьте, что показывать в дневнике</p>
                                 {NUTRIENT_GROUPS.map((group) => (
                                     <details key={group.id} className="mb-2" open={group.id === 'macro'}>
                                         <summary className="fw-semibold" style={{ cursor: 'pointer' }}>
@@ -164,6 +224,7 @@ export function DiarySettingsPage() {
                                                         type="checkbox"
                                                         id={`vis-${n.id}`}
                                                         checked={visibleIds.has(n.id)}
+                                                        disabled={disabled}
                                                         onChange={() => toggleNutrient(n.id)}
                                                     />
                                                     <label className="form-check-label" htmlFor={`vis-${n.id}`}>
@@ -181,17 +242,16 @@ export function DiarySettingsPage() {
             </div>
 
             <div
-                className="position-fixed start-50 translate-middle-x w-100 px-3"
+                className="position-fixed start-50 translate-middle-x"
                 style={{
                     bottom: '4.5rem',
-                    maxWidth: '540px',
                     zIndex: 1020,
                 }}
             >
                 <button
                     type="button"
-                    className="btn btn-primary w-100 shadow"
-                    disabled={loading || saving}
+                    className="btn btn-primary"
+                    disabled={disabled || saving}
                     onClick={() => void onSave()}
                 >
                     {saving ? 'Сохранение…' : 'Обновить'}

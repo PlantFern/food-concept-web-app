@@ -1,31 +1,45 @@
-import { Doughnut } from 'react-chartjs-2'
-import { Chart as ChartJS, ArcElement, Tooltip } from 'chart.js'
-import styles from './PrimaryNutrientGauge.module.css'
+import { Doughnut } from 'react-chartjs-2';
+import { Chart as ChartJS, ArcElement, Tooltip } from 'chart.js';
+import styles from './PrimaryNutrientGauge.module.css';
 
-ChartJS.register(ArcElement, Tooltip)
+ChartJS.register(ArcElement, Tooltip);
+
+import { formatNutrientValue } from '@/lib/formatNutrientValue';
+
 
 export type PrimaryNutrientGaugeProps = {
     current: number
     goal: number
     name?: string
     unit?: string
-}
+    nutrientCode:string
+};
+
 
 export function PrimaryNutrientGauge({
     current,
     goal,
     name,
     unit = '',
+    nutrientCode
 }: PrimaryNutrientGaugeProps) {
-    const safeGoal = goal > 0 ? goal : 1
-    const filled = Math.min(Math.max(current, 0), safeGoal)
-    const rest = Math.max(safeGoal - filled, 0)
+
+    const fact = Math.max(current, 0);
+    const target = Math.max(goal, 0)
+
+    const withinGoal = Math.min(fact, target);
+    const overGoal = Math.max(fact - target, 0);
+    const rest = Math.max(target - withinGoal, 0);
 
     const data = {
         datasets: [
             {
-                data: [filled, rest],
-                backgroundColor: ['#f6c2ea', 'rgba(255,255,255,0.28)'],
+                data: [withinGoal, rest, overGoal],
+                backgroundColor: [
+                    '#f6c2ea',
+                    'rgba(255,255,255,0.28)',
+                    '#dd8eab',
+                ],
                 borderWidth: 0,
                 circumference: 180,
                 rotation: 270,
@@ -33,7 +47,7 @@ export function PrimaryNutrientGauge({
                 borderRadius: 12,
             },
         ],
-    }
+    };
 
     const options = {
         responsive: true,
@@ -42,20 +56,21 @@ export function PrimaryNutrientGauge({
             legend: { display: false },
             tooltip: { enabled: false },
         },
-    }
+    };
 
-    const unitSuffix = unit ? ` ${unit}` : ''
+    const unitSuffix = unit ? ` ${unit}` : '';
+
 
     return (
         <div className={styles.kcalGaugeWrap}>
             <Doughnut data={data} options={options} />
             <div className={styles.kcalGaugeCenter}>
                 {name ? <div className={styles.kcalGaugeName}>{name}</div> : null}
-                <div className={styles.kcalGaugeValue}>{Math.round(current)}</div>
+                <div className={styles.kcalGaugeValue}>{formatNutrientValue(current, nutrientCode)}</div>
                 <div className={styles.kcalGaugeLabel}>
-                    / {Math.round(goal)}{unitSuffix}
+                    / {formatNutrientValue(goal, nutrientCode)}{unitSuffix}
                 </div>
             </div>
         </div>
-    )
+    );
 }

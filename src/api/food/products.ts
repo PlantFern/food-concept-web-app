@@ -21,6 +21,13 @@ export type FoodServingDto = {
     description?: string | null
 }
 
+export type ProductNutrientItem = {
+    nutrientId: number
+    nutrientCode?: string | null
+    amountPer100g?: number | null
+    unitCode?: string | null
+}
+
 export type ProductDetail = {
     productId: number
     productCode?: string | null
@@ -29,6 +36,7 @@ export type ProductDetail = {
     categoryCode?: string | null
     isFavorite?: boolean | null
     servings: FoodServingDto[]
+    nutrients?: ProductNutrientItem[] | null
 }
 
 export type ProductPage = {

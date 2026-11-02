@@ -18,7 +18,7 @@ const AlertContext = createContext<AlertContextValue | null>(null)
 export function AlertProvider({ children }: { children: React.ReactNode }) {
     const [alerts, setAlerts] = useState<AlertItem[]>([])
 
-    function showAlert(message: string, type: AlertType = 'info', duration = 4000) {
+    const showAlert: AlertContextValue['showAlert'] = (message, type = 'info', duration = 4000) => {
         const id = Date.now() + Math.random()
         setAlerts((prev) => [...prev, { id, message, type, duration }])
     }

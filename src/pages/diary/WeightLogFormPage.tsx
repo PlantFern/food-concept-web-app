@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { Link, useParams, useNavigate } from 'react-router-dom'
-import { HiChevronLeft } from 'react-icons/hi2'
+import { IoTrashOutline } from 'react-icons/io5'
 import { BottomNav } from '@/components/diary'
 import {
     getWeightLogById,
@@ -18,14 +18,15 @@ type WeightLogFormValues = {
 }
 
 export function WeightLogFormPage() {
-    const { showAlert } = useAlert()
-    const [loading, setLoading] = useState(true)
-    const [error, setError] = useState('')
-    const [deleting, setDeleting] = useState(false)
-    const navigate = useNavigate()
 
-    const { weightLogId } = useParams()
-    const isEdit = Boolean(weightLogId)
+    const { showAlert } = useAlert();
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState('');
+    const [deleting, setDeleting] = useState(false);
+    const navigate = useNavigate();
+
+    const { weightLogId } = useParams();
+    const isEdit = Boolean(weightLogId);
 
     const [diaryProfileId, setDiaryProfileId] = useState<number>(-1)
 
@@ -42,23 +43,25 @@ export function WeightLogFormPage() {
     })
 
     useEffect(() => {
+
         let cancelled = false
         setLoading(true)
         setError('')
 
         if (!isEdit) {
-            const profileId = getDiaryProfileId()
-            if (!profileId) {
-                showAlert('Не удалось определить профиль дневника', 'warning')
-                navigate(-1)
-                return
+            const profileId = getDiaryProfileId();
+
+            if(!profileId){
+                showAlert("Не удалось определить профиль дневника");
+                navigate(-1);
+                return;
             }
             setDiaryProfileId(profileId)
             setLoading(false)
             return
         }
 
-        ;(async () => {
+        (async () => {
             try {
                 const data = await getWeightLogById(Number(weightLogId))
                 if (cancelled) return
@@ -79,7 +82,7 @@ export function WeightLogFormPage() {
         })()
 
         return () => {
-            cancelled = true
+            cancelled = true;
         }
     }, [weightLogId, isEdit, reset, navigate, showAlert])
 
@@ -88,11 +91,12 @@ export function WeightLogFormPage() {
         const weight = Number(formData.weight)
         try {
             if (isEdit) {
-                await updateWeightLog(Number(weightLogId), weight)
-                showAlert('Данные обновлены', 'success')
-            } else {
-                await createWeightLog(diaryProfileId, weight)
-                showAlert('Запись о весе добавлена', 'success')
+                await updateWeightLog(Number(weightLogId), weight);
+                showAlert('Данные обновлены', 'success');
+            }
+            else {
+                await createWeightLog(diaryProfileId, weight);
+                showAlert('Запись о весе добавлена', 'success');
             }
             navigate('/diary', { replace: true })
         } catch (err: unknown) {
@@ -117,13 +121,10 @@ export function WeightLogFormPage() {
     }
 
     return (
-        <div className="diary-shell">
+        <div className="diary-shell col-lg-4 col-md-8 col-sm-10 col-12 m-auto">
             <div className="bg-brand text-invert p-2 rounded-bottom-4">
-                <Link
-                    to="/diary"
-                    className="btn-tertiary bg-text-on-brand d-inline-flex align-items-center gap-1"
-                >
-                    <HiChevronLeft size={18} /> Назад
+                <Link to="/diary" className="btn-tertiary bg-text-on-brand">
+                    ← Назад
                 </Link>
                 <h2 className="bg-text-on-brand mt-2 text-center">Запись о весе</h2>
             </div>
@@ -182,10 +183,13 @@ export function WeightLogFormPage() {
                                 <button
                                     type="button"
                                     disabled={isSubmitting || deleting}
-                                    className="btn btn-danger w-100"
+                                    className="btn btn-outline-danger w-100 d-inline-flex align-items-center justify-content-center gap-2"
                                     onClick={() => void onDelete()}
+                                    aria-label="Удалить"
+                                    title="Удалить"
                                 >
-                                    {deleting ? 'Удаление...' : 'Удалить'}
+                                    <IoTrashOutline size={18} />
+                                    {deleting ? 'Удаление...' : null}
                                 </button>
                             )}
                         </form>

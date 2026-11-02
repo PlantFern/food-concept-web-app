@@ -2,54 +2,30 @@ import { http } from '@/api/http'
 import type { DiaryProfileDto } from '@/api/diaryProfile/diary'
 import type { GoalDto } from '@/api/diaryProfile/goals'
 import type { SleepLogDto, WeightLogDto } from '@/api/diaryProfile/diary'
-import type { DiaryCommentDto } from '@/api/diaryProfile/comments'
+import type { DiaryCommentDto, CommentType } from '@/api/diaryProfile/comments'
+import type { ProfileFeatureSettingsDto, ProfileFeatureSettingsPayload } from '@/api/diaryProfile/settings'
 
-/** Specialist views / manages client diary profile */
 export async function getClientProfile(diaryProfileId: number): Promise<DiaryProfileDto> {
     const { data } = await http.get<DiaryProfileDto>(`/api/specialist/diary-profile/${diaryProfileId}`)
     return data
 }
 
-export async function getClientProfilesByIds(ids: number[]): Promise<DiaryProfileDto[]> {
-    const { data } = await http.get<DiaryProfileDto[]>(`/api/specialist/diary-profile/`, {
-        data: ids,
-    })
-    return Array.isArray(data) ? data : []
-}
-
-// Goals (specialist can CRUD client goals)
-export async function getClientGoals(diaryProfileId: number): Promise<GoalDto[]> {
-    const { data } = await http.get<GoalDto[]>(
-        `/api/specialist/goal/diary-profile/${diaryProfileId}/get-all`,
-    )
-    return Array.isArray(data) ? data : []
+export async function getClientLatestGoal(diaryProfileId: number): Promise<GoalDto | null> {
+    try {
+        const { data } = await http.get<GoalDto>(`/api/specialist/goal/diary-profile/${diaryProfileId}/latest`)
+        return data
+    } catch {
+        return null
+    }
 }
 
 export async function getClientActiveGoal(diaryProfileId: number): Promise<GoalDto | null> {
     try {
-        const { data } = await http.get<GoalDto>(
-            `/api/specialist/goal/diary-profile/${diaryProfileId}/active`,
-        )
+        const { data } = await http.get<GoalDto>(`/api/specialist/goal/diary-profile/${diaryProfileId}/active`)
         return data
     } catch {
         return null
     }
-}
-
-export async function getClientLatestGoal(diaryProfileId: number): Promise<GoalDto | null> {
-    try {
-        const { data } = await http.get<GoalDto>(
-            `/api/specialist/goal/diary-profile/${diaryProfileId}/latest`,
-        )
-        return data
-    } catch {
-        return null
-    }
-}
-
-export async function getClientGoalById(goalId: number): Promise<GoalDto> {
-    const { data } = await http.get<GoalDto>(`/api/specialist/goal/goals/${goalId}`)
-    return data
 }
 
 export async function createClientGoal(
@@ -58,7 +34,7 @@ export async function createClientGoal(
         plannedWeight?: number | null
         startDate: string
         plannedEndDate?: string | null
-        nutrientGoals: Array<{ nutrientId: number; targetAmount: number }>
+        nutrientGoals: Array<{ nutrientId: number; amount: number }>
     },
 ): Promise<GoalDto> {
     const { data } = await http.post<GoalDto>(`/api/specialist/goal/${diaryProfileId}`, payload)
@@ -71,7 +47,7 @@ export async function updateClientGoal(
         plannedWeight?: number | null
         startDate: string
         plannedEndDate?: string | null
-        nutrientGoals: Array<{ nutrientId: number; targetAmount: number }>
+        nutrientGoals: Array<{ nutrientId: number; amount: number }>
     },
 ): Promise<GoalDto> {
     const { data } = await http.put<GoalDto>(`/api/specialist/goal/goals/${goalId}`, payload)
@@ -82,7 +58,6 @@ export async function deleteClientGoal(goalId: number): Promise<void> {
     await http.delete(`/api/specialist/goal/goals/${goalId}`)
 }
 
-// Logs (sleep / weight read for client)
 export async function getClientSleepByDay(
     diaryProfileId: number,
     date: string,
@@ -135,7 +110,29 @@ export async function getClientWeightByPeriod(
     return Array.isArray(data) ? data : []
 }
 
-// Comments (if ClientCommentController exists — placeholder based on pattern)
+export async function getClientLatestSettings(diaryProfileId: number): Promise<ProfileFeatureSettingsDto | null> {
+    try {
+        const { data } = await http.get<ProfileFeatureSettingsDto>(`/api/specialist/profile-settings/diary-profile/${diaryProfileId}/latest`)
+        return data
+    } catch {
+        return null
+    }
+}
+
+export async function saveClientSettings(diaryProfileId: number, _current: ProfileFeatureSettingsDto | null, payload: ProfileFeatureSettingsPayload): Promise<ProfileFeatureSettingsDto> {
+    // Always POST: versioned settings. Specialist is often not the author of the previous row.
+    const { data } = await http.post<ProfileFeatureSettingsDto>(
+        `/api/specialist/profile-settings/${diaryProfileId}`,
+        payload,
+    )
+    return data
+}
+
+export async function createClientComment(diaryProfileId: number, payload: { commentableType: CommentType; commentableId: number; body: string }): Promise<DiaryCommentDto> {
+    const { data } = await http.post<DiaryCommentDto>(`/api/specialist/comment/${diaryProfileId}`, null, { params: payload })
+    return data
+}
+
 export async function getClientCommentsByType(
     diaryProfileId: number,
     commentType: string,

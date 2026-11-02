@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { HiChevronLeft } from 'react-icons/hi2'
 import { BottomNav } from '@/components/diary'
 import { useAlert } from '@/components/ui/Alert'
 import { getDiaryProfileId } from '@/api/onboarding'
@@ -69,16 +68,19 @@ export function MySpecialistsPage() {
     }
 
     return (
-        <div className="diary-shell">
+        <div className="diary-shell col-lg-4 col-md-8 col-sm-10 col-12 m-auto">
             <div className="diary-content p-3 pb-5">
                 <div className="bg-brand text-invert p-2 rounded-bottom-4">
-                    <Link
-                        to="/diary/settings"
-                        className="small text-decoration-none text-invert d-inline-flex align-items-center gap-1"
-                    >
-                        <HiChevronLeft size={18} /> Назад
+                    <Link to="/diary/settings" className="small text-decoration-none text-invert">
+                        ← Назад
                     </Link>
                     <h2 className="page-title text-center p-2 bg-text-on-brand">Мои специалисты</h2>
+                </div>
+
+                <div className="mt-3 d-flex justify-content-end">
+                    <Link to="/diary/specialists/search" className="btn btn-sm btn-primary">
+                        Найти специалиста
+                    </Link>
                 </div>
 
                 {loading && <p className="text-muted mt-3">Загрузка…</p>}
@@ -104,7 +106,7 @@ export function MySpecialistsPage() {
                                 {isActiveRelation(r) && (
                                     <button
                                         type="button"
-                                        className="btn btn-danger btn-sm"
+                                        className="btn btn-outline-danger btn-sm"
                                         disabled={busyId === r.id}
                                         onClick={() => void onEnd(r)}
                                     >
