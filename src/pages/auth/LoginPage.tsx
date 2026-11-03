@@ -21,6 +21,13 @@ export function LoginPage() {
         setError(null);
         setLoading(true);
 
+        const specialist = await getMySpecialist();
+
+        if(specialist) {
+            navigate('/specialist/clients', {replace: true});
+            return;
+        }
+
         try {
             await loginRequest({ email: email.trim(), password });
 
