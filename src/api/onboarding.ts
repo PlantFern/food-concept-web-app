@@ -83,12 +83,12 @@ export function clearOnboardingProfile() {
 export function saveDiaryProfileId(id: number) {
 
     if (!Number.isFinite(id) || id <= 0) return
-    localStorage.setItem(DIARY_PROFILE_ID_KEY, String(id));
+    sessionStorage.setItem(DIARY_PROFILE_ID_KEY, String(id));
 }
 
 export function getDiaryProfileId(): number | null {
 
-    const raw = localStorage.getItem(DIARY_PROFILE_ID_KEY);
+    const raw = sessionStorage.getItem(DIARY_PROFILE_ID_KEY);
 
     if (!raw) {
         return null;

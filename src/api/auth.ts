@@ -18,8 +18,8 @@ export async function loginRequest({ email, password }: LoginPayload): Promise<v
         auth: { username: email, password },
     })
 
-    localStorage.setItem('fd_auth_email', email)
-    localStorage.setItem('fd_auth_password', password)
+    sessionStorage.setItem('fd_auth_email', email)
+    sessionStorage.setItem('fd_auth_password', password)
     http.defaults.auth = { username: email, password }
 }
 
@@ -32,23 +32,23 @@ export async function registerRequest({ email, password }: RegisterPayload): Pro
 }
 
 export function logoutLocal(): void {
-    localStorage.removeItem('fd_auth_email')
-    localStorage.removeItem('fd_auth_password')
-    localStorage.removeItem('fd_diary_profile_id')
+    sessionStorage.removeItem('fd_auth_email')
+    sessionStorage.removeItem('fd_auth_password')
+    sessionStorage.removeItem('fd_diary_profile_id')
     clearOnboardingProfile()
     delete http.defaults.auth
 }
 
 export function restoreAuthFromStorage(): void {
-    const email = localStorage.getItem('fd_auth_email')
-    const password = localStorage.getItem('fd_auth_password')
+    const email = sessionStorage.getItem('fd_auth_email')
+    const password = sessionStorage.getItem('fd_auth_password')
     if (email && password) {
         http.defaults.auth = { username: email, password }
     }
 }
 
 export function hasStoredAuth(): boolean {
-    const email = localStorage.getItem('fd_auth_email')
-    const password = localStorage.getItem('fd_auth_password')
+    const email = sessionStorage.getItem('fd_auth_email')
+    const password = sessionStorage.getItem('fd_auth_password')
     return Boolean(email && password)
 }
