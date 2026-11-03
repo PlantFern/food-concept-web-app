@@ -2,6 +2,7 @@ import { type SyntheticEvent, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { loginRequest } from '@/api/auth';
 import { getMyProfile } from '@/api/profiles';
+import { getMySpecialist } from '@/api/specialist';
 import { getErrorMessage, getErrorStatus } from '@/lib/errors';
 import { NavigateBackButton } from '@/components/ui/NavigateBackButton';
 
@@ -16,37 +17,32 @@ export function LoginPage() {
 
 
     async function onSubmit(e: SyntheticEvent) {
-    
+
         e.preventDefault();
         setError(null);
         setLoading(true);
 
-        const specialist = await getMySpecialist();
-
-        if(specialist) {
-            navigate('/specialist/clients', {replace: true});
-            return;
-        }
-
         try {
             await loginRequest({ email: email.trim(), password });
 
-            try {
+            const specialist = await getMySpecialist();
+            if (specialist) {
+                navigate('/specialist/clients', { replace: true });
+                return;
+            }
 
+            try {
                 await getMyProfile();
                 navigate('/diary', { replace: true });
             } catch (profileErr: unknown) {
-
                 const status = getErrorStatus(profileErr);
                 if (status === 404 || status === 403) {
-
                     navigate('/onboarding/role', { replace: true });
                     return;
                 }
                 throw profileErr;
             }
         } catch (err: unknown) {
-
             const status = getErrorStatus(err);
             if (status === 401) {
                 setError('Неверный email или пароль');
@@ -58,11 +54,11 @@ export function LoginPage() {
         }
     }
 
-    
+
     return (
         <div className="col-lg-4 col-md-8 col-sm-10 col-12 m-auto">
-            <div className="d-flex flex-column gap-4 
-                            justify-content-start align-items-start 
+            <div className="d-flex flex-column gap-4
+                            justify-content-start align-items-start
                             bg-brand p-2
                             vh-100
                             overflow-y-auto">
@@ -71,8 +67,8 @@ export function LoginPage() {
                 </div>
 
                 <div className="surface-card surface-card-column w-100">
-                    <div className="d-flex flex-column 
-                                    align-items-center 
+                    <div className="d-flex flex-column
+                                    align-items-center
                                     text-center">
                         <p className="fs-3 fw-medium mb-0">С возвращением!</p>
                     </div>
